@@ -4,6 +4,7 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import PrivateRoute from './routes/PrivateRoute';
+import CadastroPecas from './pages/CadastroPecas';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+      <Route path="/cadastroPecas" element={<CadastroPecas />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
