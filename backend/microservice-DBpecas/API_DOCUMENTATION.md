@@ -3,7 +3,20 @@
 ## Endpoints
 
 ### GET /api/pecas
-Retorna todas as peças cadastradas.
+Retorna as peças cadastradas. Este endpoint aceita filtros dinâmicos e ordenação via Query Parameters.
+
+**Query Parameters (Opcionais):**
+- `nome`: Busca parcial no nome.
+- `categoria_id`: ID da categoria.
+- `material_id`: ID do material.
+- `condicao`: Filtro por condição (NOS, Restaurada, etc).
+- `oem_number`: Número original.
+- `num_serie`: Número de série.
+- `min_preco`: Preço mínimo.
+- `max_preco`: Preço máximo.
+- `min_estoque`: Estoque mínimo.
+- `sort`: Campo para ordenar (`preco` ou `data`).
+- `order`: Direção (`asc` ou `desc`).
 
 **Response (200):**
 ```json
