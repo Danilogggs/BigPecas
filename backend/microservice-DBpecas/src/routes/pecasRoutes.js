@@ -101,13 +101,78 @@ router.post('/cadastrar', async (req, res) => {
 
 // ===== ROTAS GET =====
 
-// Listar todas as peças
+// Listar todas as peças, filtradas caso haja um filtro especificado.
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM pecas');
+    const { 
+      nome, 
+      categoria_id, 
+      material_id,
+      num_serie, 
+      condicao, 
+      min_preco, 
+      max_preco,
+      oem_number,
+      min_estoque,
+      sort,
+      ordem
+    } = req.query;
+
+    let query = "SELECT * FROM pecas WHERE 1=1";
+    const params = [];
+
+    if (categoria_id) {
+      query += " AND categoria_id = ?";
+      params.push(categoria_id);
+    }
+    if (material_id) {
+      query += " AND material_id = ?";
+      params.push(material_id);
+    }
+    if (condicao) {
+      query += " AND condicao = ?";
+      params.push(condicao);
+    }
+    if (oem_number) {
+      query += " AND oem_number = ?";
+      params.push(oem_number);
+    }
+
+    if (num_serie) {
+      query += " AND num_serie = ?";
+      params.push(num_serie);
+    }
+    if (nome) {
+      query += " AND nome_peca LIKE ?";
+      params.push(`%${nome}%`);
+    }
+
+    if (min_preco) {
+      query += " AND preco >= ?";
+      params.push(parseFloat(min_preco));
+    }
+    if (max_preco) {
+      query += " AND preco <= ?";
+      params.push(parseFloat(max_preco));
+    }
+
+    if (min_estoque) {
+      query += " AND estoque_atual >= ?";
+      params.push(parseFloat(min_estoque));
+    }
+
+    const sortField = sort || 'id';
+
+    const sortOrder = (ordem && ordem.toLowerCase() === 'asc') ? 'ASC' : 'DESC';
+
+    query += ` ORDER BY ${sortField} ${sortOrder}`;
+
+    const [rows] = await db.execute(query, params);
     res.json(rows);
+
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar peças" });
+    console.error("Erro ao buscar peças:", error);
+    res.status(500).json({ error: "Erro interno ao processar a listagem" });
   }
 });
 
@@ -124,6 +189,7 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // ===== ROTAS PUT (GENÉRICAS) =====
 
