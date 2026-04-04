@@ -5,6 +5,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import PrivateRoute from './routes/PrivateRoute';
 import CadastroPecas from './pages/CadastroPecas';
+import CadastroUsuario from './pages/CadastroUsuario';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/cadastro" element={<RegisterPage />} />
+      <Route path="/cadastro-usuario" element={<CadastroUsuario />} />
       <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
       <Route
         path="/dashboard"

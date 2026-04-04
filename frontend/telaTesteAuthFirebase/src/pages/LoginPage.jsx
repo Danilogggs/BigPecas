@@ -63,7 +63,7 @@ export default function LoginPage() {
       </form>
 
       <div className="d-flex justify-content-between mt-4 flex-wrap gap-2">
-        <Link to="/cadastro" className="link-light-muted">
+        <Link to="/cadastro-usuario" className="link-light-muted">
           Criar conta
         </Link>
         <Link to="/recuperar-senha" className="link-light-muted">
