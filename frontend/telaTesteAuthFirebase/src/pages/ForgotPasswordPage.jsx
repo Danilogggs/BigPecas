@@ -15,12 +15,11 @@ export default function ForgotPasswordPage() {
     setError('');
     setSuccess('');
     setLoading(true);
-
     try {
       await resetPassword(email);
-      setSuccess('Email de redefinição enviado com sucesso.');
-    } catch (err) {
-      setError('Não foi possível enviar o email de redefinição.');
+      setSuccess('Email de redefinição enviado. Verifique sua caixa de entrada.');
+    } catch {
+      setError('Não foi possível enviar o email. Verifique o endereço informado.');
     } finally {
       setLoading(false);
     }
@@ -31,12 +30,12 @@ export default function ForgotPasswordPage() {
       title="Recuperar senha"
       subtitle="Informe seu email para receber o link de redefinição."
     >
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Email</label>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-[#6A5F58] mb-1">Email</label>
           <input
             type="email"
-            className="form-control"
+            className="w-full rounded-xl border border-[#D8CFC2] px-4 py-3 text-sm text-[#2C1A17] bg-[#FAF6EF] outline-none focus:border-[#6B1E2D] transition"
             placeholder="seuemail@exemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -44,17 +43,29 @@ export default function ForgotPasswordPage() {
           />
         </div>
 
-        {error && <div className="alert alert-danger py-2">{error}</div>}
-        {success && <div className="alert alert-success py-2">{success}</div>}
+        {error && (
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+            {success}
+          </div>
+        )}
 
-        <button className="btn btn-success w-100 py-2 mt-2" disabled={loading}>
-          {loading ? 'Enviando...' : 'Enviar email'}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-xl bg-[#6B1E2D] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#541723] disabled:opacity-60"
+        >
+          {loading ? 'Enviando...' : 'Enviar email de recuperação'}
         </button>
       </form>
 
-      <div className="mt-4">
-        <Link to="/login" className="link-light-muted">
-          Voltar para o login
+      <div className="mt-6">
+        <Link to="/login" className="text-sm text-[#6A5F58] hover:text-[#6B1E2D] no-underline">
+          ← Voltar para o login
         </Link>
       </div>
     </AuthLayout>

@@ -6,10 +6,10 @@ export default function PrivateRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center auth-wrapper">
-        <div className="text-center text-light">
-          <div className="spinner-border mb-3" role="status"></div>
-          <p>Verificando autenticação...</p>
+      <div className="min-h-screen bg-[#FAF6EF] flex items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-3 h-8 w-8 rounded-full border-4 border-[#6B1E2D] border-t-transparent animate-spin" />
+          <p className="text-sm text-[#6A5F58]">Verificando autenticação...</p>
         </div>
       </div>
     );

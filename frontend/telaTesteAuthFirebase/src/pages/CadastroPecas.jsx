@@ -1,442 +1,311 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { cadastrarPeca } from '../services/pecasService';
+import DashboardNav from '../components/DashboardNav';
 
-const BORDEAUX = '#7B1D2E';
-const CREAM = '#F5EDD8';
+const inputClass =
+  'w-full rounded-xl border border-[#D8CFC2] px-4 py-3 text-sm text-[#2C1A17] bg-[#FAF6EF] outline-none focus:border-[#6B1E2D] transition';
+
+function Field({ label, required, children }) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#6A5F58] mb-1">
+        {label}
+        {required && <span className="text-[#6B1E2D] ml-1">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function SectionTitle({ children }) {
+  return (
+    <h3 className="font-serif text-lg font-semibold text-[#6B1E2D] border-b border-[#D8CFC2] pb-2 mb-5">
+      {children}
+    </h3>
+  );
+}
+
+const emptyForm = {
+  nome_peca: '',
+  sku: '',
+  oem_number: '',
+  num_serie: '',
+  categoria: '',
+  material: '',
+  condicao: 'NOS',
+  peso_gramas: '',
+  comprimento_mm: '',
+  largura_mm: '',
+  altura_mm: '',
+  detalhes_gravacao: '',
+  historico_proveniencia: '',
+  preco: '',
+  estoque_atual: '',
+};
 
 export default function CadastroPecas() {
-  const [formData, setFormData] = useState({
-    nome_peca: '',
-    sku: '',
-    oem_number: '',
-    num_serie: '',
-    categoria: '',
-    material: '',
-    condicao: 'NOS',
-    peso_gramas: '',
-    comprimento_mm: '',
-    largura_mm: '',
-    altura_mm: '',
-    detalhes_gravacao: '',
-    historico_proveniencia: '',
-    preco: '',
-    estoque_atual: ''
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const handleInputChange = (e) => {
+  function handleChange(e) {
     const { name, value } = e.target;
-    console.log(`Campo ${name} alterado para:`, value);
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: '', text: '' });
-
     try {
       const response = await cadastrarPeca(formData);
       setMessage({ type: 'success', text: response.message || 'Peça cadastrada com sucesso!' });
-      // Limpa o formulário
-      setFormData({
-        nome_peca: '',
-        sku: '',
-        oem_number: '',
-        num_serie: '',
-        categoria: '',
-        material: '',
-        condicao: 'NOS',
-        peso_gramas: '',
-        comprimento_mm: '',
-        largura_mm: '',
-        altura_mm: '',
-        detalhes_gravacao: '',
-        historico_proveniencia: '',
-        preco: '',
-        estoque_atual: ''
-      });
+      setFormData(emptyForm);
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Erro ao cadastrar peça' });
+      setMessage({ type: 'error', text: error.message || 'Erro ao cadastrar peça.' });
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: CREAM, display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: BORDEAUX,
-          padding: '1rem 2rem',
-          color: CREAM,
-          textShadow: '1px 1px 4px rgba(0,0,0,0.35)'
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>
-          Cadastrar Peça
-        </h1>
-        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', opacity: 0.9 }}>
-          Adicione novos itens ao catálogo de peças vintage
-        </p>
-      </header>
+    <div className="min-h-screen bg-[#FAF6EF]">
+      <DashboardNav />
 
-      {/* Main content */}
-      <main style={{ flex: 1, padding: '2rem', overflow: 'auto' }}>
-        {/* Message Alert */}
+      <div className="bg-[#F4E9D8] border-b border-[#D8CFC2] px-6 py-4">
+        <div className="mx-auto max-w-4xl flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-[#7C6540]">Catálogo</p>
+            <h1 className="font-serif text-2xl font-bold text-[#2C1A17] m-0">Cadastrar Peça</h1>
+          </div>
+          <Link
+            to="/dashboard"
+            className="text-sm text-[#6A5F58] hover:text-[#6B1E2D] no-underline transition"
+          >
+            ← Voltar ao dashboard
+          </Link>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-4xl px-6 py-8">
         {message.text && (
           <div
-            style={{
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              borderRadius: '0.625rem',
-              backgroundColor: message.type === 'success' ? '#D1FAE5' : '#FEE2E2',
-              color: message.type === 'success' ? '#065F46' : '#7F1D1D',
-              border: `2px solid ${message.type === 'success' ? '#6EE7B7' : '#FCA5A5'}`,
-              fontSize: '0.95rem'
-            }}
+            className={`rounded-xl px-4 py-3 text-sm font-medium mb-6 ${
+              message.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-800'
+                : 'bg-red-50 border border-red-200 text-red-700'
+            }`}
           >
             {message.text}
           </div>
         )}
 
-        {/* Form Container */}
-        <div
-          style={{
-            backgroundColor: '#fff',
-            borderRadius: '1rem',
-            border: `2px solid ${BORDEAUX}22`,
-            padding: '2rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-          }}
-        >
-          <form onSubmit={handleSubmit}>
-            {/* Section: Informações Básicas */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', color: BORDEAUX, marginBottom: '1rem', fontWeight: 600 }}>
-                Informações Básicas
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <input
-                  type="text"
-                  name="nome_peca"
-                  placeholder="Nome da Peça *"
-                  value={formData.nome_peca}
-                  onChange={handleInputChange}
-                  required
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
-                <input
-                  type="text"
-                  name="sku"
-                  placeholder="SKU (Código interno)"
-                  value={formData.sku}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
-                <input
-                  type="text"
-                  name="oem_number"
-                  placeholder="OEM Number (Número original)"
-                  value={formData.oem_number}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
-                <input
-                  type="text"
-                  name="num_serie"
-                  placeholder="Número de série"
-                  value={formData.num_serie}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
+        <div className="bg-white rounded-[28px] border border-[#D8CFC2] shadow-sm p-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Informações Básicas */}
+            <section>
+              <SectionTitle>Informações Básicas</SectionTitle>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Nome da peça" required>
+                  <input
+                    className={inputClass}
+                    type="text"
+                    name="nome_peca"
+                    placeholder="Ex: Carburador Weber 460"
+                    value={formData.nome_peca}
+                    onChange={handleChange}
+                    required
+                  />
+                </Field>
+                <Field label="SKU (código interno)">
+                  <input
+                    className={inputClass}
+                    type="text"
+                    name="sku"
+                    placeholder="Ex: CARB-W460-001"
+                    value={formData.sku}
+                    onChange={handleChange}
+                  />
+                </Field>
+                <Field label="OEM Number">
+                  <input
+                    className={inputClass}
+                    type="text"
+                    name="oem_number"
+                    placeholder="Número original do fabricante"
+                    value={formData.oem_number}
+                    onChange={handleChange}
+                  />
+                </Field>
+                <Field label="Número de série">
+                  <input
+                    className={inputClass}
+                    type="text"
+                    name="num_serie"
+                    placeholder="Número de série da peça"
+                    value={formData.num_serie}
+                    onChange={handleChange}
+                  />
+                </Field>
               </div>
-            </div>
+            </section>
 
-            {/* Section: Categorização */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', color: BORDEAUX, marginBottom: '1rem', fontWeight: 600 }}>
-                Categorização
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <select
-                  name="categoria"
-                  value={formData.categoria}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                >
-                  <option value="">Selecione categoria...</option>
-                  <option value="1">Motor</option>
-                  <option value="2">Lataria</option>
-                  <option value="3">Elétrica</option>
-                  <option value="4">Interior</option>
-                  <option value="5">Suspensão</option>
-                  <option value="6">Freios</option>
-                </select>
-                <select
-                  name="material"
-                  value={formData.material}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                >
-                  <option value="">Selecione material...</option>
-                  <option value="1">Aço</option>
-                  <option value="2">Antimônio</option>
-                  <option value="3">Baquelite</option>
-                  <option value="4">Cromo</option>
-                  <option value="5">Alumínio</option>
-                  <option value="6">Borracha</option>
-                </select>
+            {/* Categorização */}
+            <section>
+              <SectionTitle>Categorização</SectionTitle>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Categoria">
+                  <select
+                    className={inputClass}
+                    name="categoria"
+                    value={formData.categoria}
+                    onChange={handleChange}
+                  >
+                    <option value="">Selecione a categoria...</option>
+                    <option value="1">Motor</option>
+                    <option value="2">Lataria</option>
+                    <option value="3">Elétrica</option>
+                    <option value="4">Interior</option>
+                    <option value="5">Suspensão</option>
+                    <option value="6">Freios</option>
+                  </select>
+                </Field>
+                <Field label="Material">
+                  <select
+                    className={inputClass}
+                    name="material"
+                    value={formData.material}
+                    onChange={handleChange}
+                  >
+                    <option value="">Selecione o material...</option>
+                    <option value="1">Aço</option>
+                    <option value="2">Antimônio</option>
+                    <option value="3">Baquelite</option>
+                    <option value="4">Cromo</option>
+                    <option value="5">Alumínio</option>
+                    <option value="6">Borracha</option>
+                  </select>
+                </Field>
               </div>
-            </div>
+            </section>
 
-            {/* Section: Condição e Preço */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', color: BORDEAUX, marginBottom: '1rem', fontWeight: 600 }}>
-                Condição e Preço
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <select
-                  name="condicao"
-                  value={formData.condicao}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                >
-                  <option value="NOS">NOS (Estoque Antigo Novo)</option>
-                  <option value="Original Usada">Original Usada</option>
-                  <option value="Restaurada">Restaurada</option>
-                  <option value="Reprodução de Época">Reprodução de Época</option>
-                </select>
-                <input
-                  type="number"
-                  name="preco"
-                  placeholder="Preço (R$) *"
-                  value={formData.preco}
-                  onChange={handleInputChange}
-                  step="0.01"
-                  required
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
+            {/* Condição e Preço */}
+            <section>
+              <SectionTitle>Condição e Preço</SectionTitle>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field label="Condição">
+                  <select
+                    className={inputClass}
+                    name="condicao"
+                    value={formData.condicao}
+                    onChange={handleChange}
+                  >
+                    <option value="NOS">NOS (Estoque Antigo Novo)</option>
+                    <option value="Original Usada">Original Usada</option>
+                    <option value="Restaurada">Restaurada</option>
+                    <option value="Reprodução de Época">Reprodução de Época</option>
+                  </select>
+                </Field>
+                <Field label="Preço (R$)" required>
+                  <input
+                    className={inputClass}
+                    type="number"
+                    name="preco"
+                    placeholder="0,00"
+                    value={formData.preco}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </Field>
               </div>
-            </div>
+            </section>
 
-            {/* Section: Dimensões */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', color: BORDEAUX, marginBottom: '1rem', fontWeight: 600 }}>
-                Dimensões (Frete)
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1.5rem' }}>
-                <input
-                  type="number"
-                  name="peso_gramas"
-                  placeholder="Peso (g)"
-                  value={formData.peso_gramas}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
-                <input
-                  type="number"
-                  name="comprimento_mm"
-                  placeholder="Comprimento (mm)"
-                  value={formData.comprimento_mm}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
-                <input
-                  type="number"
-                  name="largura_mm"
-                  placeholder="Largura (mm)"
-                  value={formData.largura_mm}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
-                <input
-                  type="number"
-                  name="altura_mm"
-                  placeholder="Altura (mm)"
-                  value={formData.altura_mm}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA'
-                  }}
-                />
+            {/* Dimensões */}
+            <section>
+              <SectionTitle>Dimensões para Frete</SectionTitle>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { name: 'peso_gramas', label: 'Peso (g)' },
+                  { name: 'comprimento_mm', label: 'Comprimento (mm)' },
+                  { name: 'largura_mm', label: 'Largura (mm)' },
+                  { name: 'altura_mm', label: 'Altura (mm)' },
+                ].map(({ name, label }) => (
+                  <Field key={name} label={label}>
+                    <input
+                      className={inputClass}
+                      type="number"
+                      name={name}
+                      placeholder="0"
+                      value={formData[name]}
+                      onChange={handleChange}
+                      min="0"
+                    />
+                  </Field>
+                ))}
               </div>
-            </div>
+            </section>
 
-            {/* Section: Autenticidade */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', color: BORDEAUX, marginBottom: '1rem', fontWeight: 600 }}>
-                Detalhes de Autenticidade
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
-                <textarea
-                  name="detalhes_gravacao"
-                  placeholder="Detalhes de gravação (ex: Logo Ford timbrado no verso)"
-                  value={formData.detalhes_gravacao}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA',
-                    minHeight: '80px',
-                    fontFamily: 'inherit',
-                    resize: 'vertical'
-                  }}
-                />
-                <textarea
-                  name="historico_proveniencia"
-                  placeholder="Histórico e procedência da peça"
-                  value={formData.historico_proveniencia}
-                  onChange={handleInputChange}
-                  style={{
-                    padding: '0.75rem',
-                    border: `2px solid #DDD`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.95rem',
-                    backgroundColor: '#FAFAFA',
-                    minHeight: '80px',
-                    fontFamily: 'inherit',
-                    resize: 'vertical'
-                  }}
-                />
+            {/* Autenticidade */}
+            <section>
+              <SectionTitle>Detalhes de Autenticidade</SectionTitle>
+              <div className="grid gap-5">
+                <Field label="Detalhes de gravação">
+                  <textarea
+                    className={`${inputClass} min-h-[80px] resize-vertical`}
+                    name="detalhes_gravacao"
+                    placeholder="Ex: Logo Ford timbrado no verso, número de série gravado a laser..."
+                    value={formData.detalhes_gravacao}
+                    onChange={handleChange}
+                  />
+                </Field>
+                <Field label="Histórico e procedência">
+                  <textarea
+                    className={`${inputClass} min-h-[80px] resize-vertical`}
+                    name="historico_proveniencia"
+                    placeholder="Ex: Peça retirada de Chevette 1980, procedência confirmada..."
+                    value={formData.historico_proveniencia}
+                    onChange={handleChange}
+                  />
+                </Field>
               </div>
-            </div>
+            </section>
 
-            {/* Section: Estoque */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.1rem', color: BORDEAUX, marginBottom: '1rem', fontWeight: 600 }}>
-                Estoque
-              </h2>
-              <input
-                type="number"
-                name="estoque_atual"
-                placeholder="Quantidade em estoque"
-                value={formData.estoque_atual}
-                onChange={handleInputChange}
-                style={{
-                  padding: '0.75rem',
-                  border: `2px solid #DDD`,
-                  borderRadius: '0.5rem',
-                  fontSize: '0.95rem',
-                  backgroundColor: '#FAFAFA',
-                  width: '100%'
-                }}
-              />
-            </div>
+            {/* Estoque */}
+            <section>
+              <SectionTitle>Estoque</SectionTitle>
+              <div className="max-w-xs">
+                <Field label="Quantidade em estoque">
+                  <input
+                    className={inputClass}
+                    type="number"
+                    name="estoque_atual"
+                    placeholder="0"
+                    value={formData.estoque_atual}
+                    onChange={handleChange}
+                    min="0"
+                  />
+                </Field>
+              </div>
+            </section>
 
-            {/* Submit Button */}
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#D8CFC2]">
               <button
-                type="reset"
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.625rem',
-                  border: `2px solid ${BORDEAUX}`,
-                  backgroundColor: 'transparent',
-                  color: BORDEAUX,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = `${BORDEAUX}22`}
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                type="button"
+                onClick={() => setFormData(emptyForm)}
+                className="rounded-xl border border-[#6B1E2D] px-5 py-2.5 text-sm font-medium text-[#6B1E2D] transition hover:bg-[#6B1E2D]/10"
               >
                 Limpar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  padding: '0.75rem 2rem',
-                  borderRadius: '0.625rem',
-                  backgroundColor: BORDEAUX,
-                  color: CREAM,
-                  fontWeight: 600,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.95rem',
-                  border: 'none',
-                  opacity: loading ? 0.7 : 1,
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => !loading && (e.target.style.opacity = 0.9)}
-                onMouseLeave={(e) => !loading && (e.target.style.opacity = 1)}
+                className="rounded-xl bg-[#6B1E2D] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#541723] disabled:opacity-60"
               >
-                {loading ? 'Salvando...' : '✓ Cadastrar Peça'}
+                {loading ? 'Salvando...' : 'Cadastrar Peça'}
               </button>
             </div>
           </form>

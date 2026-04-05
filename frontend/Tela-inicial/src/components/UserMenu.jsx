@@ -97,19 +97,19 @@ export default function UserMenu() {
           </div>
 
           <div className="p-2">
-            <button
-              type="button"
-              className="w-full text-left px-4 py-3 rounded-xl text-[#6e1a2b] hover:bg-[#efe2d5] transition font-medium"
+            <a
+              href="http://localhost:5173/login"
+              className="block w-full px-4 py-3 rounded-xl text-[#6e1a2b] hover:bg-[#efe2d5] transition font-medium no-underline"
             >
               Entrar
-            </button>
+            </a>
 
-            <button
-              type="button"
-              className="w-full text-left px-4 py-3 rounded-xl text-[#6e1a2b] hover:bg-[#efe2d5] transition font-medium"
+            <a
+              href="http://localhost:5173/cadastro"
+              className="block w-full px-4 py-3 rounded-xl text-[#6e1a2b] hover:bg-[#efe2d5] transition font-medium no-underline"
             >
               Cadastrar-se
-            </button>
+            </a>
           </div>
         </div>
       )}
