@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import PrivateRoute from './routes/PrivateRoute';
 import CadastroPecas from './pages/CadastroPecas';
 import CadastroUsuario from './pages/CadastroUsuario';
+import BuscaPecas from './pages/BuscaPecas';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         }
       />
       <Route path="/cadastroPecas" element={<CadastroPecas />} />
+      <Route path="/buscaPecas" element={<BuscaPecas />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
