@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { SearchIcon, UserIcon, ChevronDownIcon } from './Icons';
 
@@ -17,8 +17,16 @@ const SPACING = {
   LG: '1.5rem',
 };
 
-export default function Header({ searchQuery, setSearchQuery }) {
+export default function Header() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  const [localSearch, setLocalSearch] = useState(searchParams.get('nome') || '');
+
+  useEffect(() => {
+    setLocalSearch(searchParams.get('nome') || '');
+  }, [searchParams]);
+
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -32,6 +40,15 @@ export default function Header({ searchQuery, setSearchQuery }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (localSearch.trim()) {
+      navigate(`/buscapecas?nome=${encodeURIComponent(localSearch)}`);
+    } else {
+      navigate('/buscapecas');
+    }
+  };
 
   return (
     <header
@@ -74,7 +91,8 @@ export default function Header({ searchQuery, setSearchQuery }) {
 
       {/* Search bar */}
       <div style={{ width: '25%' }}>
-        <div
+        <form
+          onSubmit={handleSearchSubmit}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -87,8 +105,8 @@ export default function Header({ searchQuery, setSearchQuery }) {
         >
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Buscar peças, modelos..."
             style={{
               flex: 1,
@@ -101,6 +119,7 @@ export default function Header({ searchQuery, setSearchQuery }) {
             }}
           />
           <button
+            type="submit"
             style={{
               padding: `${SPACING.SM} ${SPACING.MD}`,
               display: 'flex',
@@ -114,7 +133,7 @@ export default function Header({ searchQuery, setSearchQuery }) {
           >
             <SearchIcon size={17} />
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Spacer */}
@@ -168,51 +187,27 @@ export default function Header({ searchQuery, setSearchQuery }) {
               <>
                 <button
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: SPACING.MD,
-                    padding: `${SPACING.MD} ${SPACING.LG}`,
-                    fontSize: '0.875rem',
-                    color: BORDEAUX,
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: 'transparent',
-                    textAlign: 'left',
-                    fontWeight: 500,
-                    borderBottom: '1px solid #F3E8D8',
+                    width: '100%', display: 'flex', alignItems: 'center', gap: SPACING.MD,
+                    padding: `${SPACING.MD} ${SPACING.LG}`, fontSize: '0.875rem', color: BORDEAUX,
+                    border: 'none', cursor: 'pointer', backgroundColor: 'transparent', textAlign: 'left',
+                    fontWeight: 500, borderBottom: '1px solid #F3E8D8',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setDropdownOpen(false);
-                  }}
+                  onClick={() => { navigate('/dashboard'); setDropdownOpen(false); }}
                 >
                   Dashboard
                 </button>
                 <button
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: SPACING.MD,
-                    padding: `${SPACING.MD} ${SPACING.LG}`,
-                    fontSize: '0.875rem',
-                    color: '#B91C1C',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: 'transparent',
-                    textAlign: 'left',
+                    width: '100%', display: 'flex', alignItems: 'center', gap: SPACING.MD,
+                    padding: `${SPACING.MD} ${SPACING.LG}`, fontSize: '0.875rem', color: '#B91C1C',
+                    border: 'none', cursor: 'pointer', backgroundColor: 'transparent', textAlign: 'left',
                     fontWeight: 500,
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  onClick={() => {
-                    logout();
-                    navigate('/login');
-                    setDropdownOpen(false);
-                  }}
+                  onClick={() => { logout(); navigate('/login'); setDropdownOpen(false); }}
                 >
                   Sair
                 </button>
@@ -220,25 +215,14 @@ export default function Header({ searchQuery, setSearchQuery }) {
             ) : (
               <button
                 style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: SPACING.MD,
-                  padding: `${SPACING.MD} ${SPACING.LG}`,
-                  fontSize: '0.875rem',
-                  color: BORDEAUX,
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: 'transparent',
-                  textAlign: 'left',
+                  width: '100%', display: 'flex', alignItems: 'center', gap: SPACING.MD,
+                  padding: `${SPACING.MD} ${SPACING.LG}`, fontSize: '0.875rem', color: BORDEAUX,
+                  border: 'none', cursor: 'pointer', backgroundColor: 'transparent', textAlign: 'left',
                   fontWeight: 500,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                onClick={() => {
-                  navigate('/login');
-                  setDropdownOpen(false);
-                }}
+                onClick={() => { navigate('/login'); setDropdownOpen(false); }}
               >
                 Login
               </button>

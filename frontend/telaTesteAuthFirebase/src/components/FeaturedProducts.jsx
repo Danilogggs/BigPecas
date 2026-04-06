@@ -70,7 +70,7 @@ export default function FeaturedProducts({ items }) {
         }}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
         onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-        onClick={() => navigate('/cadastroPecas')}
+        onClick={() => navigate('/buscaPecas')}
       >
         Ver todos ›
       </button>
