@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import PrivateRoute from './routes/PrivateRoute';
@@ -10,9 +10,10 @@ import CadastroUsuario from './pages/CadastroUsuario';
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/home" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/cadastro" element={<RegisterPage />} />
+      <Route path="/cadastro" element={<Navigate to="/cadastro-usuario" replace />} />
       <Route path="/cadastro-usuario" element={<CadastroUsuario />} />
       <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
       <Route
@@ -24,7 +25,7 @@ export default function App() {
         }
       />
       <Route path="/cadastroPecas" element={<CadastroPecas />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

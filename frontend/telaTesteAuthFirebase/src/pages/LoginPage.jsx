@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthLayout from '../components/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
+import { Field, Input, ButtonPrimary, AlertError } from '../components/StyledComponents.jsx';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme.js';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -26,50 +27,88 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout
-      title="Entrar"
-      subtitle="Acesse sua conta para gerenciar anúncios, peças e pedidos."
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: COLORS.CREAM,
+        ...FLEX_CENTER,
+        padding: SPACING.XL,
+      }}
     >
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-control"
-            placeholder="seuemail@exemplo.com"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-          />
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '500px',
+          backgroundColor: '#fff',
+          borderRadius: BORDER_RADIUS.LG,
+          border: `2px solid ${COLORS.BORDEAUX}22`,
+          padding: SPACING.XL,
+          boxShadow: SHADOWS.SM,
+        }}
+      >
+        <div style={{ marginBottom: SPACING.XL }}>
+          <span
+            style={{
+              display: 'inline-block',
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: COLORS.BORDEAUX,
+              fontWeight: 700,
+              marginBottom: SPACING.MD,
+            }}
+          >
+            BigPeças
+          </span>
+          <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
+            Entrar
+          </h1>
+          <p style={{ margin: 0, marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
+            Acesse sua conta para gerenciar anúncios, peças e pedidos.
+          </p>
         </div>
 
-        <div className="mb-3">
-          <label className="form-label">Senha</label>
-          <input
-            type="password"
-            className="form-control"
-            placeholder="Digite sua senha"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-          />
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: SPACING.LG }}>
+            <Field label="Email" required>
+              <Input
+                type="email"
+                placeholder="seuemail@exemplo.com"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                required
+              />
+            </Field>
+          </div>
+
+          <div style={{ marginBottom: SPACING.LG }}>
+            <Field label="Senha" required>
+              <Input
+                type="password"
+                placeholder="Digite sua senha"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+              />
+            </Field>
+          </div>
+
+          {error && <AlertError>{error}</AlertError>}
+
+          <ButtonPrimary type="submit" disabled={loading} style={{ width: '100%', marginTop: SPACING.MD }}>
+            {loading ? 'Entrando...' : '✓ Entrar'}
+          </ButtonPrimary>
+        </form>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: SPACING.XL, flexWrap: 'wrap', gap: SPACING.MD }}>
+          <Link to="/cadastro-usuario" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
+            Criar conta
+          </Link>
+          <Link to="/recuperar-senha" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
+            Esqueci minha senha
+          </Link>
         </div>
-
-        {error && <div className="alert alert-danger py-2">{error}</div>}
-
-        <button className="btn btn-success w-100 py-2 mt-2" disabled={loading}>
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
-      </form>
-
-      <div className="d-flex justify-content-between mt-4 flex-wrap gap-2">
-        <Link to="/cadastro-usuario" className="link-light-muted">
-          Criar conta
-        </Link>
-        <Link to="/recuperar-senha" className="link-light-muted">
-          Esqueci minha senha
-        </Link>
       </div>
-    </AuthLayout>
+    </div>
   );
 }
