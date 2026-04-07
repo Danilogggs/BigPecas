@@ -4,19 +4,18 @@ require('dotenv').config();
 
 const pecasRoutes = require('./routes/pecasRoutes');
 const db = require('./config/db');
+const errorHandler = require('./middlewares/errorHandler');
+const notFoundHandler = require('./middlewares/notFoundHandler');
 
 const app = express();
 
-// Middlewares
-app.use(cors()); // Permite que o seu React (Vite) acesse esta API
+app.use(cors());
 app.use(express.json());
 
-// Função para inicializar dados padrão
 async function initializeDatabaseData() {
   try {
     console.log('📊 Verificando dados das tabelas...');
-    
-    // Verifica se categorias estão vazias
+
     const [categorias] = await db.execute('SELECT COUNT(*) as count FROM categorias');
     if (categorias[0].count === 0) {
       console.log('📥 Inserindo categorias padrão...');
@@ -24,7 +23,6 @@ async function initializeDatabaseData() {
       console.log('✅ Categorias inseridas');
     }
 
-    // Verifica se materiais estão vazios
     const [materiais] = await db.execute('SELECT COUNT(*) as count FROM materiais');
     if (materiais[0].count === 0) {
       console.log('📥 Inserindo materiais padrão...');
@@ -34,46 +32,46 @@ async function initializeDatabaseData() {
 
     console.log('✅ Banco de dados inicializado com sucesso!');
   } catch (error) {
-    console.error('⚠️ Erro ao inicializar dados:', error.message);
+    console.error('⚠️ Não foi possível concluir a inicialização dos dados padrão:', error.message);
   }
 }
 
-// rota do micro
 app.use('/api/pecas', pecasRoutes);
 
-// teste health
 app.get('/', (req, res) => {
-  res.send('Microserviço de Catálogo de Peças Online na Porta 3002');
+  return res.send('Microserviço de Catálogo de Peças Online na Porta 3002');
 });
 
-// Rota para listar categorias
-app.get('/api/categorias', async (req, res) => {
+app.get('/api/categorias', async (req, res, next) => {
   try {
     const [rows] = await db.execute('SELECT * FROM categorias');
-    res.json(rows);
+    return res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return next(error);
   }
 });
 
-// Rota para listar materiais
-app.get('/api/materiais', async (req, res) => {
+app.get('/api/materiais', async (req, res, next) => {
   try {
     const [rows] = await db.execute('SELECT * FROM materiais');
-    res.json(rows);
+    return res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return next(error);
   }
 });
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3002;
 
-// Inicializa dados e depois inicia o servidor
-initializeDatabaseData().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor de Catálogo rodando em http://localhost:${PORT}`);
+initializeDatabaseData()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor de Catálogo rodando em http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('❌ Erro ao inicializar servidor:', error.message);
+    process.exit(1);
   });
-}).catch(error => {
-  console.error('❌ Erro ao inicializar servidor:', error);
-  process.exit(1);
-});

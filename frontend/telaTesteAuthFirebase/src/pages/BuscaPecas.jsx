@@ -12,6 +12,7 @@ import {
   BORDER_RADIUS,
   SHADOWS,
 } from '../styles/theme';
+import { parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
 
 const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
 
@@ -30,6 +31,8 @@ export default function BuscaPecas() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [pecas, setPecas] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [filters, setFilters] = useState({
     nome: nomeUrl,
@@ -44,7 +47,7 @@ export default function BuscaPecas() {
 
   useEffect(() => {
     const novoNome = searchParams.get('nome') || '';
-    setFilters(prev => ({ ...prev, nome: novoNome }));
+    setFilters((prev) => ({ ...prev, nome: novoNome }));
   }, [searchParams]);
 
   const fetchPecas = async () => {
@@ -58,12 +61,24 @@ export default function BuscaPecas() {
       Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== '' && v !== null))
     ).toString();
 
+    setLoading(true);
+    setErrorMessage('');
+
     try {
       const res = await fetch(`${API_BASE_URL}/pecas?${query}`);
+
+      if (!res.ok) {
+        throw new Error(await parseErrorResponse(res, 'Não foi possível carregar as peças no momento.'));
+      }
+
       const data = await res.json();
-      setPecas(data);
+      setPecas(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Erro ao buscar peças:", error);
+      console.error('Erro ao buscar peças:', error);
+      setPecas([]);
+      setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar as peças no momento.'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,6 +107,8 @@ export default function BuscaPecas() {
     }
   };
 
+  const shouldShowEmptyState = !loading && !errorMessage && pecas.length === 0;
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
       <style>{`
@@ -108,11 +125,9 @@ export default function BuscaPecas() {
         }
       `}</style>
 
-      {/* Header agora é chamado sem props, ele gerencia tudo sozinho via URL */}
       <Header />
 
       <main>
-        {/* ORDENAÇÃO */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -120,7 +135,7 @@ export default function BuscaPecas() {
           padding: `${SPACING.XL} ${SPACING.XL} 0`,
         }}>
           <span style={{ fontWeight: 'bold', color: COLORS.BORDEAUX, marginRight: SPACING.SM }}>Ordenar por:</span>
-          
+
           <button
             onClick={() => handleSortClick('preco')}
             style={{
@@ -144,7 +159,6 @@ export default function BuscaPecas() {
           </button>
         </div>
 
-        {/* TOPO: Ações */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -159,7 +173,6 @@ export default function BuscaPecas() {
           </button>
         </div>
 
-        {/* FILTROS */}
         {showFilters && (
           <div style={{
             margin: `0 ${SPACING.XL}`,
@@ -184,7 +197,7 @@ export default function BuscaPecas() {
                 <label style={LABEL_STYLE}>Categoria</label>
                 <select name="categoria_id" value={filters.categoria_id} onChange={handleChange} style={INPUT_STYLE}>
                   <option value="">Todas</option>
-                  {categorias.map(c => (
+                  {categorias.map((c) => (
                     <option key={c.id} value={c.id}>{c.nome}</option>
                   ))}
                 </select>
@@ -201,12 +214,11 @@ export default function BuscaPecas() {
                 </select>
               </div>
 
-              {/* 🎚️ SLIDER COM VALORES FLUTUANTES */}
               <div style={{ gridColumn: 'span 2', marginTop: SPACING.SM }}>
                 <label style={LABEL_STYLE}>Faixa de Preço</label>
 
                 <div style={{ position: 'relative', height: '40px', marginTop: '25px' }}>
-                  
+
                   <div style={{
                     position: 'absolute',
                     top: '-22px',
@@ -220,7 +232,7 @@ export default function BuscaPecas() {
                     fontWeight: 'bold',
                     pointerEvents: 'none',
                     zIndex: 10,
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
                   }}>
                     R$ {filters.min_preco}
                   </div>
@@ -238,7 +250,7 @@ export default function BuscaPecas() {
                     fontWeight: 'bold',
                     pointerEvents: 'none',
                     zIndex: 10,
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
                   }}>
                     R$ {filters.max_preco}
                   </div>
@@ -246,7 +258,7 @@ export default function BuscaPecas() {
                   <div style={{
                     position: 'absolute',
                     top: '18px', left: 0, right: 0, height: '4px',
-                    background: '#ddd', borderRadius: '4px'
+                    background: '#ddd', borderRadius: '4px',
                   }} />
 
                   <div style={{
@@ -256,7 +268,7 @@ export default function BuscaPecas() {
                     right: `${100 - (filters.max_preco / 1000) * 100}%`,
                     height: '4px',
                     background: COLORS.BORDEAUX,
-                    borderRadius: '4px'
+                    borderRadius: '4px',
                   }} />
 
                   <input
@@ -268,14 +280,14 @@ export default function BuscaPecas() {
                     onChange={(e) => {
                       const value = Number(e.target.value);
                       if (value > filters.max_preco) {
-                        setFilters(prev => ({ ...prev, min_preco: value, max_preco: value }));
+                        setFilters((prev) => ({ ...prev, min_preco: value, max_preco: value }));
                       } else {
-                        setFilters(prev => ({ ...prev, min_preco: value }));
+                        setFilters((prev) => ({ ...prev, min_preco: value }));
                       }
                     }}
                     style={{
                       position: 'absolute', width: '100%', height: '40px',
-                      appearance: 'none', background: 'none', zIndex: 3
+                      appearance: 'none', background: 'none', zIndex: 3,
                     }}
                   />
 
@@ -288,14 +300,14 @@ export default function BuscaPecas() {
                     onChange={(e) => {
                       const value = Number(e.target.value);
                       if (value < filters.min_preco) {
-                        setFilters(prev => ({ ...prev, max_preco: value, min_preco: value }));
+                        setFilters((prev) => ({ ...prev, max_preco: value, min_preco: value }));
                       } else {
-                        setFilters(prev => ({ ...prev, max_preco: value }));
+                        setFilters((prev) => ({ ...prev, max_preco: value }));
                       }
                     }}
                     style={{
                       position: 'absolute', width: '100%', height: '40px',
-                      appearance: 'none', background: 'none', zIndex: 4
+                      appearance: 'none', background: 'none', zIndex: 4,
                     }}
                   />
                 </div>
@@ -304,7 +316,33 @@ export default function BuscaPecas() {
           </div>
         )}
 
-        {/* GRID */}
+        {errorMessage && (
+          <div
+            style={{
+              margin: `0 ${SPACING.XL}`,
+              backgroundColor: '#FEE2E2',
+              color: '#7F1D1D',
+              padding: SPACING.MD,
+              borderRadius: '0.625rem',
+              border: '2px solid #FCA5A5',
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        {loading && (
+          <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.BORDEAUX, fontWeight: 600 }}>
+            Carregando peças...
+          </div>
+        )}
+
+        {shouldShowEmptyState && (
+          <div style={{ padding: `0 ${SPACING.XL}`, color: '#9B7B6A' }}>
+            Nenhuma peça foi encontrada com os filtros informados.
+          </div>
+        )}
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -317,15 +355,14 @@ export default function BuscaPecas() {
               product={{
                 id: item.id,
                 name: item.nome_peca,
-                price: "R$ " + item.preco,
+                price: 'R$ ' + item.preco,
                 stock: item.estoque_atual,
                 condition: item.condicao,
-                image: item.imagem
+                image: item.imagem,
               }}
             />
           ))}
         </div>
-
       </main>
     </div>
   );

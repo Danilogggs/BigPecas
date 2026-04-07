@@ -1,14 +1,81 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const AppError = require('../utils/AppError');
 
-// ===== ROTAS POST (ESPECÍFICAS) - DEVEM VIR PRIMEIRO =====
+const SORT_FIELDS = {
+  id: 'id',
+  preco: 'preco',
+  data: 'data_cadastro',
+  data_cadastro: 'data_cadastro',
+  estoque: 'estoque_atual',
+  estoque_atual: 'estoque_atual',
+  nome: 'nome_peca',
+  nome_peca: 'nome_peca'
+};
 
-// Cadastrar nova peça
-router.post('/cadastrar', async (req, res) => {
-  console.log('=== RECEBENDO CADASTRO ===');
-  console.log('Body completo:', req.body);
+function validarId(id) {
+  if (!/^\d+$/.test(String(id)) || Number(id) < 1) {
+    throw new AppError(400, 'Informe um identificador válido.');
+  }
+}
 
+function validarOrdenacao(sort) {
+  if (!sort) {
+    return 'id';
+  }
+
+  const campoOrdenacao = SORT_FIELDS[sort];
+
+  if (!campoOrdenacao) {
+    throw new AppError(400, 'O campo de ordenação informado é inválido.');
+  }
+
+  return campoOrdenacao;
+}
+
+function validarNumeroConsulta(valor, nomeCampo) {
+  if (valor === undefined || valor === null || valor === '') {
+    return null;
+  }
+
+  const numero = Number(valor);
+
+  if (Number.isNaN(numero)) {
+    throw new AppError(400, `Informe um valor válido para ${nomeCampo}.`);
+  }
+
+  return numero;
+}
+
+function validarAtualizacao(updates) {
+  if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
+    throw new AppError(400, 'Envie os dados da peça para continuar.');
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new AppError(400, 'Informe ao menos um campo para atualizar.');
+  }
+}
+
+function processarValor(val) {
+  if (val === '' || val === null || val === undefined) return null;
+  return val;
+}
+
+function processarNumero(val) {
+  if (val === '' || val === null || val === undefined || val === '0') return null;
+  const num = parseInt(val, 10);
+  return Number.isNaN(num) ? null : num;
+}
+
+function processarFloat(val) {
+  if (val === '' || val === null || val === undefined) return null;
+  const num = parseFloat(val);
+  return Number.isNaN(num) ? null : num;
+}
+
+router.post('/cadastrar', async (req, res, next) => {
   const {
     nome_peca,
     sku,
@@ -27,36 +94,19 @@ router.post('/cadastrar', async (req, res) => {
     estoque_atual
   } = req.body;
 
-  // Validações básicas
   if (!nome_peca || nome_peca.trim() === '') {
-    console.error('Erro: nome_peca vazio');
-    return res.status(400).json({ error: "Nome da peça é obrigatório" });
+    return next(new AppError(400, 'Informe o nome da peça.'));
   }
 
   if (!preco) {
-    console.error('Erro: preco vazio');
-    return res.status(400).json({ error: "Preço é obrigatório" });
+    return next(new AppError(400, 'Informe o preço da peça.'));
+  }
+
+  if (processarFloat(preco) === null) {
+    return next(new AppError(400, 'Informe um preço válido para a peça.'));
   }
 
   try {
-    // Processa valores, mantendo vazios como null apenas se realmente vazios
-    const processarValor = (val) => {
-      if (val === '' || val === null || val === undefined) return null;
-      return val;
-    };
-
-    const processarNumero = (val) => {
-      if (val === '' || val === null || val === undefined || val === '0') return null;
-      const num = parseInt(val);
-      return isNaN(num) ? null : num;
-    };
-
-    const processarFloat = (val) => {
-      if (val === '' || val === null || val === undefined) return null;
-      const num = parseFloat(val);
-      return isNaN(num) ? null : num;
-    };
-
     const values = [
       nome_peca.trim(),
       processarValor(sku),
@@ -75,8 +125,6 @@ router.post('/cadastrar', async (req, res) => {
       processarNumero(estoque_atual) || 0
     ];
 
-    console.log('Valores processados para INSERT:', values);
-
     const query = `
       INSERT INTO pecas (
         nome_peca, sku, oem_number, num_serie, categoria_id, material_id,
@@ -87,30 +135,24 @@ router.post('/cadastrar', async (req, res) => {
 
     const [result] = await db.execute(query, values);
 
-    console.log('Peça inserida com ID:', result.insertId);
-
-    res.status(201).json({
+    return res.status(201).json({
       id: result.insertId,
-      message: "Peça cadastrada com sucesso!"
+      message: 'Peça cadastrada com sucesso!'
     });
   } catch (error) {
-    console.error('Erro ao cadastrar:', error);
-    res.status(500).json({ error: error.message });
+    return next(error);
   }
 });
 
-// ===== ROTAS GET =====
-
-// Listar todas as peças, filtradas caso haja um filtro especificado.
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
-    const { 
-      nome, 
-      categoria_id, 
+    const {
+      nome,
+      categoria_id,
       material_id,
-      num_serie, 
-      condicao, 
-      min_preco, 
+      num_serie,
+      condicao,
+      min_preco,
       max_preco,
       oem_number,
       min_estoque,
@@ -118,125 +160,131 @@ router.get('/', async (req, res) => {
       ordem
     } = req.query;
 
-    let query = "SELECT * FROM pecas WHERE 1=1";
+    let query = 'SELECT * FROM pecas WHERE 1=1';
     const params = [];
 
     if (categoria_id) {
-      query += " AND categoria_id = ?";
-      params.push(categoria_id);
+      query += ' AND categoria_id = ?';
+      params.push(validarNumeroConsulta(categoria_id, 'categoria'));
     }
+
     if (material_id) {
-      query += " AND material_id = ?";
-      params.push(material_id);
+      query += ' AND material_id = ?';
+      params.push(validarNumeroConsulta(material_id, 'material'));
     }
+
     if (condicao) {
-      query += " AND condicao = ?";
+      query += ' AND condicao = ?';
       params.push(condicao);
     }
+
     if (oem_number) {
-      query += " AND oem_number = ?";
+      query += ' AND oem_number = ?';
       params.push(oem_number);
     }
 
     if (num_serie) {
-      query += " AND num_serie = ?";
+      query += ' AND num_serie = ?';
       params.push(num_serie);
     }
+
     if (nome) {
-      query += " AND nome_peca LIKE ?";
+      query += ' AND nome_peca LIKE ?';
       params.push(`%${nome}%`);
     }
 
     if (min_preco) {
-      query += " AND preco >= ?";
-      params.push(parseFloat(min_preco));
+      query += ' AND preco >= ?';
+      params.push(validarNumeroConsulta(min_preco, 'preço mínimo'));
     }
+
     if (max_preco) {
-      query += " AND preco <= ?";
-      params.push(parseFloat(max_preco));
+      query += ' AND preco <= ?';
+      params.push(validarNumeroConsulta(max_preco, 'preço máximo'));
     }
 
     if (min_estoque) {
-      query += " AND estoque_atual >= ?";
-      params.push(parseFloat(min_estoque));
+      query += ' AND estoque_atual >= ?';
+      params.push(validarNumeroConsulta(min_estoque, 'estoque mínimo'));
     }
 
-    const sortField = sort || 'id';
-
-    const sortOrder = (ordem && ordem.toLowerCase() === 'asc') ? 'ASC' : 'DESC';
+    const sortField = validarOrdenacao(sort);
+    const sortOrder = ordem && String(ordem).toLowerCase() === 'asc' ? 'ASC' : 'DESC';
 
     query += ` ORDER BY ${sortField} ${sortOrder}`;
 
     const [rows] = await db.execute(query, params);
-    res.json(rows);
-
+    return res.json(rows);
   } catch (error) {
-    console.error("Erro ao buscar peças:", error);
-    res.status(500).json({ error: "Erro interno ao processar a listagem" });
+    return next(error);
   }
 });
 
-// Buscar peça por ID
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
+router.get('/:id', async (req, res, next) => {
   try {
+    const { id } = req.params;
+    validarId(id);
+
     const [rows] = await db.execute('SELECT * FROM pecas WHERE id = ?', [id]);
+
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Peça não encontrada" });
+      throw new AppError(404, 'Peça não encontrada.');
     }
-    res.json(rows[0]);
+
+    return res.json(rows[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return next(error);
   }
 });
 
-
-// ===== ROTAS PUT (GENÉRICAS) =====
-
-// Atualizar peça
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
-
+router.put('/:id', async (req, res, next) => {
   try {
-    // Verifica se peça existe
+    const { id } = req.params;
+    const updates = req.body;
+
+    validarId(id);
+    validarAtualizacao(updates);
+
     const [pecas] = await db.execute('SELECT * FROM pecas WHERE id = ?', [id]);
+
     if (pecas.length === 0) {
-      return res.status(404).json({ error: "Peça não encontrada" });
+      throw new AppError(404, 'Peça não encontrada.');
     }
 
-    // Constrói query de atualização dinamicamente
     const campos = Object.keys(updates);
     const valores = Object.values(updates);
-    const setClause = campos.map(campo => `${campo} = ?`).join(', ');
+    const setClause = campos.map((campo) => `${campo} = ?`).join(', ');
 
     const query = `UPDATE pecas SET ${setClause} WHERE id = ?`;
     await db.execute(query, [...valores, id]);
 
-    res.json({
-      id: parseInt(id),
-      message: "Peça atualizada com sucesso!"
+    return res.json({
+      id: Number(id),
+      message: 'Peça atualizada com sucesso!'
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return next(error);
   }
 });
 
-// ===== ROTAS DELETE (GENÉRICAS) =====
-
-// Deletar peça
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
+router.delete('/:id', async (req, res, next) => {
   try {
+    const { id } = req.params;
+    validarId(id);
+
     const [pecas] = await db.execute('SELECT * FROM pecas WHERE id = ?', [id]);
+
     if (pecas.length === 0) {
-      return res.status(404).json({ error: "Peça não encontrada" });
+      throw new AppError(404, 'Peça não encontrada.');
     }
 
     await db.execute('DELETE FROM pecas WHERE id = ?', [id]);
-    res.json({ message: "Peça deletada com sucesso!" });
+
+    return res.json({
+      message: 'Peça deletada com sucesso!'
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return next(error);
   }
 });
 

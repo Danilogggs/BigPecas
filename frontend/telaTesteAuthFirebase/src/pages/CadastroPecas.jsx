@@ -98,7 +98,7 @@ export default function CadastroPecas() {
         estoque_atual: ''
       });
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Erro ao cadastrar peça' });
+      setMessage({ type: 'error', text: error.message || 'Não foi possível cadastrar a peça. Revise os dados e tente novamente.' });
     } finally {
       setLoading(false);
     }

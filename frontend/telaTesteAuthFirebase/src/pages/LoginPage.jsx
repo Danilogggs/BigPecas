@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError } from '../components/StyledComponents.jsx';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme.js';
+import { mapFirebaseAuthError } from '../utils/friendlyErrors';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function LoginPage() {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
-      setError('Não foi possível entrar. Verifique email e senha.');
+      setError(mapFirebaseAuthError(err, 'login'));
     } finally {
       setLoading(false);
     }

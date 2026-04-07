@@ -1,3 +1,10 @@
+import {
+  createFriendlyError,
+  FRIENDLY_DEFAULT_MESSAGES,
+  parseErrorResponse,
+  parseUnexpectedError,
+} from '../utils/friendlyErrors';
+
 const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
 
 export const listarPecas = async () => {
@@ -6,25 +13,25 @@ export const listarPecas = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao buscar peças: ${response.statusText}`);
+      const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.list);
+      throw createFriendlyError(message);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Erro ao listar peças:', error);
-    throw error;
+    throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.list));
   }
 };
 
 /**
  * Cadastra uma nova peça no banco de dados
- * @param {Object} pecaData - Dados da peça com campos: nome_peca, sku, oem_number, num_serie, 
- * categoria, material, condicao, peso_gramas, comprimento_mm, largura_mm, altura_mm, 
+ * @param {Object} pecaData - Dados da peça com campos: nome_peca, sku, oem_number, num_serie,
+ * categoria, material, condicao, peso_gramas, comprimento_mm, largura_mm, altura_mm,
  * detalhes_gravacao, historico_proveniencia, preco, estoque_atual
  */
 export const cadastrarPeca = async (pecaData) => {
@@ -32,14 +39,12 @@ export const cadastrarPeca = async (pecaData) => {
     console.log('=== INICIANDO CADASTRO ===');
     console.log('Dados recebidos do formulário:', pecaData);
 
-    // Mapeia categoria e material para IDs (será integrado com backend depois)
     const dadosMapeados = {
       ...pecaData,
-      categoria_id: pecaData.categoria ? parseInt(pecaData.categoria) : null,
-      material_id: pecaData.material ? parseInt(pecaData.material) : null
+      categoria_id: pecaData.categoria ? parseInt(pecaData.categoria, 10) : null,
+      material_id: pecaData.material ? parseInt(pecaData.material, 10) : null,
     };
 
-    // Remove os campos originais categoria e material
     delete dadosMapeados.categoria;
     delete dadosMapeados.material;
 
@@ -51,15 +56,14 @@ export const cadastrarPeca = async (pecaData) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(dadosMapeados)
+      body: JSON.stringify(dadosMapeados),
     });
 
     console.log('Status da resposta:', response.status);
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error('Erro do backend:', error);
-      throw new Error(error.error || `Erro ao cadastrar peça: ${response.statusText}`);
+      const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.create);
+      throw createFriendlyError(message);
     }
 
     const data = await response.json();
@@ -67,7 +71,7 @@ export const cadastrarPeca = async (pecaData) => {
     return data;
   } catch (error) {
     console.error('Erro ao cadastrar peça:', error);
-    throw error;
+    throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.create));
   }
 };
 
@@ -81,18 +85,18 @@ export const buscarPecaPorId = async (id) => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao buscar peça: ${response.statusText}`);
+      const message = await parseErrorResponse(response, 'Não foi possível localizar a peça solicitada.');
+      throw createFriendlyError(message);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Erro ao buscar peça:', error);
-    throw error;
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível localizar a peça solicitada.'));
   }
 };
 
@@ -112,18 +116,18 @@ export const atualizarPeca = async (id, pecaData) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(dadosFiltrados)
+      body: JSON.stringify(dadosFiltrados),
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao atualizar peça: ${response.statusText}`);
+      const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.update);
+      throw createFriendlyError(message);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Erro ao atualizar peça:', error);
-    throw error;
+    throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.update));
   }
 };
 
@@ -137,17 +141,17 @@ export const deletarPeca = async (id) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao deletar peça: ${response.statusText}`);
+      const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.delete);
+      throw createFriendlyError(message);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Erro ao deletar peça:', error);
-    throw error;
+    throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.delete));
   }
 };

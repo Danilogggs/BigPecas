@@ -1,12 +1,21 @@
-function errorHandler(err, req, res, next) {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Erro interno do servidor.';
+const { resolveFriendlyError } = require('../utils/errorMessages');
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.error(err);
+function errorHandler(err, req, res, next) {
+  const { statusCode, message } = resolveFriendlyError(err);
+
+  console.error('[user-service]', {
+    method: req.method,
+    path: req.originalUrl,
+    statusCode,
+    errorCode: err?.code || null,
+    message: err?.message || 'Erro sem mensagem'
+  });
+
+  if (process.env.NODE_ENV !== 'production' && err?.stack) {
+    console.error(err.stack);
   }
 
-  res.status(statusCode).json({
+  return res.status(statusCode).json({
     success: false,
     message
   });

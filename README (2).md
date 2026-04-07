@@ -1,2 +1,0 @@
-# BigPeças
-Teste commit

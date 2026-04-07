@@ -6,7 +6,7 @@ async function createUser(data) {
   const existingUser = await userRepository.findByEmail(data.email);
 
   if (existingUser) {
-    throw new ApiError(409, 'E-mail já cadastrado.');
+    throw new ApiError(409, 'Já existe uma conta cadastrada com este e-mail.');
   }
 
   const password_hash = await bcrypt.hash(data.password, 10);
@@ -46,7 +46,7 @@ async function updateUser(id, data) {
   const userWithSameEmail = await userRepository.findByEmail(data.email);
 
   if (userWithSameEmail && Number(userWithSameEmail.id) !== Number(id)) {
-    throw new ApiError(409, 'Já existe outro usuário com este e-mail.');
+    throw new ApiError(409, 'Já existe outra conta cadastrada com este e-mail.');
   }
 
   await userRepository.update(id, {
