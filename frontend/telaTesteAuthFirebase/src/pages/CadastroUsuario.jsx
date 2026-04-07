@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { cadastrarUsuario } from '../services/usuarioService';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, Select, ButtonPrimary, ButtonSecondary, AlertError, AlertSuccess } from '../components/StyledComponents';
-import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER, GRID_TWO_COLUMNS, GRID_ONE_COLUMN } from '../styles/theme';
+import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER, GRID_TWO_COLUMNS } from '../styles/theme';
+import { mapFirebaseAuthError } from '../utils/friendlyErrors';
 
 export default function CadastroUsuario() {
   const navigate = useNavigate();
@@ -40,6 +41,11 @@ export default function CadastroUsuario() {
     e.preventDefault();
     setMessage({ type: '', text: '' });
 
+    if (!form.full_name.trim()) {
+      setMessage({ type: 'error', text: 'Informe seu nome completo.' });
+      return;
+    }
+
     if (form.password.length < 8) {
       setMessage({ type: 'error', text: 'A senha deve ter pelo menos 8 caracteres.' });
       return;
@@ -53,38 +59,19 @@ export default function CadastroUsuario() {
     setLoading(true);
 
     try {
-      // 1. Cria o usuário no Firebase Auth
-      await register(form.email, form.password);
+      await register(form.email.trim(), form.password);
 
-      // 2. Salva o perfil completo no MySQL via user-service
-      try {
-        await cadastrarUsuario({
-          full_name: form.full_name,
-          email: form.email,
-          password: form.password,
-          ...(form.gender && { gender: form.gender }),
-          ...(form.cep && { cep: form.cep }),
-        });
-      } catch (mysqlErr) {
-        // Firebase OK, MySQL falhou — usuário pode logar, mas perfil não foi salvo
-        console.error('Perfil não salvo no banco:', mysqlErr.message);
-        setMessage({
-          type: 'success',
-          text: 'Conta criada! Não foi possível salvar todos os dados do perfil, mas você já pode fazer login.',
-        });
-        setTimeout(() => navigate('/login'), 3000);
-        return;
-      }
+      await cadastrarUsuario({
+        nome: form.full_name.trim(),
+        email: form.email.trim(),
+        genero: form.gender?.trim() || '',
+        cep: form.cep?.trim() || '',
+      });
 
-      setMessage({ type: 'success', text: 'Cadastro realizado com sucesso!' });
+      setMessage({ type: 'success', text: 'Conta criada com sucesso.' });
       setTimeout(() => navigate('/login'), 2000);
-    } catch (firebaseErr) {
-      const mensagens = {
-        'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
-        'auth/invalid-email': 'E-mail inválido.',
-        'auth/weak-password': 'Senha fraca. Use pelo menos 8 caracteres.',
-      };
-      setMessage({ type: 'error', text: mensagens[firebaseErr.code] || 'Erro ao criar conta. Tente novamente.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: mapFirebaseAuthError(error, 'register') });
     } finally {
       setLoading(false);
     }
@@ -92,6 +79,7 @@ export default function CadastroUsuario() {
 
   function handleReset() {
     setForm({ full_name: '', email: '', password: '', confirmPassword: '', gender: '', cep: '' });
+    setMessage({ type: '', text: '' });
   }
 
   return (
@@ -138,7 +126,6 @@ export default function CadastroUsuario() {
           </p>
         </div>
 
-        {/* Alert */}
         {message.text && (
           message.type === 'success' ? (
             <AlertSuccess>
@@ -153,7 +140,6 @@ export default function CadastroUsuario() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* Dados Pessoais */}
           <div style={{ marginBottom: SPACING.LG }}>
             <Field label="Nome completo" required>
               <Input
@@ -192,7 +178,6 @@ export default function CadastroUsuario() {
             </Field>
           </div>
 
-          {/* Dados de Acesso */}
           <div style={{ marginBottom: SPACING.LG }}>
             <Field label="Email" required>
               <Input
@@ -211,10 +196,9 @@ export default function CadastroUsuario() {
               <Input
                 type="password"
                 name="password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo de 8 caracteres"
                 value={form.password}
                 onChange={handleChange}
-                minLength={8}
                 required
               />
             </Field>
@@ -223,7 +207,7 @@ export default function CadastroUsuario() {
               <Input
                 type="password"
                 name="confirmPassword"
-                placeholder="Repita a senha"
+                placeholder="Digite a senha novamente"
                 value={form.confirmPassword}
                 onChange={handleChange}
                 required
@@ -231,21 +215,22 @@ export default function CadastroUsuario() {
             </Field>
           </div>
 
-          {/* Botões */}
-          <div style={{ display: 'flex', gap: SPACING.MD, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to="/login" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
-              Já tenho conta
-            </Link>
-
-            <ButtonSecondary onClick={handleReset}>
+          <div style={{ display: 'flex', gap: SPACING.MD, flexWrap: 'wrap' }}>
+            <ButtonPrimary type="submit" disabled={loading}>
+              {loading ? 'Criando conta...' : 'Criar conta'}
+            </ButtonPrimary>
+            <ButtonSecondary type="button" onClick={handleReset} disabled={loading}>
               Limpar
             </ButtonSecondary>
-
-            <ButtonPrimary type="submit" disabled={loading}>
-              {loading ? 'Cadastrando...' : '✓ Cadastrar'}
-            </ButtonPrimary>
           </div>
         </form>
+
+        <div style={{ marginTop: SPACING.XL, fontSize: '0.92rem', color: COLORS.MUTED_TEXT }}>
+          Já possui conta?{' '}
+          <Link to="/login" style={{ color: COLORS.BORDEAUX, fontWeight: 700 }}>
+            Entrar
+          </Link>
+        </div>
       </div>
     </div>
   );

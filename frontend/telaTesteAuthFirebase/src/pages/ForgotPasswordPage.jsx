@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../components/StyledComponents';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme';
+import { mapFirebaseAuthError } from '../utils/friendlyErrors';
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
@@ -19,9 +20,9 @@ export default function ForgotPasswordPage() {
 
     try {
       await resetPassword(email);
-      setSuccess('Email de redefinição enviado com sucesso.');
+      setSuccess('Enviamos um link de recuperação para o seu email.');
     } catch (err) {
-      setError('Não foi possível enviar o email de redefinição.');
+      setError(mapFirebaseAuthError(err, 'resetPassword'));
     } finally {
       setLoading(false);
     }

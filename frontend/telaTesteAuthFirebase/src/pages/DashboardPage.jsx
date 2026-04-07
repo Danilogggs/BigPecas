@@ -4,10 +4,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { SearchIcon, UserIcon, ChevronDownIcon, WrenchIcon, BoltIcon, StarIcon } from '../components/Icons';
 import { menuItems } from '../data/mockData';
 import PrivateRoute from '../routes/PrivateRoute';
+import { parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
+import { buscarPerfilUsuario } from '../services/usuarioService';
 
 const BORDEAUX = '#7B1D2E';
 const CREAM = '#F5EDD8';
 const HIGHLIGHT = '#F0C060';
+const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const SPACING = {
   XS: '0.25rem',
@@ -25,6 +28,7 @@ export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState('Catálogo');
   const [searchQuery, setSearchQuery] = useState('');
   const [apiStatus, setApiStatus] = useState({ loading: true, data: null, error: null });
+  const [profileStatus, setProfileStatus] = useState({ loading: true, data: null, error: null });
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -38,25 +42,44 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const testProtectedRoute = async () => {
+    const loadUserData = async () => {
       try {
         const token = await user.getIdToken();
-        const response = await fetch('http://localhost:3001/api/auth/me', {
+        const response = await fetch(`${AUTH_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
           const data = await response.json();
           setApiStatus({ loading: false, data, error: null });
         } else {
-          setApiStatus({ loading: false, data: null, error: 'Erro ao acessar rota protegida' });
+          const mensagem = await parseErrorResponse(
+            response,
+            'Não foi possível validar sua sessão protegida agora.'
+          );
+          setApiStatus({ loading: false, data: null, error: mensagem });
         }
       } catch (error) {
-        setApiStatus({ loading: false, data: null, error: error.message });
+        setApiStatus({
+          loading: false,
+          data: null,
+          error: parseUnexpectedError(error, 'Não foi possível validar sua sessão protegida agora.'),
+        });
+      }
+
+      try {
+        const profile = await buscarPerfilUsuario();
+        setProfileStatus({ loading: false, data: profile, error: null });
+      } catch (error) {
+        setProfileStatus({
+          loading: false,
+          data: null,
+          error: parseUnexpectedError(error, 'Não foi possível carregar os dados do seu perfil agora.'),
+        });
       }
     };
 
     if (user) {
-      testProtectedRoute();
+      loadUserData();
     }
   }, [user]);
 
@@ -393,18 +416,46 @@ export default function DashboardPage() {
               <h2 style={{ color: BORDEAUX, fontWeight: 700, marginBottom: SPACING.MD, fontSize: '1.1rem' }}>
                 Informações de Usuário
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING.LG }}>
-                <div>
-                  <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>Email</p>
-                  <p style={{ color: BORDEAUX, fontWeight: 600 }}>{user?.email || 'Não disponível'}</p>
+              {profileStatus.loading ? (
+                <p style={{ color: '#9B7B6A' }}>Carregando dados do perfil...</p>
+              ) : profileStatus.error ? (
+                <div
+                  style={{
+                    backgroundColor: '#FEE2E2',
+                    color: '#7F1D1D',
+                    padding: SPACING.MD,
+                    borderRadius: '0.5rem',
+                    border: `2px solid #FCA5A5`,
+                  }}
+                >
+                  {profileStatus.error}
                 </div>
-                <div>
-                  <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>UID do Firebase</p>
-                  <p style={{ color: BORDEAUX, fontWeight: 600, wordBreak: 'break-all', fontSize: '0.85rem' }}>
-                    {user?.uid || 'Não disponível'}
-                  </p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING.LG }}>
+                  <div>
+                    <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>Nome</p>
+                    <p style={{ color: BORDEAUX, fontWeight: 600 }}>{profileStatus.data?.nome || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>Email</p>
+                    <p style={{ color: BORDEAUX, fontWeight: 600 }}>{profileStatus.data?.email || user?.email || 'Não disponível'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>Gênero</p>
+                    <p style={{ color: BORDEAUX, fontWeight: 600 }}>{profileStatus.data?.genero || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>CEP</p>
+                    <p style={{ color: BORDEAUX, fontWeight: 600 }}>{profileStatus.data?.cep || 'Não informado'}</p>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <p style={{ color: '#9B7B6A', marginBottom: SPACING.SM, fontSize: '0.85rem' }}>UID do Firebase</p>
+                    <p style={{ color: BORDEAUX, fontWeight: 600, wordBreak: 'break-all', fontSize: '0.85rem' }}>
+                      {profileStatus.data?.uid || user?.uid || 'Não disponível'}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* API Test Card */}
@@ -432,7 +483,7 @@ export default function DashboardPage() {
                     border: `2px solid #FCA5A5`,
                   }}
                 >
-                  ❌ Erro: {apiStatus.error}
+                  {apiStatus.error}
                 </div>
               ) : apiStatus.data ? (
                 <div
@@ -444,7 +495,7 @@ export default function DashboardPage() {
                     border: `2px solid #6EE7B7`,
                   }}
                 >
-                  ✓ Acesso autorizado! Dados: {JSON.stringify(apiStatus.data)}
+                  Acesso autorizado. Dados recebidos: {JSON.stringify(apiStatus.data)}
                 </div>
               ) : null}
             </div>
