@@ -1,0 +1,176 @@
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-lg);
+  background-color: var(--bordeaux);
+  min-height: 72px;
+  gap: var(--space-lg);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--bordeaux-dark);
+}
+
+/* ── Logo ── */
+.logoBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  min-width: max-content;
+}
+
+.logoEyebrow {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.logoName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cream);
+  font-family: var(--font-serif);
+  line-height: 1.1;
+}
+
+/* ── Nav ── */
+.nav {
+  display: flex;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+.navLink {
+  background: none;
+  border: none;
+  color: rgba(244, 233, 216, 0.8);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.navLink:hover {
+  color: var(--cream);
+}
+
+/* ── Search ── */
+.searchForm {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 28rem;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  outline: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.searchBtn {
+  padding: 0.5rem 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+}
+
+/* ── Spacer ── */
+.spacer {
+  flex: 1;
+}
+
+/* ── User dropdown ── */
+.userMenu {
+  position: relative;
+}
+
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: var(--cream);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.userBtn:hover,
+.userBtnOpen {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.chevron {
+  transition: transform 0.25s;
+  color: var(--gold);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 200px;
+  background-color: var(--white);
+  border: 1px solid rgba(107, 30, 45, 0.13);
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(44, 26, 23, 0.15);
+  z-index: 50;
+}
+
+.dropdownItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--bordeaux);
+  border: none;
+  border-bottom: 1px solid var(--cream);
+  cursor: pointer;
+  background-color: transparent;
+  text-align: left;
+  font-weight: 500;
+  transition: background-color 0.15s;
+}
+
+.dropdownItem:last-child {
+  border-bottom: none;
+}
+
+.dropdownItem:hover {
+  background-color: var(--page-bg);
+}
+
+.dropdownItem.danger {
+  color: #b91c1c;
+}

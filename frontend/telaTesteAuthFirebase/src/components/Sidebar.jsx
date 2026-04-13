@@ -7,14 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { WrenchIcon, BoltIcon } from './Icons';
 
-const BORDEAUX = '#7B1D2E';
-const CREAM = '#F5EDD8';
-const HIGHLIGHT = '#F0C060';
-const SPACING = {
-  MD: '1rem',
-  LG: '1.5rem',
-  XL: '2rem',
-};
+const BORDEAUX = '#6B1E2D';
+const CREAM = '#F4E9D8';
+const GOLD = '#C2A878';
 
 export default function Sidebar({ activeNav, setActiveNav }) {
   const navigate = useNavigate();
@@ -24,17 +19,17 @@ export default function Sidebar({ activeNav, setActiveNav }) {
     <aside
       style={{
         width: '20%',
-        minHeight: 'calc(100vh - 76px)',
+        minHeight: 'calc(100vh - 72px)',
         backgroundColor: BORDEAUX,
-        padding: `${SPACING.XL} 0`,
+        padding: '2rem 0',
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        gap: SPACING.LG,
+        gap: '1.5rem',
       }}
     >
-      {/* Main navigation */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {/* Navegação principal */}
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         {[
           { label: 'Catálogo', icon: WrenchIcon, key: 'catalog' },
           { label: 'FAQ', icon: BoltIcon, key: 'faq' },
@@ -44,26 +39,26 @@ export default function Sidebar({ activeNav, setActiveNav }) {
             key={key}
             onClick={() => {
               setActiveNav(key);
-              if (key === 'catalog') navigate('/cadastroPecas');
+              if (key === 'catalog') navigate('/buscaPecas');
             }}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: SPACING.MD,
-              padding: `${SPACING.MD} ${SPACING.LG}`,
-              backgroundColor: activeNav === key ? `${HIGHLIGHT}33` : 'transparent',
+              gap: '1rem',
+              padding: '0.875rem 1.5rem',
+              backgroundColor: activeNav === key ? `${GOLD}2A` : 'transparent',
               border: 'none',
-              borderLeft: activeNav === key ? `4px solid ${HIGHLIGHT}` : '4px solid transparent',
-              color: activeNav === key ? HIGHLIGHT : CREAM,
+              borderLeft: activeNav === key ? `3px solid ${GOLD}` : '3px solid transparent',
+              color: activeNav === key ? GOLD : CREAM,
               cursor: 'pointer',
               fontSize: '0.875rem',
-              fontWeight: 500,
-              transition: 'all 0.25s',
-              marginLeft: activeNav === key ? '-4px' : '0',
+              fontWeight: activeNav === key ? 600 : 400,
+              transition: 'all 0.2s',
+              textAlign: 'left',
             }}
             onMouseEnter={(e) => {
               if (activeNav !== key) {
-                e.currentTarget.style.backgroundColor = `${HIGHLIGHT}22`;
+                e.currentTarget.style.backgroundColor = `${GOLD}18`;
               }
             }}
             onMouseLeave={(e) => {
@@ -72,50 +67,53 @@ export default function Sidebar({ activeNav, setActiveNav }) {
               }
             }}
           >
-            <Icon size={16} />
+            <Icon size={15} />
             {label}
           </button>
         ))}
       </nav>
 
-      {/* Divider */}
+      {/* Divisor */}
       <div
         style={{
           height: '1px',
-          backgroundColor: 'rgba(245,237,216,0.15)',
-          margin: `0 ${SPACING.LG}`,
+          backgroundColor: 'rgba(244,233,216,0.12)',
+          margin: '0 1.5rem',
         }}
       />
 
-      {/* Info card */}
+      {/* Info card (usuário autenticado) */}
       {user && (
         <div
           style={{
-            margin: `0 ${SPACING.LG}`,
-            padding: SPACING.LG,
-            backgroundColor: 'rgba(245,237,216,0.08)',
-            borderRadius: '0.625rem',
-            border: `1.5px solid ${HIGHLIGHT}44`,
+            margin: '0 1rem',
+            padding: '1.25rem',
+            backgroundColor: 'rgba(244,233,216,0.07)',
+            borderRadius: '0.875rem',
+            border: `1px solid ${GOLD}33`,
           }}
         >
           <p
             style={{
-              fontSize: '0.75rem',
+              fontSize: '0.7rem',
               color: CREAM,
-              margin: `0 0 ${SPACING.MD} 0`,
-              fontWeight: 500,
+              marginBottom: '0.25rem',
+              fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              letterSpacing: '0.08em',
             }}
           >
-            Bem-vindo!
+            Bem-vindo
           </p>
           <p
             style={{
-              fontSize: '0.875rem',
-              color: HIGHLIGHT,
-              margin: `0 0 ${SPACING.LG} 0`,
-              fontWeight: 600,
+              fontSize: '0.8rem',
+              color: GOLD,
+              marginBottom: '1rem',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {user.email || 'Usuário'}
@@ -124,25 +122,25 @@ export default function Sidebar({ activeNav, setActiveNav }) {
             onClick={() => navigate('/cadastroPecas')}
             style={{
               width: '100%',
-              padding: `${SPACING.MD} ${SPACING.MD}`,
+              padding: '0.625rem',
               borderRadius: '0.5rem',
-              backgroundColor: HIGHLIGHT,
+              backgroundColor: GOLD,
               border: 'none',
-              color: BORDEAUX,
+              color: '#2C1A17',
               fontSize: '0.75rem',
               fontWeight: 600,
               cursor: 'pointer',
-              transition: 'all 0.25s',
+              transition: 'all 0.2s',
               textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              letterSpacing: '0.06em',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#E8B860';
-              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.opacity = '0.85';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = HIGHLIGHT;
-              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.opacity = '1';
+              e.currentTarget.style.transform = 'none';
             }}
           >
             Adicionar Peça

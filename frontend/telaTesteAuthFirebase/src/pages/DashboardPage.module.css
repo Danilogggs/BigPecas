@@ -1,0 +1,129 @@
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--page-bg);
+  padding: var(--space-xxl);
+}
+
+.pageTitle {
+  color: var(--bordeaux);
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.pageSubtitle {
+  color: var(--muted-text);
+  margin-bottom: var(--space-xxl);
+  font-size: 0.9rem;
+}
+
+/* ── Cards ── */
+.card {
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  box-shadow: var(--shadow-xs);
+}
+
+.cardTitle {
+  color: var(--bordeaux);
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  font-size: 1rem;
+  font-family: var(--font-serif);
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+.profileLabel {
+  color: var(--muted-text);
+  margin-bottom: var(--space-xs);
+  font-size: 0.8rem;
+}
+
+.profileValue {
+  color: var(--bordeaux);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.profileValueBreak {
+  word-break: break-all;
+  font-size: 0.8rem;
+}
+
+.profileColFull {
+  grid-column: 1 / -1;
+}
+
+/* ── Alerts ── */
+.alertError {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  padding: var(--space-md);
+  border-radius: 0.625rem;
+  border: 1.5px solid var(--error-border);
+  font-size: 0.9rem;
+}
+
+.alertSuccess {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  padding: var(--space-md);
+  border-radius: 0.625rem;
+  border: 1.5px solid var(--success-border);
+  font-size: 0.9rem;
+}
+
+/* ── Quick actions ── */
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+}
+
+.btnPrimary {
+  padding: var(--space-md);
+  background-color: var(--bordeaux);
+  color: var(--cream);
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.btnPrimary:hover {
+  background-color: var(--bordeaux-dark);
+}
+
+.btnGold {
+  padding: var(--space-md);
+  background-color: var(--gold);
+  color: var(--dark-text);
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: opacity 0.2s;
+}
+
+.btnGold:hover {
+  opacity: 0.85;
+}

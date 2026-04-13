@@ -1,0 +1,539 @@
+/* ── Layout geral ── */
+.section {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 3rem var(--space-lg);
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+}
+
+.heroBadge {
+  display: inline-block;
+  border-radius: var(--radius-full);
+  background-color: rgba(194, 168, 120, 0.2);
+  padding: 0.25rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--gold-dark);
+  margin-bottom: var(--space-md);
+}
+
+.heroTitle {
+  font-family: var(--font-serif);
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--dark-text);
+  max-width: 34rem;
+  margin-bottom: 1.25rem;
+}
+
+.heroSubtitle {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--muted-text);
+  max-width: 30rem;
+}
+
+.heroActions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.btnHeroPrimary {
+  border-radius: 0.875rem;
+  background-color: var(--bordeaux);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(107, 30, 45, 0.25);
+  transition: background-color 0.2s;
+}
+
+.btnHeroPrimary:hover {
+  background-color: var(--bordeaux-dark);
+}
+
+.btnHeroOutline {
+  border-radius: 0.875rem;
+  border: 1.5px solid var(--gold);
+  background-color: var(--white);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btnHeroOutline:hover {
+  background-color: var(--cream);
+}
+
+/* ── Stats ── */
+.statsGrid {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.statCard {
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background-color: var(--white);
+  padding: var(--space-md);
+  box-shadow: 0 2px 6px rgba(44, 26, 23, 0.05);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--bordeaux);
+  font-family: var(--font-serif);
+}
+
+.statLabel {
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--muted-text);
+}
+
+/* ── Quick search card ── */
+.quickSearchCard {
+  border-radius: var(--radius-xxl);
+  border: 1px solid var(--border);
+  background-color: var(--white);
+  padding: 1.25rem;
+  box-shadow: 0 20px 48px rgba(44, 26, 23, 0.12);
+}
+
+.quickSearchInner {
+  border-radius: 1.375rem;
+  background-color: var(--dark-text);
+  padding: 1.25rem;
+  color: var(--cream);
+}
+
+.quickSearchHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.quickSearchEyebrow {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+}
+
+.quickSearchTitle {
+  margin-top: 0.25rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.onlineBadge {
+  border-radius: var(--radius-full);
+  background-color: var(--bordeaux);
+  padding: 0.2rem 0.625rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.quickSearchFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.quickInput {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid #4A342E;
+  background-color: #3A2521;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--cream);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.quickInput::placeholder {
+  color: rgba(244, 233, 216, 0.45);
+}
+
+.quickSelects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.quickSelect {
+  border-radius: var(--radius-md);
+  border: 1px solid #4A342E;
+  background-color: #3A2521;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--cream);
+  outline: none;
+  width: 100%;
+}
+
+.btnQuickSearch {
+  width: 100%;
+  border-radius: var(--radius-md);
+  background-color: var(--gold);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btnQuickSearch:hover {
+  opacity: 0.85;
+}
+
+.quickResult {
+  margin-top: 1.25rem;
+  border-radius: 0.875rem;
+  background-color: var(--cream);
+  padding: var(--space-md);
+  color: var(--dark-text);
+}
+
+.quickResultLabel {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--muted-text);
+  margin-bottom: 0.625rem;
+}
+
+.quickResultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quickResultName {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.quickResultMeta {
+  font-size: 0.78rem;
+  color: var(--muted-text);
+}
+
+.quickResultPrice {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bordeaux);
+}
+
+/* ── CATEGORIES ── */
+.categoriesSection {
+  padding: 0 var(--space-lg) var(--space-lg);
+}
+
+.sectionCard {
+  border-radius: var(--radius-xxl);
+  border: 1px solid var(--border);
+  background-color: var(--white);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.sectionEyebrow {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--gold-dark);
+  margin-bottom: 0.25rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--dark-text);
+}
+
+.btnViewAll {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--bordeaux);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--bordeaux);
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btnViewAll:hover {
+  background-color: var(--bordeaux);
+  color: var(--white);
+}
+
+.categoriesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-md);
+}
+
+.categoryBtn {
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background-color: var(--page-bg);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.categoryBtn:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(44, 26, 23, 0.08);
+}
+
+.categoryIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background-color: rgba(107, 30, 45, 0.08);
+  margin: 0 auto 0.625rem;
+}
+
+.categoryName {
+  font-weight: 600;
+  color: var(--dark-text);
+  font-size: 0.875rem;
+}
+
+.categoryHint {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--muted-text);
+}
+
+/* ── FEATURED PRODUCTS ── */
+.productsSection {
+  padding: var(--space-lg);
+}
+
+.productsSectionHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.productsSectionNote {
+  font-size: 0.875rem;
+  color: var(--muted-text);
+  max-width: 28rem;
+  text-align: right;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-lg);
+}
+
+.productCard {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background-color: var(--white);
+  box-shadow: 0 2px 8px rgba(44, 26, 23, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(44, 26, 23, 0.12);
+}
+
+.productImageWrap {
+  height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--cream);
+}
+
+.productImagePlaceholder {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--gold);
+  background-color: rgba(107, 30, 45, 0.08);
+}
+
+.productBody {
+  padding: 1.25rem;
+}
+
+.productMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.productApplication {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold-dark);
+  margin-bottom: 0.2rem;
+}
+
+.productName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  line-height: 1.4;
+}
+
+.productTag {
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--cream);
+  padding: 0.2rem 0.625rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--bordeaux);
+}
+
+.productPriceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.productPrice {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--bordeaux);
+  font-family: var(--font-serif);
+}
+
+.productCondition {
+  font-size: 0.78rem;
+  color: var(--muted-text);
+}
+
+.btnProductDetails {
+  width: 100%;
+  border-radius: var(--radius-md);
+  background-color: var(--dark-text);
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cream);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btnProductDetails:hover {
+  background-color: var(--bordeaux);
+}
+
+/* ── CTA BOTTOM ── */
+.ctaSection {
+  padding: var(--space-lg) var(--space-lg) 3rem;
+}
+
+.ctaBox {
+  border-radius: 1.875rem;
+  background-color: var(--bordeaux);
+  padding: 2.5rem 2rem;
+  color: var(--white);
+  box-shadow: 0 12px 32px rgba(107, 30, 45, 0.2);
+}
+
+.ctaGrid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.ctaEyebrow {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: #E6D4B3;
+  margin-bottom: 0.5rem;
+}
+
+.ctaTitle {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.ctaText {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: rgba(244, 233, 216, 0.85);
+  max-width: 36rem;
+}
+
+.btnCta {
+  border-radius: 0.875rem;
+  background-color: var(--gold);
+  padding: 0.875rem 1.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.btnCta:hover {
+  opacity: 0.85;
+}

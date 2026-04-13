@@ -1,17 +1,13 @@
 /**
  * FeaturedProducts.jsx
- * Seção de produtos em destaque
+ * Seção de produtos em destaque (header da seção)
  */
 
 import { useNavigate } from 'react-router-dom';
-import ProductCard from './ProductCard';
 
-const BORDEAUX = '#7B1D2E';
-const SPACING = {
-  MD: '1rem',
-  LG: '1.5rem',
-  XXL: '2.5rem',
-};
+const BORDEAUX = '#6B1E2D';
+const DARK_TEXT = '#2C1A17';
+const MUTED_TEXT = '#6A5F58';
 
 export default function FeaturedProducts({ items }) {
   const navigate = useNavigate();
@@ -22,29 +18,37 @@ export default function FeaturedProducts({ items }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingLeft: SPACING.XXL,
-        paddingRight: SPACING.XXL,
-        paddingTop: SPACING.XXL,
-        paddingBottom: SPACING.MD,
-        marginBottom: SPACING.XXL,
+        padding: '2.5rem 2.5rem 1rem',
+        marginBottom: '0.5rem',
       }}
     >
       <div>
+        <p
+          style={{
+            fontSize: '0.68rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.25em',
+            color: '#7C6540',
+            marginBottom: '0.25rem',
+          }}
+        >
+          Destaques
+        </p>
         <h2
           style={{
-            color: BORDEAUX,
+            color: DARK_TEXT,
             fontFamily: "'Georgia', serif",
-            fontSize: '1.2rem',
-            fontWeight: 700,
+            fontSize: '1.4rem',
+            fontWeight: 600,
           }}
         >
           Peças em Destaque
         </h2>
         <p
           style={{
-            fontSize: '0.75rem',
-            marginTop: '0.125rem',
-            color: '#9B7B6A',
+            fontSize: '0.78rem',
+            marginTop: '0.2rem',
+            color: MUTED_TEXT,
           }}
         >
           Seleção especial para restauradores exigentes
@@ -52,14 +56,8 @@ export default function FeaturedProducts({ items }) {
       </div>
       <button
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACING.MD,
-          fontSize: '0.75rem',
-          paddingLeft: SPACING.MD,
-          paddingRight: SPACING.MD,
-          paddingTop: '0.5rem',
-          paddingBottom: '0.5rem',
+          fontSize: '0.825rem',
+          padding: '0.5rem 1rem',
           borderRadius: '9999px',
           color: BORDEAUX,
           border: `1.5px solid ${BORDEAUX}`,
@@ -68,11 +66,17 @@ export default function FeaturedProducts({ items }) {
           cursor: 'pointer',
           transition: 'all 0.2s',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = BORDEAUX;
+          e.currentTarget.style.color = '#fff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = BORDEAUX;
+        }}
         onClick={() => navigate('/buscaPecas')}
       >
-        Ver todos ›
+        Ver todos →
       </button>
     </div>
   );

@@ -1,0 +1,201 @@
+.main {
+  flex: 1;
+}
+
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-xl) 0;
+}
+
+/* ── Page header ── */
+.pageEyebrow {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--gold-dark);
+  margin-bottom: 0.25rem;
+}
+
+.pageTitle {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Controls bar ── */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+
+.sortLabel {
+  font-weight: 600;
+  color: var(--muted-text);
+  font-size: 0.875rem;
+}
+
+.sortBtn {
+  padding: 0.5rem 1rem;
+  font-size: 0.825rem;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  background-color: var(--border);
+  color: var(--dark-text);
+}
+
+.sortBtn.active {
+  background-color: var(--bordeaux);
+  color: var(--white);
+}
+
+.filterToggle {
+  padding: 0.5rem 1rem;
+  font-size: 0.825rem;
+  border: 1.5px solid var(--bordeaux);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  background-color: transparent;
+  color: var(--bordeaux);
+}
+
+.filterToggle.open {
+  background-color: var(--bordeaux);
+  color: var(--white);
+}
+
+/* ── Filters panel ── */
+.filtersPanel {
+  background-color: var(--white);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+}
+
+.filterLabel {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-text);
+}
+
+.filterInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--dark-text);
+  background-color: var(--page-bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filterInput:focus {
+  border-color: var(--bordeaux);
+}
+
+.rangeWrap {
+  grid-column: span 2;
+}
+
+.rangeTrack {
+  position: relative;
+  height: 40px;
+  margin-top: 24px;
+}
+
+.rangeTrackBg {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* The active fill is kept inline because its left/right values are computed */
+
+.dualRange {
+  position: absolute;
+  width: 100%;
+  height: 40px;
+  appearance: none;
+  background: none;
+}
+
+.dualRange::-webkit-slider-thumb {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.dualRange::-moz-range-thumb {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.rangeMin { z-index: 3; }
+.rangeMax { z-index: 4; }
+
+/* ── Feedback states ── */
+.alertError {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--error-border);
+  margin-bottom: var(--space-lg);
+}
+
+.loading {
+  color: var(--bordeaux);
+  font-weight: 600;
+  margin-bottom: var(--space-lg);
+}
+
+.emptyState {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--muted-text);
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  margin-bottom: var(--space-lg);
+}
+
+.emptyTitle {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.emptyHint {
+  font-size: 0.875rem;
+}
+
+/* ── Product grid ── */
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-lg);
+  padding-bottom: var(--space-xxl);
+}

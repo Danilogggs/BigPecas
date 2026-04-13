@@ -1,0 +1,171 @@
+.main {
+  flex: 1;
+  padding: var(--space-xxl) var(--space-lg);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.card {
+  width: 100%;
+  max-width: 640px;
+  background-color: var(--white);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.cardHeader {
+  margin-bottom: var(--space-xl);
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--bordeaux);
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin: 0;
+}
+
+.subtitle {
+  margin-top: var(--space-sm);
+  color: var(--muted-text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ── Form ── */
+.fieldGroup {
+  margin-bottom: 1.25rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-text);
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--dark-text);
+  background-color: var(--page-bg);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--bordeaux);
+}
+
+.inputDisabled {
+  background-color: #f3f4f6;
+  color: var(--muted-text);
+  cursor: not-allowed;
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: 1.25rem;
+}
+
+/* ── Alerts ── */
+.alert {
+  margin-bottom: 1.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+}
+
+.alertSuccess {
+  composes: alert;
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border: 1.5px solid var(--success-border);
+}
+
+.alertError {
+  composes: alert;
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1.5px solid var(--error-border);
+}
+
+/* ── Buttons ── */
+.btnRow {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: var(--space-sm);
+}
+
+.btnPrimary {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.5rem;
+  background-color: var(--bordeaux);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: var(--bordeaux-dark);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.btnOutline {
+  border: 1.5px solid var(--bordeaux);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.5rem;
+  background-color: transparent;
+  color: var(--bordeaux);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btnOutline:hover {
+  background-color: var(--bordeaux);
+  color: var(--white);
+}
+
+/* ── Loading state ── */
+.loadingWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingText {
+  color: var(--bordeaux);
+  font-size: 1rem;
+}

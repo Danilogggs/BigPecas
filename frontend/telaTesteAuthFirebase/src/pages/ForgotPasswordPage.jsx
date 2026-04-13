@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../components/StyledComponents';
-import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme';
+import { SPACING } from '../styles/theme';
 import { mapFirebaseAuthError } from '../utils/friendlyErrors';
+import AuthCard from '../components/layouts/AuthCard';
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
@@ -17,7 +18,6 @@ export default function ForgotPasswordPage() {
     setError('');
     setSuccess('');
     setLoading(true);
-
     try {
       await resetPassword(email);
       setSuccess('Enviamos um link de recuperação para o seu email.');
@@ -29,74 +29,41 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: COLORS.CREAM,
-        ...FLEX_CENTER,
-        padding: SPACING.XL,
-      }}
+    <AuthCard
+      eyebrow="BigPeças"
+      title="Recuperar senha"
+      subtitle="Informe seu email para receber o link de redefinição."
     >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '500px',
-          backgroundColor: '#fff',
-          borderRadius: BORDER_RADIUS.LG,
-          border: `2px solid ${COLORS.BORDEAUX}22`,
-          padding: SPACING.XL,
-          boxShadow: SHADOWS.SM,
-        }}
-      >
-        <div style={{ marginBottom: SPACING.XL }}>
-          <span
-            style={{
-              display: 'inline-block',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: COLORS.BORDEAUX,
-              fontWeight: 700,
-              marginBottom: SPACING.MD,
-            }}
-          >
-            BigPeças
-          </span>
-          <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            Recuperar senha
-          </h1>
-          <p style={{ margin: 0, marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
-            Informe seu email para receber o link de redefinição.
-          </p>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: SPACING.LG }}>
+          <Field label="Email" required>
+            <Input
+              type="email"
+              placeholder="seuemail@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </Field>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Email" required>
-              <Input
-                type="email"
-                placeholder="seuemail@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Field>
-          </div>
+        {error && <AlertError>{error}</AlertError>}
+        {success && <AlertSuccess>{success}</AlertSuccess>}
 
-          {error && <AlertError>{error}</AlertError>}
-          {success && <AlertSuccess>{success}</AlertSuccess>}
+        <ButtonPrimary
+          type="submit"
+          disabled={loading}
+          style={{ width: '100%', marginTop: SPACING.SM, padding: `${SPACING.MD} ${SPACING.LG}` }}
+        >
+          {loading ? 'Enviando...' : 'Enviar email'}
+        </ButtonPrimary>
+      </form>
 
-          <ButtonPrimary type="submit" disabled={loading} style={{ width: '100%', marginTop: SPACING.MD }}>
-            {loading ? 'Enviando...' : 'Enviar email'}
-          </ButtonPrimary>
-        </form>
-
-        <div style={{ marginTop: SPACING.XL }}>
-          <Link to="/login" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
-            Voltar para o login
-          </Link>
-        </div>
+      <div style={{ marginTop: SPACING.XL }}>
+        <Link to="/login" style={{ fontSize: '0.875rem', color: '#6A5F58', textDecoration: 'none' }}>
+          ← Voltar para o login
+        </Link>
       </div>
-    </div>
+    </AuthCard>
   );
 }

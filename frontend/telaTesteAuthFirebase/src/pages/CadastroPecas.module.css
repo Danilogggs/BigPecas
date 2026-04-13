@@ -1,0 +1,128 @@
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--page-bg);
+  padding: var(--space-xxl);
+}
+
+.pageTitle {
+  color: var(--bordeaux);
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+}
+
+.pageSubtitle {
+  color: var(--muted-text);
+  margin-bottom: var(--space-xxl);
+  font-size: 0.9rem;
+}
+
+/* ── Feedback ── */
+.alertError {
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+  border-radius: var(--radius-md);
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1.5px solid var(--error-border);
+  font-size: 0.9rem;
+}
+
+.alertSuccess {
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+  border-radius: var(--radius-md);
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border: 1.5px solid var(--success-border);
+  font-size: 0.9rem;
+}
+
+/* ── Form ── */
+.form {
+  max-width: 760px;
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+  color: var(--muted-text);
+  font-size: 0.875rem;
+}
+
+.required {
+  color: var(--bordeaux);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-md);
+  border: 1.5px solid var(--border);
+  border-radius: 0.625rem;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+  color: var(--dark-text);
+  background-color: var(--page-bg);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--bordeaux);
+}
+
+.textarea {
+  composes: input;
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* ── Grid layouts ── */
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.gridThree {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.fieldGroup {
+  margin-bottom: var(--space-xl);
+}
+
+/* ── Submit button ── */
+.submitBtn {
+  padding: var(--space-md) var(--space-xxl);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  background-color: var(--bordeaux);
+  color: var(--cream);
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--bordeaux-dark);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

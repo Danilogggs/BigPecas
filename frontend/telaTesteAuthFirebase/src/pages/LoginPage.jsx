@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError } from '../components/StyledComponents.jsx';
-import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme.js';
+import { SPACING } from '../styles/theme.js';
 import { mapFirebaseAuthError } from '../utils/friendlyErrors';
+import AuthCard from '../components/layouts/AuthCard';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ export default function LoginPage() {
     event.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await login(form.email, form.password);
       navigate('/dashboard');
@@ -28,88 +28,59 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: COLORS.CREAM,
-        ...FLEX_CENTER,
-        padding: SPACING.XL,
-      }}
-    >
+    <AuthCard eyebrow="BigPeças" title="Entrar" subtitle="Acesse sua conta para gerenciar anúncios e peças.">
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: SPACING.LG }}>
+          <Field label="Email" required>
+            <Input
+              type="email"
+              placeholder="seuemail@exemplo.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+          </Field>
+        </div>
+
+        <div style={{ marginBottom: SPACING.LG }}>
+          <Field label="Senha" required>
+            <Input
+              type="password"
+              placeholder="Digite sua senha"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+            />
+          </Field>
+        </div>
+
+        {error && <AlertError>{error}</AlertError>}
+
+        <ButtonPrimary
+          type="submit"
+          disabled={loading}
+          style={{ width: '100%', marginTop: SPACING.SM, padding: `${SPACING.MD} ${SPACING.LG}` }}
+        >
+          {loading ? 'Entrando...' : 'Entrar'}
+        </ButtonPrimary>
+      </form>
+
       <div
         style={{
-          width: '100%',
-          maxWidth: '500px',
-          backgroundColor: '#fff',
-          borderRadius: BORDER_RADIUS.LG,
-          border: `2px solid ${COLORS.BORDEAUX}22`,
-          padding: SPACING.XL,
-          boxShadow: SHADOWS.SM,
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginTop: SPACING.XL,
+          flexWrap: 'wrap',
+          gap: SPACING.SM,
         }}
       >
-        <div style={{ marginBottom: SPACING.XL }}>
-          <span
-            style={{
-              display: 'inline-block',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: COLORS.BORDEAUX,
-              fontWeight: 700,
-              marginBottom: SPACING.MD,
-            }}
-          >
-            BigPeças
-          </span>
-          <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            Entrar
-          </h1>
-          <p style={{ margin: 0, marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
-            Acesse sua conta para gerenciar anúncios, peças e pedidos.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Email" required>
-              <Input
-                type="email"
-                placeholder="seuemail@exemplo.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                required
-              />
-            </Field>
-          </div>
-
-          <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Senha" required>
-              <Input
-                type="password"
-                placeholder="Digite sua senha"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
-            </Field>
-          </div>
-
-          {error && <AlertError>{error}</AlertError>}
-
-          <ButtonPrimary type="submit" disabled={loading} style={{ width: '100%', marginTop: SPACING.MD }}>
-            {loading ? 'Entrando...' : '✓ Entrar'}
-          </ButtonPrimary>
-        </form>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: SPACING.XL, flexWrap: 'wrap', gap: SPACING.MD }}>
-          <Link to="/cadastro-usuario" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
-            Criar conta
-          </Link>
-          <Link to="/recuperar-senha" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
-            Esqueci minha senha
-          </Link>
-        </div>
+        <Link to="/cadastro-usuario" style={{ fontSize: '0.875rem', color: '#6A5F58', textDecoration: 'none' }}>
+          Criar conta
+        </Link>
+        <Link to="/recuperar-senha" style={{ fontSize: '0.875rem', color: '#6A5F58', textDecoration: 'none' }}>
+          Esqueci minha senha
+        </Link>
       </div>
-    </div>
+    </AuthCard>
   );
 }

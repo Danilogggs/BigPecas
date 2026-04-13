@@ -1,18 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
-
-import {
-  COLORS,
-  SPACING,
-  INPUT_STYLE,
-  LABEL_STYLE,
-  BUTTON_PRIMARY_STYLE,
-  BORDER_RADIUS,
-  SHADOWS,
-} from '../styles/theme';
+import PageLayout from '../components/layouts/PageLayout';
 import { parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
+import styles from './BuscaPecas.module.css';
 
 const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
 
@@ -51,12 +42,7 @@ export default function BuscaPecas() {
   }, [searchParams]);
 
   const fetchPecas = async () => {
-    const params = {
-      ...filters,
-      sort,
-      ordem,
-    };
-
+    const params = { ...filters, sort, ordem };
     const query = new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== '' && v !== null))
     ).toString();
@@ -66,15 +52,12 @@ export default function BuscaPecas() {
 
     try {
       const res = await fetch(`${API_BASE_URL}/pecas?${query}`);
-
       if (!res.ok) {
         throw new Error(await parseErrorResponse(res, 'Não foi possível carregar as peças no momento.'));
       }
-
       const data = await res.json();
       setPecas(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Erro ao buscar peças:', error);
       setPecas([]);
       setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar as peças no momento.'));
     } finally {
@@ -82,15 +65,9 @@ export default function BuscaPecas() {
     }
   };
 
+  useEffect(() => { fetchPecas(); }, [sort, ordem]);
   useEffect(() => {
-    fetchPecas();
-  }, [sort, ordem]);
-
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchPecas();
-    }, 400);
-
+    const delay = setTimeout(() => { fetchPecas(); }, 400);
     return () => clearTimeout(delay);
   }, [filters]);
 
@@ -110,260 +87,148 @@ export default function BuscaPecas() {
   const shouldShowEmptyState = !loading && !errorMessage && pecas.length === 0;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
-      <style>{`
-        .dual-range {
-          pointer-events: none;
-        }
-        .dual-range::-webkit-slider-thumb {
-          pointer-events: auto;
-          cursor: pointer;
-        }
-        .dual-range::-moz-range-thumb {
-          pointer-events: auto;
-          cursor: pointer;
-        }
-      `}</style>
+    <PageLayout>
+      <main className={styles.main}>
+        <div className={styles.container}>
+          {/* Page header */}
+          <p className={styles.pageEyebrow}>Catálogo</p>
+          <h1 className={styles.pageTitle}>Busca de Peças</h1>
 
-      <Header />
+          {/* Controls */}
+          <div className={styles.controls}>
+            <span className={styles.sortLabel}>Ordenar por:</span>
 
-      <main>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACING.SM,
-          padding: `${SPACING.XL} ${SPACING.XL} 0`,
-        }}>
-          <span style={{ fontWeight: 'bold', color: COLORS.BORDEAUX, marginRight: SPACING.SM }}>Ordenar por:</span>
+            <button
+              onClick={() => handleSortClick('preco')}
+              className={`${styles.sortBtn} ${sort === 'preco' ? styles.active : ''}`}
+            >
+              Preço {sort === 'preco' ? (ordem === 'asc' ? '↑' : '↓') : ''}
+            </button>
 
-          <button
-            onClick={() => handleSortClick('preco')}
-            style={{
-              ...BUTTON_PRIMARY_STYLE,
-              backgroundColor: sort === 'preco' ? COLORS.BORDEAUX : '#ccc',
-              padding: '8px 16px',
-            }}
-          >
-            Preço {sort === 'preco' ? (ordem === 'asc' ? '↑' : '↓') : ''}
-          </button>
+            <button
+              onClick={() => handleSortClick('data_cadastro')}
+              className={`${styles.sortBtn} ${sort === 'data_cadastro' ? styles.active : ''}`}
+            >
+              Data {sort === 'data_cadastro' ? (ordem === 'asc' ? '↑' : '↓') : ''}
+            </button>
 
-          <button
-            onClick={() => handleSortClick('data_cadastro')}
-            style={{
-              ...BUTTON_PRIMARY_STYLE,
-              backgroundColor: sort === 'data_cadastro' ? COLORS.BORDEAUX : '#ccc',
-              padding: '8px 16px',
-            }}
-          >
-            Data de Cadastro {sort === 'data_cadastro' ? (ordem === 'asc' ? '↑' : '↓') : ''}
-          </button>
-        </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`${styles.filterToggle} ${showFilters ? styles.open : ''}`}
+            >
+              {showFilters ? 'Ocultar filtros' : 'Filtros'}
+            </button>
+          </div>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACING.MD,
-          padding: SPACING.XL,
-        }}>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            style={BUTTON_PRIMARY_STYLE}
-          >
-            {showFilters ? 'Esconder Filtros' : 'Mostrar Filtros'}
-          </button>
-        </div>
-
-        {showFilters && (
-          <div style={{
-            margin: `0 ${SPACING.XL}`,
-            backgroundColor: '#fff',
-            padding: SPACING.XL,
-            borderRadius: BORDER_RADIUS.LG,
-            boxShadow: SHADOWS.SM,
-          }}>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: SPACING.LG,
-            }}>
-
-              <div>
-                <label style={LABEL_STYLE}>Nome</label>
-                <input name="nome" value={filters.nome} onChange={handleChange} style={INPUT_STYLE} />
-              </div>
-
-              <div>
-                <label style={LABEL_STYLE}>Categoria</label>
-                <select name="categoria_id" value={filters.categoria_id} onChange={handleChange} style={INPUT_STYLE}>
-                  <option value="">Todas</option>
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={LABEL_STYLE}>Condição</label>
-                <select name="condicao" value={filters.condicao} onChange={handleChange} style={INPUT_STYLE}>
-                  <option value="">Todas</option>
-                  <option value="NOS">NOS</option>
-                  <option value="EXCELENTE">Excelente</option>
-                  <option value="BOM">Bom</option>
-                  <option value="ACEITÁVEL">Aceitável</option>
-                </select>
-              </div>
-
-              <div style={{ gridColumn: 'span 2', marginTop: SPACING.SM }}>
-                <label style={LABEL_STYLE}>Faixa de Preço</label>
-
-                <div style={{ position: 'relative', height: '40px', marginTop: '25px' }}>
-
-                  <div style={{
-                    position: 'absolute',
-                    top: '-22px',
-                    left: `${(filters.min_preco / 1000) * 100}%`,
-                    transform: 'translateX(-50%)',
-                    backgroundColor: COLORS.BORDEAUX,
-                    color: '#fff',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    R$ {filters.min_preco}
-                  </div>
-
-                  <div style={{
-                    position: 'absolute',
-                    top: '-22px',
-                    left: `${(filters.max_preco / 1000) * 100}%`,
-                    transform: 'translateX(-50%)',
-                    backgroundColor: COLORS.BORDEAUX,
-                    color: '#fff',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    R$ {filters.max_preco}
-                  </div>
-
-                  <div style={{
-                    position: 'absolute',
-                    top: '18px', left: 0, right: 0, height: '4px',
-                    background: '#ddd', borderRadius: '4px',
-                  }} />
-
-                  <div style={{
-                    position: 'absolute',
-                    top: '18px',
-                    left: `${(filters.min_preco / 1000) * 100}%`,
-                    right: `${100 - (filters.max_preco / 1000) * 100}%`,
-                    height: '4px',
-                    background: COLORS.BORDEAUX,
-                    borderRadius: '4px',
-                  }} />
-
+          {/* Filters panel */}
+          {showFilters && (
+            <div className={styles.filtersPanel}>
+              <div className={styles.filtersGrid}>
+                <div>
+                  <label className={styles.filterLabel}>Nome</label>
                   <input
-                    type="range"
-                    className="dual-range"
-                    min="0"
-                    max="1000"
-                    value={filters.min_preco}
-                    onChange={(e) => {
-                      const value = Number(e.target.value);
-                      if (value > filters.max_preco) {
-                        setFilters((prev) => ({ ...prev, min_preco: value, max_preco: value }));
-                      } else {
-                        setFilters((prev) => ({ ...prev, min_preco: value }));
-                      }
-                    }}
-                    style={{
-                      position: 'absolute', width: '100%', height: '40px',
-                      appearance: 'none', background: 'none', zIndex: 3,
-                    }}
+                    name="nome"
+                    value={filters.nome}
+                    onChange={handleChange}
+                    className={styles.filterInput}
+                    placeholder="Buscar por nome..."
                   />
+                </div>
 
-                  <input
-                    type="range"
-                    className="dual-range"
-                    min="0"
-                    max="1000"
-                    value={filters.max_preco}
-                    onChange={(e) => {
-                      const value = Number(e.target.value);
-                      if (value < filters.min_preco) {
-                        setFilters((prev) => ({ ...prev, max_preco: value, min_preco: value }));
-                      } else {
-                        setFilters((prev) => ({ ...prev, max_preco: value }));
-                      }
-                    }}
-                    style={{
-                      position: 'absolute', width: '100%', height: '40px',
-                      appearance: 'none', background: 'none', zIndex: 4,
-                    }}
-                  />
+                <div>
+                  <label className={styles.filterLabel}>Categoria</label>
+                  <select name="categoria_id" value={filters.categoria_id} onChange={handleChange} className={styles.filterInput}>
+                    <option value="">Todas</option>
+                    {categorias.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nome}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={styles.filterLabel}>Condição</label>
+                  <select name="condicao" value={filters.condicao} onChange={handleChange} className={styles.filterInput}>
+                    <option value="">Todas</option>
+                    <option value="NOS">NOS</option>
+                    <option value="EXCELENTE">Excelente</option>
+                    <option value="BOM">Bom</option>
+                    <option value="ACEITÁVEL">Aceitável</option>
+                  </select>
+                </div>
+
+                {/* Dual range — left/right computed inline, tudo mais no módulo */}
+                <div className={styles.rangeWrap}>
+                  <label className={styles.filterLabel}>
+                    Faixa de preço: R$ {filters.min_preco} – R$ {filters.max_preco}
+                  </label>
+                  <div className={styles.rangeTrack}>
+                    <div className={styles.rangeTrackBg} />
+                    {/* Active fill: posição calculada dinamicamente */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '18px',
+                        left: `${(filters.min_preco / 1000) * 100}%`,
+                        right: `${100 - (filters.max_preco / 1000) * 100}%`,
+                        height: '4px',
+                        background: 'var(--bordeaux)',
+                        borderRadius: '4px',
+                      }}
+                    />
+                    <input
+                      type="range"
+                      min="0" max="1000"
+                      value={filters.min_preco}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setFilters((prev) => ({ ...prev, min_preco: Math.min(value, prev.max_preco) }));
+                      }}
+                      className={`${styles.dualRange} ${styles.rangeMin}`}
+                    />
+                    <input
+                      type="range"
+                      min="0" max="1000"
+                      value={filters.max_preco}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setFilters((prev) => ({ ...prev, max_preco: Math.max(value, prev.min_preco) }));
+                      }}
+                      className={`${styles.dualRange} ${styles.rangeMax}`}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {errorMessage && (
-          <div
-            style={{
-              margin: `0 ${SPACING.XL}`,
-              backgroundColor: '#FEE2E2',
-              color: '#7F1D1D',
-              padding: SPACING.MD,
-              borderRadius: '0.625rem',
-              border: '2px solid #FCA5A5',
-            }}
-          >
-            {errorMessage}
-          </div>
-        )}
+          {/* Feedback */}
+          {errorMessage && <div className={styles.alertError}>{errorMessage}</div>}
+          {loading && <p className={styles.loading}>Carregando peças...</p>}
+          {shouldShowEmptyState && (
+            <div className={styles.emptyState}>
+              <p className={styles.emptyTitle}>Nenhuma peça encontrada</p>
+              <p className={styles.emptyHint}>Tente ajustar os filtros de busca.</p>
+            </div>
+          )}
 
-        {loading && (
-          <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.BORDEAUX, fontWeight: 600 }}>
-            Carregando peças...
+          {/* Product grid */}
+          <div className={styles.productsGrid}>
+            {pecas.map((item) => (
+              <ProductCard
+                key={item.id}
+                product={{
+                  id: item.id,
+                  name: item.nome_peca,
+                  price: 'R$ ' + item.preco,
+                  stock: item.estoque_atual,
+                  condition: item.condicao,
+                  image: item.imagem,
+                }}
+              />
+            ))}
           </div>
-        )}
-
-        {shouldShowEmptyState && (
-          <div style={{ padding: `0 ${SPACING.XL}`, color: '#9B7B6A' }}>
-            Nenhuma peça foi encontrada com os filtros informados.
-          </div>
-        )}
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: SPACING.LG,
-          padding: SPACING.XL,
-        }}>
-          {pecas.map((item) => (
-            <ProductCard
-              key={item.id}
-              product={{
-                id: item.id,
-                name: item.nome_peca,
-                price: 'R$ ' + item.preco,
-                stock: item.estoque_atual,
-                condition: item.condicao,
-                image: item.imagem,
-              }}
-            />
-          ))}
         </div>
       </main>
-    </div>
+    </PageLayout>
   );
 }
