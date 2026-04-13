@@ -24,10 +24,8 @@ export default function Sidebar({ activeNav, setActiveNav }) {
     <aside
       style={{
         width: '20%',
-        minHeight: 'calc(100vh - 76px)',
         backgroundColor: BORDEAUX,
         padding: `${SPACING.XL} 0`,
-        flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
         gap: SPACING.LG,

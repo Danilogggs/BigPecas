@@ -28,6 +28,7 @@ const categorias = [
 export default function BuscaPecas() {
   const [searchParams] = useSearchParams();
   const nomeUrl = searchParams.get('nome') || '';
+  const categoriaUrl = searchParams.get('categoria_id') || '';
 
   const [showFilters, setShowFilters] = useState(false);
   const [pecas, setPecas] = useState([]);
@@ -36,7 +37,7 @@ export default function BuscaPecas() {
 
   const [filters, setFilters] = useState({
     nome: nomeUrl,
-    categoria_id: '',
+    categoria_id: categoriaUrl,
     condicao: '',
     min_preco: 0,
     max_preco: 1000,
@@ -47,7 +48,13 @@ export default function BuscaPecas() {
 
   useEffect(() => {
     const novoNome = searchParams.get('nome') || '';
-    setFilters((prev) => ({ ...prev, nome: novoNome }));
+    const novaCategoria = searchParams.get('categoria_id') || '';
+
+    setFilters((prev) => ({
+      ...prev,
+      nome: novoNome,
+      categoria_id: novaCategoria,
+    }));
   }, [searchParams]);
 
   const fetchPecas = async () => {
