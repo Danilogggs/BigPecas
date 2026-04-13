@@ -4,6 +4,13 @@ import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
 import FeaturedProducts from '../components/FeaturedProducts';
 import ProductCard from '../components/ProductCard';
+import CategoriesSection from '../components/CategoriesSection';
+import BenefitsSection from '../components/BenefitsSection';
+import HowItWorks from '../components/HowItWorks';
+import Testimonials from '../components/Testimonials';
+import FinalCTA from '../components/FinalCTA';
+import Footer from '../components/Footer';
+import QuickFilters from '../components/QuickFilters';
 import { products } from '../data/mockData';
 
 const CREAM = '#F5EDD8';
@@ -38,9 +45,20 @@ export default function HomePage() {
               <ProductCard key={item.name} product={item} />
             ))}
           </div>
+          <QuickFilters />
+
+          <BenefitsSection />
+
+          <HowItWorks />
+
+          <Testimonials />
+
+          <FinalCTA />
         </main>
       </div>
+      <Footer />
     </div>
+    
   );
 }
 
