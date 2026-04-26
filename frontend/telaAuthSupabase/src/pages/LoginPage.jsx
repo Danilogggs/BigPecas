@@ -93,8 +93,40 @@ export default function LoginPage() {
 
           {error && <AlertError>{error}</AlertError>}
 
-          <ButtonPrimary type="submit" disabled={loading} style={{ width: '100%', marginTop: SPACING.MD }}>
-            {loading ? 'Entrando...' : '✓ Entrar'}
+          <ButtonPrimary
+            type="submit"
+            disabled={loading}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 8px 18px ${COLORS.BORDEAUX}33`;
+                e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = `0 4px 12px ${COLORS.BORDEAUX}22`;
+              e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
+            }}
+            style={{
+              width: '100%',
+              marginTop: SPACING.MD,
+              padding: '14px 18px',
+              border: 'none',
+              outline: 'none',
+              borderRadius: BORDER_RADIUS.MD,
+              backgroundColor: COLORS.BORDEAUX,
+              color: '#fff',
+              fontSize: '1rem',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
           </ButtonPrimary>
         </form>
 
