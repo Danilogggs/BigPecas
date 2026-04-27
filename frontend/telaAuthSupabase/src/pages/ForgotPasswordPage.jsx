@@ -5,21 +5,56 @@ import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../compon
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
 
+const REGEX = {
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+};
+
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
+
   const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  function handleChange(e) {
+    const value = e.target.value;
+
+    setEmail(value);
+
+    setErrors({});
     setError('');
     setSuccess('');
+  }
+
+  function validateForm() {
+    const newErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = 'Informe seu email.';
+    } else if (!REGEX.email.test(email.trim())) {
+      newErrors.email = 'Digite um email válido. Ex: nome@email.com';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    setError('');
+    setSuccess('');
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await resetPassword(email);
+      await resetPassword(email.trim().toLowerCase());
       setSuccess('Enviamos um link de recuperação para o seu email.');
     } catch (err) {
       setError(mapSupabaseAuthError(err, 'resetPassword'));
@@ -27,6 +62,13 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   }
+
+  const fieldErrorStyle = {
+    color: COLORS.BORDEAUX,
+    fontSize: '0.82rem',
+    marginTop: '6px',
+    fontWeight: 600,
+  };
 
   return (
     <div
@@ -62,24 +104,27 @@ export default function ForgotPasswordPage() {
           >
             BigPeças
           </span>
+
           <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
             Recuperar senha
           </h1>
-          <p style={{ margin: 0, marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
+
+          <p style={{ marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
             Informe seu email para receber o link de redefinição.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div style={{ marginBottom: SPACING.LG }}>
             <Field label="Email" required>
               <Input
                 type="email"
                 placeholder="seuemail@exemplo.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleChange}
                 required
               />
+              {errors.email && <div style={fieldErrorStyle}>{errors.email}</div>}
             </Field>
           </div>
 
@@ -89,34 +134,19 @@ export default function ForgotPasswordPage() {
           <ButtonPrimary
             type="submit"
             disabled={loading}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 8px 18px ${COLORS.BORDEAUX}33`;
-                e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = `0 4px 12px ${COLORS.BORDEAUX}22`;
-              e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
-            }}
             style={{
               width: '100%',
               marginTop: SPACING.MD,
               padding: '14px 18px',
               border: 'none',
-              outline: 'none',
               borderRadius: BORDER_RADIUS.MD,
               backgroundColor: COLORS.BORDEAUX,
               color: '#fff',
               fontSize: '1rem',
               fontWeight: 700,
-              letterSpacing: '0.02em',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.7 : 1,
               boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
-              transition: 'all 0.2s ease',
             }}
           >
             {loading ? 'Enviando...' : 'Enviar email'}
@@ -124,7 +154,14 @@ export default function ForgotPasswordPage() {
         </form>
 
         <div style={{ marginTop: SPACING.XL }}>
-          <Link to="/login" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
+          <Link
+            to="/login"
+            style={{
+              fontSize: '0.875rem',
+              color: COLORS.MUTED_TEXT,
+              textDecoration: 'none',
+            }}
+          >
             Voltar para o login
           </Link>
         </div>

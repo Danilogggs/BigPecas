@@ -5,20 +5,66 @@ import { Field, Input, ButtonPrimary, AlertError } from '../components/StyledCom
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme.js';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
 
+const REGEX = {
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+
   const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: '',
+    }));
+
+    setError('');
+  }
+
+  function validateForm() {
+    const newErrors = {};
+
+    if (!form.email.trim()) {
+      newErrors.email = 'Informe seu email.';
+    } else if (!REGEX.email.test(form.email.trim())) {
+      newErrors.email = 'Digite um email válido. Ex: nome@email.com';
+    }
+
+    if (!form.password.trim()) {
+      newErrors.password = 'Informe sua senha.';
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError('');
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(form.email, form.password);
+      await login(form.email.trim().toLowerCase(), form.password);
       navigate('/dashboard');
     } catch (err) {
       setError(mapSupabaseAuthError(err, 'login'));
@@ -26,6 +72,13 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
+
+  const fieldErrorStyle = {
+    color: COLORS.BORDEAUX,
+    fontSize: '0.82rem',
+    marginTop: '6px',
+    fontWeight: 600,
+  };
 
   return (
     <div
@@ -61,21 +114,24 @@ export default function LoginPage() {
           >
             BigPeças
           </span>
+
           <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
             Entrar
           </h1>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div style={{ marginBottom: SPACING.LG }}>
             <Field label="Email" required>
               <Input
                 type="email"
+                name="email"
                 placeholder="seuemail@exemplo.com"
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={handleChange}
                 required
               />
+              {errors.email && <div style={fieldErrorStyle}>{errors.email}</div>}
             </Field>
           </div>
 
@@ -83,11 +139,13 @@ export default function LoginPage() {
             <Field label="Senha" required>
               <Input
                 type="password"
+                name="password"
                 placeholder="Digite sua senha"
                 value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onChange={handleChange}
                 required
               />
+              {errors.password && <div style={fieldErrorStyle}>{errors.password}</div>}
             </Field>
           </div>
 
@@ -130,11 +188,34 @@ export default function LoginPage() {
           </ButtonPrimary>
         </form>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: SPACING.XL, flexWrap: 'wrap', gap: SPACING.MD }}>
-          <Link to="/cadastro-usuario" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: SPACING.XL,
+            flexWrap: 'wrap',
+            gap: SPACING.MD,
+          }}
+        >
+          <Link
+            to="/cadastro-usuario"
+            style={{
+              fontSize: '0.875rem',
+              color: COLORS.MUTED_TEXT,
+              textDecoration: 'none',
+            }}
+          >
             Criar conta
           </Link>
-          <Link to="/recuperar-senha" style={{ fontSize: '0.875rem', color: COLORS.MUTED_TEXT, textDecoration: 'none' }}>
+
+          <Link
+            to="/recuperar-senha"
+            style={{
+              fontSize: '0.875rem',
+              color: COLORS.MUTED_TEXT,
+              textDecoration: 'none',
+            }}
+          >
             Esqueci minha senha
           </Link>
         </div>

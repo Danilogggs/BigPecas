@@ -23,33 +23,46 @@ const SPACING = {
   XXL: '2.5rem',
 };
 
+const INITIAL_FORM = {
+  nome_peca: '',
+  sku: '',
+  oem_number: '',
+  num_serie: '',
+  categoria: '',
+  material: '',
+  condicao: 'NOS',
+  peso_gramas: '',
+  comprimento_mm: '',
+  largura_mm: '',
+  altura_mm: '',
+  detalhes_gravacao: '',
+  historico_proveniencia: '',
+  preco: '',
+  estoque_atual: '',
+};
+
+const REGEX = {
+  nome_peca: /^[A-Za-zÀ-ÿ0-9\s.,ºª°/()-]{3,150}$/,
+  sku: /^[A-Z0-9-]{3,30}$/,
+  codigoOpcional: /^[A-Z0-9-]{2,50}$/,
+  textoSimples: /^[A-Za-zÀ-ÿ0-9\s.,ºª°/()-]{2,80}$/,
+  numeroInteiro: /^\d+$/,
+  preco: /^\d+([.,]\d{1,2})?$/,
+};
+
 export default function CadastroPecas() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('Catálogo');
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-
-  const [formData, setFormData] = useState({
-    nome_peca: '',
-    sku: '',
-    oem_number: '',
-    num_serie: '',
-    categoria: '',
-    material: '',
-    condicao: 'NOS',
-    peso_gramas: '',
-    comprimento_mm: '',
-    largura_mm: '',
-    altura_mm: '',
-    detalhes_gravacao: '',
-    historico_proveniencia: '',
-    preco: '',
-    estoque_atual: ''
-  });
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState(INITIAL_FORM);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -57,6 +70,7 @@ export default function CadastroPecas() {
         setDropdownOpen(false);
       }
     }
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -67,46 +81,210 @@ export default function CadastroPecas() {
     star: <StarIcon size={16} />,
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  function normalizeCode(value) {
+    return value.toUpperCase().replace(/\s/g, '');
+  }
 
-  const handleSubmit = async (e) => {
+  function normalizePrice(value) {
+    return value.replace(',', '.');
+  }
+
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+
+    const newValue = ['sku', 'oem_number', 'num_serie'].includes(name)
+      ? normalizeCode(value)
+      : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: '',
+    }));
+
+    setMessage({ type: '', text: '' });
+  }
+
+function validateForm() {
+  const newErrors = {};
+
+  if (!formData.nome_peca.trim()) {
+    newErrors.nome_peca = 'Informe o nome da peça.';
+  } else if (!REGEX.nome_peca.test(formData.nome_peca.trim())) {
+    newErrors.nome_peca = 'Use pelo menos 3 caracteres. Evite símbolos especiais.';
+  }
+
+  if (!formData.sku.trim()) {
+    newErrors.sku = 'Informe o SKU da peça.';
+  } else if (!REGEX.sku.test(formData.sku.trim())) {
+    newErrors.sku = 'SKU inválido. Use letras maiúsculas, números e hífen. Ex: OPALA-FRISO-001.';
+  }
+
+  if (!formData.oem_number.trim()) {
+    newErrors.oem_number = 'Informe o número OEM.';
+  } else if (!REGEX.codigoOpcional.test(formData.oem_number.trim())) {
+    newErrors.oem_number = 'Número OEM inválido. Use letras, números e hífen.';
+  }
+
+  if (!formData.num_serie.trim()) {
+    newErrors.num_serie = 'Informe o número de série.';
+  } else if (!REGEX.codigoOpcional.test(formData.num_serie.trim())) {
+    newErrors.num_serie = 'Número de série inválido. Use letras, números e hífen.';
+  }
+
+  if (!formData.categoria.trim()) {
+    newErrors.categoria = 'Informe a categoria da peça.';
+  } else if (!REGEX.textoSimples.test(formData.categoria.trim())) {
+    newErrors.categoria = 'Categoria inválida. Use pelo menos 2 caracteres válidos.';
+  }
+
+  if (!formData.material.trim()) {
+    newErrors.material = 'Informe o material da peça.';
+  } else if (!REGEX.textoSimples.test(formData.material.trim())) {
+    newErrors.material = 'Material inválido. Use pelo menos 2 caracteres válidos.';
+  }
+
+  if (!formData.preco.trim()) {
+    newErrors.preco = 'Informe o preço da peça.';
+  } else if (!REGEX.preco.test(formData.preco.trim())) {
+    newErrors.preco = 'Preço inválido. Ex: 3490.00 ou 3490,00.';
+  } else if (Number(normalizePrice(formData.preco)) <= 0) {
+    newErrors.preco = 'O preço deve ser maior que zero.';
+  }
+
+  if (!formData.estoque_atual.trim()) {
+    newErrors.estoque_atual = 'Informe o estoque atual.';
+  } else if (!REGEX.numeroInteiro.test(formData.estoque_atual.trim())) {
+    newErrors.estoque_atual = 'O estoque deve ser um número inteiro.';
+  }
+
+  if (!formData.comprimento_mm.trim()) {
+    newErrors.comprimento_mm = 'Informe o comprimento.';
+  } else if (!REGEX.numeroInteiro.test(formData.comprimento_mm.trim())) {
+    newErrors.comprimento_mm = 'O comprimento deve ser um número inteiro.';
+  }
+
+  if (!formData.largura_mm.trim()) {
+    newErrors.largura_mm = 'Informe a largura.';
+  } else if (!REGEX.numeroInteiro.test(formData.largura_mm.trim())) {
+    newErrors.largura_mm = 'A largura deve ser um número inteiro.';
+  }
+
+  if (!formData.altura_mm.trim()) {
+    newErrors.altura_mm = 'Informe a altura.';
+  } else if (!REGEX.numeroInteiro.test(formData.altura_mm.trim())) {
+    newErrors.altura_mm = 'A altura deve ser um número inteiro.';
+  }
+
+  if (!formData.peso_gramas.trim()) {
+    newErrors.peso_gramas = 'Informe o peso da peça.';
+  } else if (!REGEX.numeroInteiro.test(formData.peso_gramas.trim())) {
+    newErrors.peso_gramas = 'O peso deve ser informado apenas em números inteiros.';
+  }
+
+  if (!formData.detalhes_gravacao.trim()) {
+    newErrors.detalhes_gravacao = 'Informe os detalhes de gravação.';
+  }
+
+  if (!formData.historico_proveniencia.trim()) {
+    newErrors.historico_proveniencia = 'Informe o histórico de procedência.';
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+}
+  async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
+
     setMessage({ type: '', text: '' });
 
+    if (!validateForm()) {
+      setMessage({ type: 'error', text: 'Corrija os campos destacados antes de cadastrar a peça.' });
+      return;
+    }
+
+    setLoading(true);
+
+    const payload = {
+      ...formData,
+      preco: normalizePrice(formData.preco.trim()),
+      nome_peca: formData.nome_peca.trim(),
+      sku: formData.sku.trim(),
+      oem_number: formData.oem_number.trim(),
+      num_serie: formData.num_serie.trim(),
+      categoria: formData.categoria.trim(),
+      material: formData.material.trim(),
+      detalhes_gravacao: formData.detalhes_gravacao.trim(),
+      historico_proveniencia: formData.historico_proveniencia.trim(),
+    };
+
     try {
-      const response = await cadastrarPeca(formData);
+      const response = await cadastrarPeca(payload);
       setMessage({ type: 'success', text: response.message || 'Peça cadastrada com sucesso!' });
-      setFormData({
-        nome_peca: '',
-        sku: '',
-        oem_number: '',
-        num_serie: '',
-        categoria: '',
-        material: '',
-        condicao: 'NOS',
-        peso_gramas: '',
-        comprimento_mm: '',
-        largura_mm: '',
-        altura_mm: '',
-        detalhes_gravacao: '',
-        historico_proveniencia: '',
-        preco: '',
-        estoque_atual: ''
-      });
+      setFormData(INITIAL_FORM);
+      setErrors({});
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Não foi possível cadastrar a peça. Revise os dados e tente novamente.' });
+      setMessage({
+        type: 'error',
+        text: error.message || 'Não foi possível cadastrar a peça. Revise os dados e tente novamente.',
+      });
     } finally {
       setLoading(false);
     }
+  }
+
+  const inputStyle = {
+    width: '100%',
+    padding: SPACING.MD,
+    border: '1px solid #ddd',
+    borderRadius: '0.5rem',
+    boxSizing: 'border-box',
   };
+
+  const textAreaStyle = {
+    width: '100%',
+    padding: SPACING.MD,
+    border: '1px solid #ddd',
+    borderRadius: '0.5rem',
+    boxSizing: 'border-box',
+    minHeight: '100px',
+  };
+
+  const errorStyle = {
+    marginTop: '6px',
+    color: '#B91C1C',
+    fontSize: '0.82rem',
+    fontWeight: 600,
+  };
+
+  function getInputStyle(fieldName) {
+    return {
+      ...inputStyle,
+      border: errors[fieldName] ? '1.5px solid #B91C1C' : '1px solid #ddd',
+      boxShadow: errors[fieldName] ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
+    };
+  }
+
+  function getTextAreaStyle(fieldName) {
+    return {
+      ...textAreaStyle,
+      border: errors[fieldName] ? '1.5px solid #B91C1C' : '1px solid #ddd',
+      boxShadow: errors[fieldName] ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
+    };
+  }
+
+  function FieldError({ name }) {
+    if (!errors[name]) return null;
+    return <div style={errorStyle}>{errors[name]}</div>;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* ── HEADER ── */}
+
       <header
         style={{
           display: 'flex',
@@ -161,7 +339,9 @@ export default function CadastroPecas() {
                 color: '#fff',
               }}
             />
+
             <button
+              type="button"
               style={{
                 padding: `${SPACING.SM} ${SPACING.MD}`,
                 display: 'flex',
@@ -174,8 +354,7 @@ export default function CadastroPecas() {
                 opacity: 1,
                 transition: 'opacity 0.2s',
               }}
-              onMouseEnter={(e) => (e.target.style.opacity = '0.8')}
-              onMouseLeave={(e) => (e.target.style.opacity = '1')}
+
             >
               <SearchIcon size={17} />
             </button>
@@ -186,6 +365,7 @@ export default function CadastroPecas() {
 
         <div style={{ position: 'relative' }} ref={dropdownRef}>
           <button
+            type="button"
             onClick={() => setDropdownOpen((v) => !v)}
             style={{
               display: 'flex',
@@ -199,14 +379,6 @@ export default function CadastroPecas() {
               cursor: 'pointer',
               transition: 'all 0.25s',
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)')
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = dropdownOpen
-                ? 'rgba(255,255,255,0.15)'
-                : 'transparent')
-            }
           >
             <ChevronDownIcon
               size={17}
@@ -238,11 +410,9 @@ export default function CadastroPecas() {
               {user ? (
                 <>
                   <button
+                    type="button"
                     style={{
                       width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: SPACING.MD,
                       padding: `${SPACING.MD} ${SPACING.LG}`,
                       fontSize: '0.875rem',
                       color: BORDEAUX,
@@ -252,10 +422,7 @@ export default function CadastroPecas() {
                       textAlign: 'left',
                       fontWeight: 500,
                       borderBottom: '1px solid #F3E8D8',
-                      transition: 'background-color 0.2s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     onClick={() => {
                       navigate('/dashboard');
                       setDropdownOpen(false);
@@ -263,12 +430,11 @@ export default function CadastroPecas() {
                   >
                     Dashboard
                   </button>
+
                   <button
+                    type="button"
                     style={{
                       width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: SPACING.MD,
                       padding: `${SPACING.MD} ${SPACING.LG}`,
                       fontSize: '0.875rem',
                       color: '#B91C1C',
@@ -277,10 +443,7 @@ export default function CadastroPecas() {
                       backgroundColor: 'transparent',
                       textAlign: 'left',
                       fontWeight: 500,
-                      transition: 'background-color 0.2s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     onClick={() => {
                       logout();
                       navigate('/login');
@@ -292,11 +455,9 @@ export default function CadastroPecas() {
                 </>
               ) : (
                 <button
+                  type="button"
                   style={{
                     width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: SPACING.MD,
                     padding: `${SPACING.MD} ${SPACING.LG}`,
                     fontSize: '0.875rem',
                     color: BORDEAUX,
@@ -305,10 +466,7 @@ export default function CadastroPecas() {
                     backgroundColor: 'transparent',
                     textAlign: 'left',
                     fontWeight: 500,
-                    transition: 'background-color 0.2s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   onClick={() => {
                     navigate('/login');
                     setDropdownOpen(false);
@@ -322,9 +480,7 @@ export default function CadastroPecas() {
         </div>
       </header>
 
-      {/* ── BODY ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left sidebar */}
         <aside
           style={{
             width: '20%',
@@ -351,12 +507,15 @@ export default function CadastroPecas() {
           >
             Menu
           </p>
+
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingLeft: SPACING.MD, paddingRight: SPACING.MD }}>
             {menuItems.map((item) => {
               const isActive = activeNav === item.label;
+
               return (
                 <button
                   key={item.label}
+                  type="button"
                   onClick={() => setActiveNav(item.label)}
                   style={{
                     display: 'flex',
@@ -374,16 +533,6 @@ export default function CadastroPecas() {
                     transition: 'all 0.2s',
                     borderLeft: isActive ? `3px solid ${HIGHLIGHT}` : '3px solid transparent',
                     textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: SPACING.MD }}>
@@ -415,30 +564,20 @@ export default function CadastroPecas() {
               backgroundColor: 'rgba(0,0,0,0.2)',
             }}
           >
-            <p
-              style={{
-                fontSize: '0.75rem',
-                marginBottom: '0.25rem',
-                color: HIGHLIGHT,
-                fontWeight: 700,
-              }}
-            >
+            <p style={{ fontSize: '0.75rem', marginBottom: '0.25rem', color: HIGHLIGHT, fontWeight: 700 }}>
               Cadastro Rápido
             </p>
-            <p
-              style={{
-                fontSize: '0.75rem',
-                lineHeight: 1.5,
-                color: 'rgba(255,255,255,0.65)',
-              }}
-            >
+
+            <p style={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'rgba(255,255,255,0.65)' }}>
               Adicione novos itens ao catálogo de peças vintage.
             </p>
+
             <button
+              type="button"
               style={{
                 marginTop: SPACING.MD,
                 width: '100%',
-                padding: `0.375rem 0`,
+                padding: '0.375rem 0',
                 borderRadius: '0.5rem',
                 fontSize: '0.75rem',
                 backgroundColor: HIGHLIGHT,
@@ -446,10 +585,7 @@ export default function CadastroPecas() {
                 fontWeight: 700,
                 border: 'none',
                 cursor: 'pointer',
-                transition: 'opacity 0.2s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
               onClick={() => navigate('/')}
             >
               Home
@@ -457,7 +593,6 @@ export default function CadastroPecas() {
           </div>
         </aside>
 
-        {/* Main content */}
         <main
           style={{
             flex: 1,
@@ -466,9 +601,18 @@ export default function CadastroPecas() {
             padding: SPACING.XXL,
           }}
         >
-          <h1 style={{ color: BORDEAUX, fontFamily: "'Georgia', serif", fontSize: '1.8rem', fontWeight: 700, marginBottom: SPACING.SM }}>
+          <h1
+            style={{
+              color: BORDEAUX,
+              fontFamily: "'Georgia', serif",
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              marginBottom: SPACING.SM,
+            }}
+          >
             Cadastrar Peça
           </h1>
+
           <p style={{ color: '#9B7B6A', marginBottom: SPACING.XXL }}>
             Adicione novos itens ao catálogo de peças vintage
           </p>
@@ -482,110 +626,235 @@ export default function CadastroPecas() {
                 backgroundColor: message.type === 'success' ? '#D1FAE5' : '#FEE2E2',
                 color: message.type === 'success' ? '#065F46' : '#7F1D1D',
                 border: `2px solid ${message.type === 'success' ? '#6EE7B7' : '#FCA5A5'}`,
-                fontSize: '0.95rem'
+                fontSize: '0.95rem',
               }}
             >
               {message.text}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ maxWidth: '800px' }}>
+          <form onSubmit={handleSubmit} noValidate style={{ maxWidth: '800px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING.LG, marginBottom: SPACING.XL }}>
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Nome da Peça *</label>
-                <input type="text" name="nome_peca" value={formData.nome_peca} onChange={handleInputChange} required style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Nome da Peça *
+                </label>
+                <input
+                  type="text"
+                  name="nome_peca"
+                  value={formData.nome_peca}
+                  onChange={handleInputChange}
+                  style={getInputStyle('nome_peca')}
+                />
+                <FieldError name="nome_peca" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>SKU *</label>
-                <input type="text" name="sku" value={formData.sku} onChange={handleInputChange} required style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  SKU *
+                </label>
+                <input
+                  type="text"
+                  name="sku"
+                  placeholder="Ex: OPALA-FRISO-001"
+                  value={formData.sku}
+                  onChange={handleInputChange}
+                  style={getInputStyle('sku')}
+                />
+                <FieldError name="sku" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Número OEM</label>
-                <input type="text" name="oem_number" value={formData.oem_number} onChange={handleInputChange} style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Número OEM
+                </label>
+                <input
+                  type="text"
+                  name="oem_number"
+                  placeholder="Ex: GM-12345"
+                  value={formData.oem_number}
+                  onChange={handleInputChange}
+                  style={getInputStyle('oem_number')}
+                />
+                <FieldError name="oem_number" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Número de Série</label>
-                <input type="text" name="num_serie" value={formData.num_serie} onChange={handleInputChange} style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Número de Série
+                </label>
+                <input
+                  type="text"
+                  name="num_serie"
+                  placeholder="Ex: SN-98765"
+                  value={formData.num_serie}
+                  onChange={handleInputChange}
+                  style={getInputStyle('num_serie')}
+                />
+                <FieldError name="num_serie" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Categoria</label>
-                <input type="text" name="categoria" value={formData.categoria} onChange={handleInputChange} style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Categoria
+                </label>
+                <input
+                  type="text"
+                  name="categoria"
+                  placeholder="Ex: Motor, Lataria, Elétrica"
+                  value={formData.categoria}
+                  onChange={handleInputChange}
+                  style={getInputStyle('categoria')}
+                />
+                <FieldError name="categoria" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Material</label>
-                <input type="text" name="material" value={formData.material} onChange={handleInputChange} style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Material
+                </label>
+                <input
+                  type="text"
+                  name="material"
+                  placeholder="Ex: Aço, Alumínio, Inox"
+                  value={formData.material}
+                  onChange={handleInputChange}
+                  style={getInputStyle('material')}
+                />
+                <FieldError name="material" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Condição *</label>
-                <select name="condicao" value={formData.condicao} onChange={handleInputChange} style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }}>
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Condição *
+                </label>
+                <select
+                  name="condicao"
+                  value={formData.condicao}
+                  onChange={handleInputChange}
+                  style={inputStyle}
+                >
                   <option>NOS</option>
                   <option>EXCELENTE</option>
                   <option>BOM</option>
                   <option>ACEITÁVEL</option>
                 </select>
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Preço *</label>
-                <input type="number" name="preco" value={formData.preco} onChange={handleInputChange} required step="0.01" style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Preço *
+                </label>
+                <input
+                  type="text"
+                  name="preco"
+                  placeholder="Ex: 3490.00"
+                  value={formData.preco}
+                  onChange={handleInputChange}
+                  style={getInputStyle('preco')}
+                />
+                <FieldError name="preco" />
               </div>
+
               <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Estoque Atual *</label>
-                <input type="number" name="estoque_atual" value={formData.estoque_atual} onChange={handleInputChange} required style={{
-                  width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Estoque Atual *
+                </label>
+                <input
+                  type="text"
+                  name="estoque_atual"
+                  placeholder="Ex: 3"
+                  value={formData.estoque_atual}
+                  onChange={handleInputChange}
+                  style={getInputStyle('estoque_atual')}
+                />
+                <FieldError name="estoque_atual" />
               </div>
             </div>
 
             <div style={{ marginBottom: SPACING.XL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Dimensões (mm)</label>
+              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                Dimensões (mm)
+              </label>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: SPACING.MD }}>
-                <input type="number" name="comprimento_mm" placeholder="Comprimento" value={formData.comprimento_mm} onChange={handleInputChange} style={{
-                  padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
-                <input type="number" name="largura_mm" placeholder="Largura" value={formData.largura_mm} onChange={handleInputChange} style={{
-                  padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
-                <input type="number" name="altura_mm" placeholder="Altura" value={formData.altura_mm} onChange={handleInputChange} style={{
-                  padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-                }} />
+                <div>
+                  <input
+                    type="text"
+                    name="comprimento_mm"
+                    placeholder="Comprimento"
+                    value={formData.comprimento_mm}
+                    onChange={handleInputChange}
+                    style={getInputStyle('comprimento_mm')}
+                  />
+                  <FieldError name="comprimento_mm" />
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    name="largura_mm"
+                    placeholder="Largura"
+                    value={formData.largura_mm}
+                    onChange={handleInputChange}
+                    style={getInputStyle('largura_mm')}
+                  />
+                  <FieldError name="largura_mm" />
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    name="altura_mm"
+                    placeholder="Altura"
+                    value={formData.altura_mm}
+                    onChange={handleInputChange}
+                    style={getInputStyle('altura_mm')}
+                  />
+                  <FieldError name="altura_mm" />
+                </div>
               </div>
             </div>
 
             <div style={{ marginBottom: SPACING.XL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Peso (gramas)</label>
-              <input type="number" name="peso_gramas" value={formData.peso_gramas} onChange={handleInputChange} style={{
-                width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box'
-              }} />
+              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                Peso (gramas)
+              </label>
+              <input
+                type="text"
+                name="peso_gramas"
+                placeholder="Ex: 5000"
+                value={formData.peso_gramas}
+                onChange={handleInputChange}
+                style={getInputStyle('peso_gramas')}
+              />
+              <FieldError name="peso_gramas" />
             </div>
 
             <div style={{ marginBottom: SPACING.XL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Detalhes de Gravação</label>
-              <textarea name="detalhes_gravacao" value={formData.detalhes_gravacao} onChange={handleInputChange} style={{
-                width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box', minHeight: '100px'
-              }} />
+              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                Detalhes de Gravação
+              </label>
+              <textarea
+                name="detalhes_gravacao"
+                value={formData.detalhes_gravacao}
+                onChange={handleInputChange}
+                style={getTextAreaStyle('detalhes_gravacao')}
+              />
+              <FieldError name="detalhes_gravacao" />
             </div>
 
             <div style={{ marginBottom: SPACING.XXL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>Histórico de Procedência</label>
-              <textarea name="historico_proveniencia" value={formData.historico_proveniencia} onChange={handleInputChange} style={{
-                width: '100%', padding: SPACING.MD, border: `1px solid #ddd`, borderRadius: '0.5rem', boxSizing: 'border-box', minHeight: '100px'
-              }} />
+              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                Histórico de Procedência
+              </label>
+              <textarea
+                name="historico_proveniencia"
+                value={formData.historico_proveniencia}
+                onChange={handleInputChange}
+                style={getTextAreaStyle('historico_proveniencia')}
+              />
+              <FieldError name="historico_proveniencia" />
             </div>
 
             <button
@@ -602,12 +871,6 @@ export default function CadastroPecas() {
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.7 : 1,
                 transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.opacity = '0.9';
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) e.currentTarget.style.opacity = '1';
               }}
             >
               {loading ? 'Cadastrando...' : '✓ Cadastrar Peça'}
