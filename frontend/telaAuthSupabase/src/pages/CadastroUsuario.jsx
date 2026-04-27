@@ -44,22 +44,49 @@ const GENDER_OPTIONS = [
   { value: 'Outro', label: 'Outro' },
 ];
 
+const REGEX = {
+  nome: /^[A-Za-zÀ-ÿ]+(?:\s+[A-Za-zÀ-ÿ]+)+$/,
+  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  senha: /^(?=.*[A-Za-z])(?=.*\d).{8,}$/,
+  cep: /^\d{5}-\d{3}$/,
+  telefone: /^\(\d{2}\)\s\d{4,5}-\d{4}$/,
+  loja: /^[A-Za-zÀ-ÿ0-9\s.'-]{3,150}$/,
+};
+
 export default function CadastroUsuario() {
   const navigate = useNavigate();
   const { register } = useAuth();
+
   const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [errors, setErrors] = useState({});
 
   const precisaDadosLoja = form.tipo_usuario === 'vendedor' || form.tipo_usuario === 'ambos';
 
+  function clearFieldError(fieldName) {
+    setErrors((prev) => ({
+      ...prev,
+      [fieldName]: '',
+    }));
+  }
+
   function handleChange(e) {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    clearFieldError(name);
   }
 
   function handleGenderSelect(value) {
-    setForm((prev) => ({ ...prev, gender: value }));
+    setForm((prev) => ({
+      ...prev,
+      gender: value,
+    }));
   }
 
   function handleTipoUsuarioChange(tipo) {
@@ -69,11 +96,17 @@ export default function CadastroUsuario() {
       nome_loja: tipo === 'comprador' ? '' : prev.nome_loja,
       descricao_loja: tipo === 'comprador' ? '' : prev.descricao_loja,
     }));
+
+    clearFieldError('tipo_usuario');
   }
 
   function formatCep(value) {
     const digits = value.replace(/\D/g, '').slice(0, 8);
-    if (digits.length > 5) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+
+    if (digits.length > 5) {
+      return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
     return digits;
   }
 
@@ -96,49 +129,87 @@ export default function CadastroUsuario() {
   }
 
   function handleCepChange(e) {
-    setForm((prev) => ({ ...prev, cep: formatCep(e.target.value) }));
+    setForm((prev) => ({
+      ...prev,
+      cep: formatCep(e.target.value),
+    }));
+
+    clearFieldError('cep');
   }
 
   function handleTelefoneChange(e) {
-    setForm((prev) => ({ ...prev, telefone: formatTelefone(e.target.value) }));
+    setForm((prev) => ({
+      ...prev,
+      telefone: formatTelefone(e.target.value),
+    }));
+
+    clearFieldError('telefone');
+  }
+
+  function validateForm() {
+    const newErrors = {};
+
+    if (!form.full_name.trim()) {
+      newErrors.full_name = 'Informe seu nome completo.';
+    } else if (!REGEX.nome.test(form.full_name.trim())) {
+      newErrors.full_name = 'Digite nome e sobrenome usando apenas letras.';
+    }
+
+    if (!form.tipo_usuario.trim()) {
+      newErrors.tipo_usuario = 'Selecione o tipo de usuário.';
+    }
+
+    if (!form.telefone.trim()) {
+      newErrors.telefone = 'Informe seu telefone.';
+    } else if (!REGEX.telefone.test(form.telefone.trim())) {
+      newErrors.telefone = 'Digite um telefone válido com DDD. Ex: (41) 99999-9999.';
+    }
+
+    if (!form.cep.trim()) {
+      newErrors.cep = 'Informe seu CEP.';
+    } else if (!REGEX.cep.test(form.cep.trim())) {
+      newErrors.cep = 'Digite um CEP válido no formato 00000-000.';
+    }
+
+    if (precisaDadosLoja && !form.nome_loja.trim()) {
+      newErrors.nome_loja = 'Informe o nome da loja.';
+    } else if (precisaDadosLoja && !REGEX.loja.test(form.nome_loja.trim())) {
+      newErrors.nome_loja = 'O nome da loja deve ter pelo menos 3 caracteres válidos.';
+    }
+
+    if (precisaDadosLoja && !form.descricao_loja.trim()) {
+      newErrors.descricao_loja = 'Informe a descrição da loja.';
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = 'Informe seu email.';
+    } else if (!REGEX.email.test(form.email.trim())) {
+      newErrors.email = 'Digite um email válido. Ex: nome@email.com';
+    }
+
+    if (!form.password) {
+      newErrors.password = 'Informe uma senha.';
+    } else if (!REGEX.senha.test(form.password)) {
+      newErrors.password = 'A senha deve ter no mínimo 8 caracteres, com letras e números.';
+    }
+
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = 'Confirme sua senha.';
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = 'As senhas digitadas não são iguais.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     setMessage({ type: '', text: '' });
 
-    if (!form.full_name.trim()) {
-      setMessage({ type: 'error', text: 'Informe seu nome completo.' });
-      return;
-    }
-
-    if (!form.tipo_usuario.trim()) {
-      setMessage({ type: 'error', text: 'Selecione o tipo de usuário.' });
-      return;
-    }
-
-    if (precisaDadosLoja && !form.nome_loja.trim()) {
-      setMessage({ type: 'error', text: 'Informe o nome da loja.' });
-      return;
-    }
-
-    if (precisaDadosLoja && !form.descricao_loja.trim()) {
-      setMessage({ type: 'error', text: 'Informe a descrição da loja.' });
-      return;
-    }
-
-    if (!form.email.trim()) {
-      setMessage({ type: 'error', text: 'Informe seu email.' });
-      return;
-    }
-
-    if (form.password.length < 8) {
-      setMessage({ type: 'error', text: 'A senha deve ter pelo menos 8 caracteres.' });
-      return;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      setMessage({ type: 'error', text: 'As senhas não coincidem.' });
+    if (!validateForm()) {
+      setMessage({ type: 'error', text: 'Corrija os campos destacados antes de continuar.' });
       return;
     }
 
@@ -170,6 +241,13 @@ export default function CadastroUsuario() {
     border: 'none',
     borderTop: `1px solid ${COLORS.BORDEAUX}18`,
     margin: `${SPACING.XL} 0`,
+  };
+
+  const fieldErrorStyle = {
+    color: COLORS.BORDEAUX,
+    fontSize: '0.82rem',
+    marginTop: '6px',
+    fontWeight: 600,
   };
 
   return (
@@ -240,6 +318,7 @@ export default function CadastroUsuario() {
                 maxLength={150}
                 required
               />
+              {errors.full_name && <div style={fieldErrorStyle}>{errors.full_name}</div>}
             </Field>
           </div>
 
@@ -255,13 +334,7 @@ export default function CadastroUsuario() {
               Gênero
             </div>
 
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: SPACING.SM,
-              }}
-            >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACING.SM }}>
               {GENDER_OPTIONS.map((option) => {
                 const selected = form.gender === option.value;
 
@@ -282,16 +355,6 @@ export default function CadastroUsuario() {
                       transition: 'all 0.2s ease',
                       boxShadow: selected ? `0 4px 10px ${COLORS.BORDEAUX}14` : 'none',
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow = `0 6px 14px ${COLORS.BORDEAUX}14`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = selected
-                        ? `0 4px 10px ${COLORS.BORDEAUX}14`
-                        : 'none';
-                    }}
                   >
                     {option.label}
                   </button>
@@ -301,7 +364,7 @@ export default function CadastroUsuario() {
           </div>
 
           <div style={{ ...GRID_TWO_COLUMNS, marginBottom: SPACING.LG }}>
-            <Field label="Telefone">
+            <Field label="Telefone" required>
               <Input
                 type="text"
                 name="telefone"
@@ -309,10 +372,12 @@ export default function CadastroUsuario() {
                 value={form.telefone}
                 onChange={handleTelefoneChange}
                 maxLength={15}
+                required
               />
+              {errors.telefone && <div style={fieldErrorStyle}>{errors.telefone}</div>}
             </Field>
 
-            <Field label="CEP">
+            <Field label="CEP" required>
               <Input
                 type="text"
                 name="cep"
@@ -320,7 +385,9 @@ export default function CadastroUsuario() {
                 value={form.cep}
                 onChange={handleCepChange}
                 maxLength={9}
+                required
               />
+              {errors.cep && <div style={fieldErrorStyle}>{errors.cep}</div>}
             </Field>
           </div>
 
@@ -364,16 +431,6 @@ export default function CadastroUsuario() {
                       boxShadow: selected ? `0 8px 18px ${COLORS.BORDEAUX}18` : '0 3px 10px rgba(0, 0, 0, 0.04)',
                       transition: 'all 0.2s ease',
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = `0 8px 18px ${COLORS.BORDEAUX}22`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = selected
-                        ? `0 8px 18px ${COLORS.BORDEAUX}18`
-                        : '0 3px 10px rgba(0, 0, 0, 0.04)';
-                    }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.SM, marginBottom: SPACING.SM }}>
                       <span
@@ -396,6 +453,8 @@ export default function CadastroUsuario() {
                 );
               })}
             </div>
+
+            {errors.tipo_usuario && <div style={fieldErrorStyle}>{errors.tipo_usuario}</div>}
           </div>
 
           {precisaDadosLoja && (
@@ -413,6 +472,7 @@ export default function CadastroUsuario() {
                     maxLength={150}
                     required={precisaDadosLoja}
                   />
+                  {errors.nome_loja && <div style={fieldErrorStyle}>{errors.nome_loja}</div>}
                 </Field>
               </div>
 
@@ -427,6 +487,7 @@ export default function CadastroUsuario() {
                     maxLength={500}
                     required={precisaDadosLoja}
                   />
+                  {errors.descricao_loja && <div style={fieldErrorStyle}>{errors.descricao_loja}</div>}
                 </Field>
               </div>
             </>
@@ -444,6 +505,7 @@ export default function CadastroUsuario() {
                 onChange={handleChange}
                 required
               />
+              {errors.email && <div style={fieldErrorStyle}>{errors.email}</div>}
             </Field>
           </div>
 
@@ -457,6 +519,7 @@ export default function CadastroUsuario() {
                 onChange={handleChange}
                 required
               />
+              {errors.password && <div style={fieldErrorStyle}>{errors.password}</div>}
             </Field>
 
             <Field label="Confirmar senha" required>
@@ -468,24 +531,13 @@ export default function CadastroUsuario() {
                 onChange={handleChange}
                 required
               />
+              {errors.confirmPassword && <div style={fieldErrorStyle}>{errors.confirmPassword}</div>}
             </Field>
           </div>
 
           <ButtonPrimary
             type="submit"
             disabled={loading}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 8px 18px ${COLORS.BORDEAUX}33`;
-                e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = `0 4px 12px ${COLORS.BORDEAUX}22`;
-              e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
-            }}
             style={{
               width: '100%',
               padding: '14px 18px',
