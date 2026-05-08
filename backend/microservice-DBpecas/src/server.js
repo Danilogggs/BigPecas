@@ -3,58 +3,129 @@ const cors = require('cors');
 require('dotenv').config();
 
 const pecasRoutes = require('./routes/pecasRoutes');
-const db = require('./config/db');
+const supabase = require('./config/db');
+const verifyToken = require('./middlewares/verifyToken');
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
 
 const app = express();
+const PORT = process.env.PORT || 3002;
+const CATEGORIAS_TABLE = process.env.SUPABASE_CATEGORIAS_TABLE || 'categorias';
+const MATERIAIS_TABLE = process.env.SUPABASE_MATERIAIS_TABLE || 'materiais';
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  })
+);
+
+/**
+ * Aumenta o limite do corpo da requisição para permitir envio de imagem em Base64.
+ * Como a imagem é enviada no JSON dentro do campo "imagem", o payload fica maior.
+ */
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+async function seedTableIfEmpty(tableName, rows, label) {
+  const { count, error: countError } = await supabase
+    .from(tableName)
+    .select('*', { count: 'exact', head: true });
+
+  if (countError) {
+    throw countError;
+  }
+
+  if (count === 0) {
+    const { error: insertError } = await supabase
+      .from(tableName)
+      .insert(rows);
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    console.log(`✅ ${label} inseridos no Supabase`);
+  }
+}
 
 async function initializeDatabaseData() {
   try {
-    console.log('📊 Verificando dados das tabelas...');
+    console.log('📊 Verificando dados padrão no Supabase...');
 
-    const [categorias] = await db.execute('SELECT COUNT(*) as count FROM categorias');
-    if (categorias[0].count === 0) {
-      console.log('📥 Inserindo categorias padrão...');
-      await db.execute("INSERT INTO categorias (nome) VALUES ('Motor'), ('Lataria'), ('Elétrica'), ('Interior'), ('Suspensão'), ('Freios')");
-      console.log('✅ Categorias inseridas');
-    }
+    await seedTableIfEmpty(
+      CATEGORIAS_TABLE,
+      [
+        { nome: 'Motor' },
+        { nome: 'Lataria' },
+        { nome: 'Elétrica' },
+        { nome: 'Interior' },
+        { nome: 'Suspensão' },
+        { nome: 'Freios' },
+      ],
+      'Categorias padrão'
+    );
 
-    const [materiais] = await db.execute('SELECT COUNT(*) as count FROM materiais');
-    if (materiais[0].count === 0) {
-      console.log('📥 Inserindo materiais padrão...');
-      await db.execute("INSERT INTO materiais (nome) VALUES ('Aço'), ('Antimônio'), ('Baquelite'), ('Cromo'), ('Alumínio'), ('Borracha')");
-      console.log('✅ Materiais inseridos');
-    }
+    await seedTableIfEmpty(
+      MATERIAIS_TABLE,
+      [
+        { nome: 'Aço' },
+        { nome: 'Antimônio' },
+        { nome: 'Baquelite' },
+        { nome: 'Cromo' },
+        { nome: 'Alumínio' },
+        { nome: 'Borracha' },
+      ],
+      'Materiais padrão'
+    );
 
-    console.log('✅ Banco de dados inicializado com sucesso!');
+    console.log('✅ Dados padrão do Supabase verificados com sucesso!');
   } catch (error) {
     console.error('⚠️ Não foi possível concluir a inicialização dos dados padrão:', error.message);
   }
 }
 
-app.use('/api/pecas', pecasRoutes);
-
 app.get('/', (req, res) => {
-  return res.send('Microserviço de Catálogo de Peças Online na Porta 3002');
+  return res.send('Microserviço de Catálogo de Peças Online rodando com Supabase na Porta 3002');
 });
 
-app.get('/api/categorias', async (req, res, next) => {
+app.get('/api/health', (req, res) => {
+  return res.json({
+    status: 'ok',
+    message: 'microservice-DBpecas conectado ao Supabase.',
+  });
+});
+
+app.use('/api/pecas', verifyToken, pecasRoutes);
+
+app.get('/api/categorias', verifyToken, async (req, res, next) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM categorias');
-    return res.json(rows);
+    const { data, error } = await supabase
+      .from(CATEGORIAS_TABLE)
+      .select('*')
+      .order('nome', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return res.json(data || []);
   } catch (error) {
     return next(error);
   }
 });
 
-app.get('/api/materiais', async (req, res, next) => {
+app.get('/api/materiais', verifyToken, async (req, res, next) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM materiais');
-    return res.json(rows);
+    const { data, error } = await supabase
+      .from(MATERIAIS_TABLE)
+      .select('*')
+      .order('nome', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return res.json(data || []);
   } catch (error) {
     return next(error);
   }
@@ -63,15 +134,8 @@ app.get('/api/materiais', async (req, res, next) => {
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3002;
-
-initializeDatabaseData()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor de Catálogo rodando em http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error('❌ Erro ao inicializar servidor:', error.message);
-    process.exit(1);
+initializeDatabaseData().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor de Catálogo rodando em http://localhost:${PORT}`);
   });
+});

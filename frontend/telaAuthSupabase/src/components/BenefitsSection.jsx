@@ -27,7 +27,7 @@ const benefits = [
 export default function BenefitsSection() {
   return (
     <div style={{ padding: SPACING.XXL }}>
-      <h2 style={{ ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, color: COLORS.BORDEAUX, fontFamily: "'Georgia', serif", }}>
+      <h2 style={{ ...TYPOGRAPHY.H1, color: COLORS.BORDEAUX, fontFamily: "'Georgia', serif", }}>
         Por que escolher a BigPeças?
       </h2>
 

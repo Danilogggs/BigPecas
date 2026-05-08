@@ -20,7 +20,7 @@ export default function Testimonials() {
 
   return (
     <div style={{ padding: SPACING.XXL, backgroundColor: '#fff' }}>
-      <h2 style={{ ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, color: COLORS.BORDEAUX, fontFamily: "'Georgia', serif", }}>
+      <h2 style={{ ...TYPOGRAPHY.H1, color: COLORS.BORDEAUX, fontFamily: "'Georgia', serif", }}>
         O que nossos clientes dizem
       </h2>
 

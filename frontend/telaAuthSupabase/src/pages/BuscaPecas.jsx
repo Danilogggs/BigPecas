@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
-import ProductCard from '../components/ProductCard';
+import { listarCategorias, listarPecas } from '../services/pecasService';
 
 import {
   COLORS,
@@ -12,18 +12,9 @@ import {
   BORDER_RADIUS,
   SHADOWS,
 } from '../styles/theme';
-import { parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
+import { parseUnexpectedError } from '../utils/friendlyErrors';
 
-const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
-
-const categorias = [
-  { id: 1, nome: 'Motor' },
-  { id: 2, nome: 'Lataria' },
-  { id: 3, nome: 'Elétrica' },
-  { id: 4, nome: 'Interior' },
-  { id: 5, nome: 'Suspensão' },
-  { id: 6, nome: 'Freios' },
-];
+const MAX_PRICE_FILTER = 50000;
 
 export default function BuscaPecas() {
   const [searchParams] = useSearchParams();
@@ -32,7 +23,9 @@ export default function BuscaPecas() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [pecas, setPecas] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingCategorias, setLoadingCategorias] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
   const [filters, setFilters] = useState({
@@ -40,11 +33,26 @@ export default function BuscaPecas() {
     categoria_id: categoriaUrl,
     condicao: '',
     min_preco: 0,
-    max_preco: 1000,
+    max_preco: MAX_PRICE_FILTER,
   });
 
   const [sort, setSort] = useState('preco');
   const [ordem, setOrdem] = useState('asc');
+
+  useEffect(() => {
+    async function carregarCategorias() {
+      try {
+        const data = await listarCategorias();
+        setCategorias(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setErrorMessage(error?.message || 'Não foi possível carregar as categorias agora.');
+      } finally {
+        setLoadingCategorias(false);
+      }
+    }
+
+    carregarCategorias();
+  }, []);
 
   useEffect(() => {
     const novoNome = searchParams.get('nome') || '';
@@ -64,21 +72,11 @@ export default function BuscaPecas() {
       ordem,
     };
 
-    const query = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== '' && v !== null))
-    ).toString();
-
     setLoading(true);
     setErrorMessage('');
 
     try {
-      const res = await fetch(`${API_BASE_URL}/pecas?${query}`);
-
-      if (!res.ok) {
-        throw new Error(await parseErrorResponse(res, 'Não foi possível carregar as peças no momento.'));
-      }
-
-      const data = await res.json();
+      const data = await listarPecas(params);
       setPecas(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar peças:', error);
@@ -114,6 +112,24 @@ export default function BuscaPecas() {
     }
   };
 
+  function formatarPreco(valor) {
+    const numero = Number(valor);
+
+    if (Number.isNaN(numero)) {
+      return `R$ ${valor}`;
+    }
+
+    return numero.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  }
+
+  function buscarNomeCategoria(categoriaId) {
+    const categoria = categorias.find((item) => String(item.id) === String(categoriaId));
+    return categoria?.nome || 'Categoria não informada';
+  }
+
   const shouldShowEmptyState = !loading && !errorMessage && pecas.length === 0;
 
   return (
@@ -122,13 +138,24 @@ export default function BuscaPecas() {
         .dual-range {
           pointer-events: none;
         }
+
         .dual-range::-webkit-slider-thumb {
           pointer-events: auto;
           cursor: pointer;
         }
+
         .dual-range::-moz-range-thumb {
           pointer-events: auto;
           cursor: pointer;
+        }
+
+        .peca-card {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .peca-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 18px 30px rgba(0, 0, 0, 0.14);
         }
       `}</style>
 
@@ -140,8 +167,11 @@ export default function BuscaPecas() {
           alignItems: 'center',
           gap: SPACING.SM,
           padding: `${SPACING.XL} ${SPACING.XL} 0`,
+          flexWrap: 'wrap',
         }}>
-          <span style={{ fontWeight: 'bold', color: COLORS.BORDEAUX, marginRight: SPACING.SM }}>Ordenar por:</span>
+          <span style={{ fontWeight: 'bold', color: COLORS.BORDEAUX, marginRight: SPACING.SM }}>
+            Ordenar por:
+          </span>
 
           <button
             onClick={() => handleSortClick('preco')}
@@ -197,13 +227,24 @@ export default function BuscaPecas() {
 
               <div>
                 <label style={LABEL_STYLE}>Nome</label>
-                <input name="nome" value={filters.nome} onChange={handleChange} style={INPUT_STYLE} />
+                <input
+                  name="nome"
+                  value={filters.nome}
+                  onChange={handleChange}
+                  style={INPUT_STYLE}
+                />
               </div>
 
               <div>
                 <label style={LABEL_STYLE}>Categoria</label>
-                <select name="categoria_id" value={filters.categoria_id} onChange={handleChange} style={INPUT_STYLE}>
-                  <option value="">Todas</option>
+                <select
+                  name="categoria_id"
+                  value={filters.categoria_id}
+                  onChange={handleChange}
+                  disabled={loadingCategorias}
+                  style={INPUT_STYLE}
+                >
+                  <option value="">{loadingCategorias ? 'Carregando...' : 'Todas'}</option>
                   {categorias.map((c) => (
                     <option key={c.id} value={c.id}>{c.nome}</option>
                   ))}
@@ -212,7 +253,12 @@ export default function BuscaPecas() {
 
               <div>
                 <label style={LABEL_STYLE}>Condição</label>
-                <select name="condicao" value={filters.condicao} onChange={handleChange} style={INPUT_STYLE}>
+                <select
+                  name="condicao"
+                  value={filters.condicao}
+                  onChange={handleChange}
+                  style={INPUT_STYLE}
+                >
                   <option value="">Todas</option>
                   <option value="NOS">NOS</option>
                   <option value="EXCELENTE">Excelente</option>
@@ -229,7 +275,7 @@ export default function BuscaPecas() {
                   <div style={{
                     position: 'absolute',
                     top: '-22px',
-                    left: `${(filters.min_preco / 1000) * 100}%`,
+                    left: `${(filters.min_preco / MAX_PRICE_FILTER) * 100}%`,
                     transform: 'translateX(-50%)',
                     backgroundColor: COLORS.BORDEAUX,
                     color: '#fff',
@@ -247,7 +293,7 @@ export default function BuscaPecas() {
                   <div style={{
                     position: 'absolute',
                     top: '-22px',
-                    left: `${(filters.max_preco / 1000) * 100}%`,
+                    left: `${(filters.max_preco / MAX_PRICE_FILTER) * 100}%`,
                     transform: 'translateX(-50%)',
                     backgroundColor: COLORS.BORDEAUX,
                     color: '#fff',
@@ -264,15 +310,19 @@ export default function BuscaPecas() {
 
                   <div style={{
                     position: 'absolute',
-                    top: '18px', left: 0, right: 0, height: '4px',
-                    background: '#ddd', borderRadius: '4px',
+                    top: '18px',
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: '#ddd',
+                    borderRadius: '4px',
                   }} />
 
                   <div style={{
                     position: 'absolute',
                     top: '18px',
-                    left: `${(filters.min_preco / 1000) * 100}%`,
-                    right: `${100 - (filters.max_preco / 1000) * 100}%`,
+                    left: `${(filters.min_preco / MAX_PRICE_FILTER) * 100}%`,
+                    right: `${100 - (filters.max_preco / MAX_PRICE_FILTER) * 100}%`,
                     height: '4px',
                     background: COLORS.BORDEAUX,
                     borderRadius: '4px',
@@ -282,7 +332,7 @@ export default function BuscaPecas() {
                     type="range"
                     className="dual-range"
                     min="0"
-                    max="1000"
+                    max={MAX_PRICE_FILTER}
                     value={filters.min_preco}
                     onChange={(e) => {
                       const value = Number(e.target.value);
@@ -293,8 +343,12 @@ export default function BuscaPecas() {
                       }
                     }}
                     style={{
-                      position: 'absolute', width: '100%', height: '40px',
-                      appearance: 'none', background: 'none', zIndex: 3,
+                      position: 'absolute',
+                      width: '100%',
+                      height: '40px',
+                      appearance: 'none',
+                      background: 'none',
+                      zIndex: 3,
                     }}
                   />
 
@@ -302,7 +356,7 @@ export default function BuscaPecas() {
                     type="range"
                     className="dual-range"
                     min="0"
-                    max="1000"
+                    max={MAX_PRICE_FILTER}
                     value={filters.max_preco}
                     onChange={(e) => {
                       const value = Number(e.target.value);
@@ -313,8 +367,12 @@ export default function BuscaPecas() {
                       }
                     }}
                     style={{
-                      position: 'absolute', width: '100%', height: '40px',
-                      appearance: 'none', background: 'none', zIndex: 4,
+                      position: 'absolute',
+                      width: '100%',
+                      height: '40px',
+                      appearance: 'none',
+                      background: 'none',
+                      zIndex: 4,
                     }}
                   />
                 </div>
@@ -357,17 +415,161 @@ export default function BuscaPecas() {
           padding: SPACING.XL,
         }}>
           {pecas.map((item) => (
-            <ProductCard
+            <article
               key={item.id}
-              product={{
-                id: item.id,
-                name: item.nome_peca,
-                price: 'R$ ' + item.preco,
-                stock: item.estoque_atual,
-                condition: item.condicao,
-                image: item.imagem,
+              className="peca-card"
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: BORDER_RADIUS.LG,
+                boxShadow: SHADOWS.SM,
+                overflow: 'hidden',
+                border: '1px solid rgba(123, 29, 46, 0.12)',
+                display: 'flex',
+                flexDirection: 'column',
               }}
-            />
+            >
+              <div
+                style={{
+                  width: '100%',
+                  height: 190,
+                  backgroundColor: '#EFE2C6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                {item.imagem ? (
+                  <img
+                    src={item.imagem}
+                    alt={item.nome_peca || 'Imagem da peça'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column',
+                      color: COLORS.BORDEAUX,
+                      fontWeight: 700,
+                      textAlign: 'center',
+                      padding: SPACING.MD,
+                    }}
+                  >
+                    <span style={{ fontSize: '2rem', marginBottom: SPACING.SM }}>🔧</span>
+                    <span>Sem imagem</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ padding: SPACING.LG, display: 'flex', flexDirection: 'column', gap: SPACING.SM }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: SPACING.MD }}>
+                  <h2
+                    style={{
+                      margin: 0,
+                      color: COLORS.BORDEAUX,
+                      fontSize: '1.15rem',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {item.nome_peca || 'Peça sem nome'}
+                  </h2>
+
+                  <span
+                    style={{
+                      backgroundColor: '#F8E9C5',
+                      color: COLORS.BORDEAUX,
+                      borderRadius: '999px',
+                      padding: '0.25rem 0.6rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      height: 'fit-content',
+                    }}
+                  >
+                    {item.condicao || 'N/I'}
+                  </span>
+                </div>
+
+                <p
+                  style={{
+                    margin: 0,
+                    color: '#7A5C4B',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  Categoria: {buscarNomeCategoria(item.categoria_id)}
+                </p>
+
+                {item.sku && (
+                  <p
+                    style={{
+                      margin: 0,
+                      color: '#7A5C4B',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    SKU: {item.sku}
+                  </p>
+                )}
+
+                {item.oem_number && (
+                  <p
+                    style={{
+                      margin: 0,
+                      color: '#7A5C4B',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    OEM: {item.oem_number}
+                  </p>
+                )}
+
+                <div
+                  style={{
+                    marginTop: SPACING.SM,
+                    paddingTop: SPACING.SM,
+                    borderTop: '1px solid #F0E1C8',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: SPACING.MD,
+                  }}
+                >
+                  <strong
+                    style={{
+                      color: COLORS.BORDEAUX,
+                      fontSize: '1.15rem',
+                    }}
+                  >
+                    {formatarPreco(item.preco)}
+                  </strong>
+
+                  <span
+                    style={{
+                      color: Number(item.estoque_atual) > 0 ? '#065F46' : '#991B1B',
+                      backgroundColor: Number(item.estoque_atual) > 0 ? '#D1FAE5' : '#FEE2E2',
+                      borderRadius: '999px',
+                      padding: '0.25rem 0.65rem',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Estoque: {item.estoque_atual ?? 0}
+                  </span>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
       </main>

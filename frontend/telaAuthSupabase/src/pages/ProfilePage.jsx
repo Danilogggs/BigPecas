@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { buscarPerfilUsuario, cadastrarUsuario } from '../services/usuarioService';
+import { buscarPerfilUsuario, salvarPerfilUsuario } from '../services/usuarioService';
 
 const INITIAL_FORM = {
   full_name: '',
@@ -179,7 +179,7 @@ export default function ProfilePage() {
     setSaving(true);
 
     try {
-      const perfilAtualizado = await cadastrarUsuario({
+      const perfilAtualizado = await salvarPerfilUsuario({
         full_name: form.full_name.trim(),
         gender: form.gender.trim(),
         cep: form.cep.trim(),

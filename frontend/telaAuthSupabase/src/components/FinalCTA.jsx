@@ -27,7 +27,7 @@ export default function FinalCTA() {
       </p>
 
       <button
-        onClick={() => navigate('/buscapecas')}
+        onClick={() => navigate('/buscaPecas')}
         style={{
           marginTop: SPACING.LG,
           padding: `${SPACING.SM} ${SPACING.XL}`,

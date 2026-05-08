@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { SearchIcon, UserIcon, ChevronDownIcon, WrenchIcon, BoltIcon, StarIcon } from '../components/Icons';
-import { cadastrarPeca } from '../services/pecasService';
+import { cadastrarPeca, listarCategorias, listarMateriais } from '../services/pecasService';
 import { menuItems } from '../data/mockData';
 
 const BORDEAUX = '#7B1D2E';
@@ -28,8 +28,8 @@ const INITIAL_FORM = {
   sku: '',
   oem_number: '',
   num_serie: '',
-  categoria: '',
-  material: '',
+  categoria_id: '',
+  material_id: '',
   condicao: 'NOS',
   peso_gramas: '',
   comprimento_mm: '',
@@ -39,6 +39,7 @@ const INITIAL_FORM = {
   historico_proveniencia: '',
   preco: '',
   estoque_atual: '',
+  imagem: '',
 };
 
 const REGEX = {
@@ -58,11 +59,45 @@ export default function CadastroPecas() {
   const [activeNav, setActiveNav] = useState('Catálogo');
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [categorias, setCategorias] = useState([]);
+  const [materiais, setMateriais] = useState([]);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState(INITIAL_FORM);
+  const [imagemPreview, setImagemPreview] = useState('');
+
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    text: '',
+  });
+
+  useEffect(() => {
+    async function carregarOpcoes() {
+      try {
+        const [categoriasData, materiaisData] = await Promise.all([
+          listarCategorias(),
+          listarMateriais(),
+        ]);
+
+        setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
+        setMateriais(Array.isArray(materiaisData) ? materiaisData : []);
+      } catch (error) {
+        setMessage({
+          type: 'error',
+          text: error?.message || 'Não foi possível carregar categorias e materiais agora.',
+        });
+      } finally {
+        setLoadingOptions(false);
+      }
+    }
+
+    carregarOpcoes();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -109,94 +144,232 @@ export default function CadastroPecas() {
     setMessage({ type: '', text: '' });
   }
 
-function validateForm() {
-  const newErrors = {};
+  function handleImageChange(e) {
+    const file = e.target.files?.[0];
 
-  if (!formData.nome_peca.trim()) {
-    newErrors.nome_peca = 'Informe o nome da peça.';
-  } else if (!REGEX.nome_peca.test(formData.nome_peca.trim())) {
-    newErrors.nome_peca = 'Use pelo menos 3 caracteres. Evite símbolos especiais.';
+    setMessage({ type: '', text: '' });
+
+    if (!file) {
+      setFormData((prev) => ({
+        ...prev,
+        imagem: '',
+      }));
+      setImagemPreview('');
+      return;
+    }
+
+    const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+
+    if (!tiposPermitidos.includes(file.type)) {
+      setMessage({
+        type: 'error',
+        text: 'Selecione uma imagem nos formatos JPG, PNG ou WEBP.',
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        imagem: '',
+      }));
+
+      setImagemPreview('');
+
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+
+      return;
+    }
+
+    const tamanhoMaximoMB = 2;
+    const tamanhoMaximoBytes = tamanhoMaximoMB * 1024 * 1024;
+
+    if (file.size > tamanhoMaximoBytes) {
+      setMessage({
+        type: 'error',
+        text: `A imagem deve ter no máximo ${tamanhoMaximoMB}MB.`,
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        imagem: '',
+      }));
+
+      setImagemPreview('');
+
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      const imagemBase64 = reader.result;
+
+      setFormData((prev) => ({
+        ...prev,
+        imagem: imagemBase64,
+      }));
+
+      setImagemPreview(imagemBase64);
+    };
+
+    reader.readAsDataURL(file);
   }
 
-  if (!formData.sku.trim()) {
-    newErrors.sku = 'Informe o SKU da peça.';
-  } else if (!REGEX.sku.test(formData.sku.trim())) {
-    newErrors.sku = 'SKU inválido. Use letras maiúsculas, números e hífen. Ex: OPALA-FRISO-001.';
+  function removerImagem() {
+    setFormData((prev) => ({
+      ...prev,
+      imagem: '',
+    }));
+
+    setImagemPreview('');
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+
+    setMessage({ type: '', text: '' });
   }
 
-  if (!formData.oem_number.trim()) {
-    newErrors.oem_number = 'Informe o número OEM.';
-  } else if (!REGEX.codigoOpcional.test(formData.oem_number.trim())) {
-    newErrors.oem_number = 'Número OEM inválido. Use letras, números e hífen.';
+  function abrirModal(title, text) {
+    setModal({
+      open: true,
+      title,
+      text,
+    });
   }
 
-  if (!formData.num_serie.trim()) {
-    newErrors.num_serie = 'Informe o número de série.';
-  } else if (!REGEX.codigoOpcional.test(formData.num_serie.trim())) {
-    newErrors.num_serie = 'Número de série inválido. Use letras, números e hífen.';
+  function fecharModal() {
+    setModal({
+      open: false,
+      title: '',
+      text: '',
+    });
   }
 
-  if (!formData.categoria.trim()) {
-    newErrors.categoria = 'Informe a categoria da peça.';
-  } else if (!REGEX.textoSimples.test(formData.categoria.trim())) {
-    newErrors.categoria = 'Categoria inválida. Use pelo menos 2 caracteres válidos.';
+  function tratarErroCadastro(error) {
+    const textoErro = error?.message || 'Não foi possível cadastrar a peça. Revise os dados e tente novamente.';
+    const textoNormalizado = textoErro.toLowerCase();
+
+    if (
+      textoNormalizado.includes('confirme seu e-mail') ||
+      textoNormalizado.includes('confirme seu email') ||
+      textoNormalizado.includes('e-mail antes de cadastrar') ||
+      textoNormalizado.includes('email antes de cadastrar')
+    ) {
+      abrirModal(
+        'Confirmação de e-mail necessária',
+        'Você já pode acessar sua conta, mas precisa confirmar seu e-mail antes de cadastrar peças. Verifique sua caixa de entrada e clique no link de confirmação.'
+      );
+      return;
+    }
+
+    if (
+      textoNormalizado.includes('apenas usuários vendedores') ||
+      textoNormalizado.includes('apenas vendedores') ||
+      textoNormalizado.includes('compradores/vendedores')
+    ) {
+      abrirModal(
+        'Acesso não permitido',
+        'Apenas usuários vendedores ou compradores/vendedores podem cadastrar peças.'
+      );
+      return;
+    }
+
+    setMessage({
+      type: 'error',
+      text: textoErro,
+    });
   }
 
-  if (!formData.material.trim()) {
-    newErrors.material = 'Informe o material da peça.';
-  } else if (!REGEX.textoSimples.test(formData.material.trim())) {
-    newErrors.material = 'Material inválido. Use pelo menos 2 caracteres válidos.';
+  function validateForm() {
+    const newErrors = {};
+
+    if (!formData.nome_peca.trim()) {
+      newErrors.nome_peca = 'Informe o nome da peça.';
+    } else if (!REGEX.nome_peca.test(formData.nome_peca.trim())) {
+      newErrors.nome_peca = 'Use pelo menos 3 caracteres. Evite símbolos especiais.';
+    }
+
+    if (!formData.sku.trim()) {
+      newErrors.sku = 'Informe o SKU da peça.';
+    } else if (!REGEX.sku.test(formData.sku.trim())) {
+      newErrors.sku = 'SKU inválido. Use letras maiúsculas, números e hífen. Ex: OPALA-FRISO-001.';
+    }
+
+    if (!formData.oem_number.trim()) {
+      newErrors.oem_number = 'Informe o número OEM.';
+    } else if (!REGEX.codigoOpcional.test(formData.oem_number.trim())) {
+      newErrors.oem_number = 'Número OEM inválido. Use letras, números e hífen.';
+    }
+
+    if (!formData.num_serie.trim()) {
+      newErrors.num_serie = 'Informe o número de série.';
+    } else if (!REGEX.codigoOpcional.test(formData.num_serie.trim())) {
+      newErrors.num_serie = 'Número de série inválido. Use letras, números e hífen.';
+    }
+
+    if (!formData.categoria_id) {
+      newErrors.categoria_id = 'Selecione a categoria da peça.';
+    }
+
+    if (!formData.material_id) {
+      newErrors.material_id = 'Selecione o material da peça.';
+    }
+
+    if (!formData.preco.trim()) {
+      newErrors.preco = 'Informe o preço da peça.';
+    } else if (!REGEX.preco.test(formData.preco.trim())) {
+      newErrors.preco = 'Preço inválido. Ex: 3490.00 ou 3490,00.';
+    } else if (Number(normalizePrice(formData.preco)) <= 0) {
+      newErrors.preco = 'O preço deve ser maior que zero.';
+    }
+
+    if (!formData.estoque_atual.trim()) {
+      newErrors.estoque_atual = 'Informe o estoque atual.';
+    } else if (!REGEX.numeroInteiro.test(formData.estoque_atual.trim())) {
+      newErrors.estoque_atual = 'O estoque deve ser um número inteiro.';
+    }
+
+    if (!formData.comprimento_mm.trim()) {
+      newErrors.comprimento_mm = 'Informe o comprimento.';
+    } else if (!REGEX.numeroInteiro.test(formData.comprimento_mm.trim())) {
+      newErrors.comprimento_mm = 'O comprimento deve ser um número inteiro.';
+    }
+
+    if (!formData.largura_mm.trim()) {
+      newErrors.largura_mm = 'Informe a largura.';
+    } else if (!REGEX.numeroInteiro.test(formData.largura_mm.trim())) {
+      newErrors.largura_mm = 'A largura deve ser um número inteiro.';
+    }
+
+    if (!formData.altura_mm.trim()) {
+      newErrors.altura_mm = 'Informe a altura.';
+    } else if (!REGEX.numeroInteiro.test(formData.altura_mm.trim())) {
+      newErrors.altura_mm = 'A altura deve ser um número inteiro.';
+    }
+
+    if (!formData.peso_gramas.trim()) {
+      newErrors.peso_gramas = 'Informe o peso da peça.';
+    } else if (!REGEX.numeroInteiro.test(formData.peso_gramas.trim())) {
+      newErrors.peso_gramas = 'O peso deve ser informado apenas em números inteiros.';
+    }
+
+    if (!formData.detalhes_gravacao.trim()) {
+      newErrors.detalhes_gravacao = 'Informe os detalhes de gravação.';
+    }
+
+    if (!formData.historico_proveniencia.trim()) {
+      newErrors.historico_proveniencia = 'Informe o histórico de procedência.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
-  if (!formData.preco.trim()) {
-    newErrors.preco = 'Informe o preço da peça.';
-  } else if (!REGEX.preco.test(formData.preco.trim())) {
-    newErrors.preco = 'Preço inválido. Ex: 3490.00 ou 3490,00.';
-  } else if (Number(normalizePrice(formData.preco)) <= 0) {
-    newErrors.preco = 'O preço deve ser maior que zero.';
-  }
-
-  if (!formData.estoque_atual.trim()) {
-    newErrors.estoque_atual = 'Informe o estoque atual.';
-  } else if (!REGEX.numeroInteiro.test(formData.estoque_atual.trim())) {
-    newErrors.estoque_atual = 'O estoque deve ser um número inteiro.';
-  }
-
-  if (!formData.comprimento_mm.trim()) {
-    newErrors.comprimento_mm = 'Informe o comprimento.';
-  } else if (!REGEX.numeroInteiro.test(formData.comprimento_mm.trim())) {
-    newErrors.comprimento_mm = 'O comprimento deve ser um número inteiro.';
-  }
-
-  if (!formData.largura_mm.trim()) {
-    newErrors.largura_mm = 'Informe a largura.';
-  } else if (!REGEX.numeroInteiro.test(formData.largura_mm.trim())) {
-    newErrors.largura_mm = 'A largura deve ser um número inteiro.';
-  }
-
-  if (!formData.altura_mm.trim()) {
-    newErrors.altura_mm = 'Informe a altura.';
-  } else if (!REGEX.numeroInteiro.test(formData.altura_mm.trim())) {
-    newErrors.altura_mm = 'A altura deve ser um número inteiro.';
-  }
-
-  if (!formData.peso_gramas.trim()) {
-    newErrors.peso_gramas = 'Informe o peso da peça.';
-  } else if (!REGEX.numeroInteiro.test(formData.peso_gramas.trim())) {
-    newErrors.peso_gramas = 'O peso deve ser informado apenas em números inteiros.';
-  }
-
-  if (!formData.detalhes_gravacao.trim()) {
-    newErrors.detalhes_gravacao = 'Informe os detalhes de gravação.';
-  }
-
-  if (!formData.historico_proveniencia.trim()) {
-    newErrors.historico_proveniencia = 'Informe o histórico de procedência.';
-  }
-
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-}
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -216,22 +389,25 @@ function validateForm() {
       sku: formData.sku.trim(),
       oem_number: formData.oem_number.trim(),
       num_serie: formData.num_serie.trim(),
-      categoria: formData.categoria.trim(),
-      material: formData.material.trim(),
+      categoria_id: formData.categoria_id,
+      material_id: formData.material_id,
       detalhes_gravacao: formData.detalhes_gravacao.trim(),
       historico_proveniencia: formData.historico_proveniencia.trim(),
+      imagem: formData.imagem || '',
     };
 
     try {
       const response = await cadastrarPeca(payload);
       setMessage({ type: 'success', text: response.message || 'Peça cadastrada com sucesso!' });
       setFormData(INITIAL_FORM);
+      setImagemPreview('');
       setErrors({});
+
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
     } catch (error) {
-      setMessage({
-        type: 'error',
-        text: error.message || 'Não foi possível cadastrar a peça. Revise os dados e tente novamente.',
-      });
+      tratarErroCadastro(error);
     } finally {
       setLoading(false);
     }
@@ -284,6 +460,88 @@ function validateForm() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {modal.open && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: SPACING.LG,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 460,
+              backgroundColor: '#fff',
+              borderRadius: '1rem',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+              overflow: 'hidden',
+              border: `2px solid ${BORDEAUX}22`,
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: BORDEAUX,
+                color: CREAM,
+                padding: SPACING.LG,
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: '1.25rem',
+                  fontFamily: "'Georgia', serif",
+                }}
+              >
+                {modal.title}
+              </h2>
+            </div>
+
+            <div style={{ padding: SPACING.LG }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: '#6B4F43',
+                  lineHeight: 1.6,
+                  fontSize: '0.96rem',
+                }}
+              >
+                {modal.text}
+              </p>
+
+              <div
+                style={{
+                  marginTop: SPACING.LG,
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: SPACING.SM,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={fecharModal}
+                  style={{
+                    padding: `${SPACING.SM} ${SPACING.LG}`,
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    backgroundColor: BORDEAUX,
+                    color: CREAM,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Entendi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <header
         style={{
@@ -354,7 +612,6 @@ function validateForm() {
                 opacity: 1,
                 transition: 'opacity 0.2s',
               }}
-
             >
               <SearchIcon size={17} />
             </button>
@@ -696,32 +953,40 @@ function validateForm() {
 
               <div>
                 <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Categoria
+                  Categoria *
                 </label>
-                <input
-                  type="text"
-                  name="categoria"
-                  placeholder="Ex: Motor, Lataria, Elétrica"
-                  value={formData.categoria}
+                <select
+                  name="categoria_id"
+                  value={formData.categoria_id}
                   onChange={handleInputChange}
-                  style={getInputStyle('categoria')}
-                />
-                <FieldError name="categoria" />
+                  disabled={loadingOptions}
+                  style={getInputStyle('categoria_id')}
+                >
+                  <option value="">{loadingOptions ? 'Carregando categorias...' : 'Selecione uma categoria'}</option>
+                  {categorias.map((categoria) => (
+                    <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+                  ))}
+                </select>
+                <FieldError name="categoria_id" />
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Material
+                  Material *
                 </label>
-                <input
-                  type="text"
-                  name="material"
-                  placeholder="Ex: Aço, Alumínio, Inox"
-                  value={formData.material}
+                <select
+                  name="material_id"
+                  value={formData.material_id}
                   onChange={handleInputChange}
-                  style={getInputStyle('material')}
-                />
-                <FieldError name="material" />
+                  disabled={loadingOptions}
+                  style={getInputStyle('material_id')}
+                >
+                  <option value="">{loadingOptions ? 'Carregando materiais...' : 'Selecione um material'}</option>
+                  {materiais.map((material) => (
+                    <option key={material.id} value={material.id}>{material.nome}</option>
+                  ))}
+                </select>
+                <FieldError name="material_id" />
               </div>
 
               <div>
@@ -769,6 +1034,83 @@ function validateForm() {
                   style={getInputStyle('estoque_atual')}
                 />
                 <FieldError name="estoque_atual" />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
+                  Imagem da Peça
+                </label>
+
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={handleImageChange}
+                  style={{
+                    ...inputStyle,
+                    backgroundColor: '#fff',
+                    cursor: 'pointer',
+                  }}
+                />
+
+                <p style={{ marginTop: '6px', fontSize: '0.8rem', color: '#9B7B6A' }}>
+                  Formatos aceitos: JPG, PNG ou WEBP. Tamanho máximo: 2MB.
+                </p>
+
+                {imagemPreview && (
+                  <div
+                    style={{
+                      marginTop: SPACING.MD,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: SPACING.MD,
+                      padding: SPACING.MD,
+                      backgroundColor: '#fff',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #E5D6C0',
+                    }}
+                  >
+                    <img
+                      src={imagemPreview}
+                      alt="Prévia da peça"
+                      style={{
+                        width: 140,
+                        height: 105,
+                        objectFit: 'cover',
+                        borderRadius: '0.5rem',
+                        border: `2px solid ${BORDEAUX}22`,
+                        backgroundColor: '#F8F1E3',
+                      }}
+                    />
+
+                    <div>
+                      <p style={{ margin: 0, color: BORDEAUX, fontWeight: 700 }}>
+                        Prévia da imagem
+                      </p>
+
+                      <p style={{ margin: '4px 0 0', color: '#9B7B6A', fontSize: '0.82rem' }}>
+                        Essa imagem será salva junto com a peça.
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={removerImagem}
+                        style={{
+                          marginTop: SPACING.SM,
+                          padding: '0.4rem 0.75rem',
+                          borderRadius: '0.5rem',
+                          border: 'none',
+                          backgroundColor: '#FEE2E2',
+                          color: '#991B1B',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Remover imagem
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -859,7 +1201,7 @@ function validateForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || loadingOptions}
               style={{
                 padding: `${SPACING.MD} ${SPACING.XXL}`,
                 borderRadius: '0.5rem',
@@ -873,7 +1215,7 @@ function validateForm() {
                 transition: 'all 0.2s',
               }}
             >
-              {loading ? 'Cadastrando...' : '✓ Cadastrar Peça'}
+              {loading ? 'Cadastrando...' : loadingOptions ? 'Carregando opções...' : '✓ Cadastrar Peça'}
             </button>
           </form>
         </main>

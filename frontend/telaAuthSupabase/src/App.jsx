@@ -4,21 +4,56 @@ import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import PrivateRoute from './routes/PrivateRoute';
+import PublicRoute from './routes/PublicRoute';
 import CadastroPecas from './pages/CadastroPecas';
 import CadastroUsuario from './pages/CadastroUsuario';
 import BuscaPecas from './pages/BuscaPecas';
 import ProfilePage from './pages/ProfilePage';
 
-
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <HomePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/home"
+        element={
+          <PrivateRoute>
+            <HomePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
       <Route path="/cadastro" element={<Navigate to="/cadastro-usuario" replace />} />
-      <Route path="/cadastro-usuario" element={<CadastroUsuario />} />
-      <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
+      <Route
+        path="/cadastro-usuario"
+        element={
+          <PublicRoute>
+            <CadastroUsuario />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/recuperar-senha"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
+          </PublicRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -27,10 +62,22 @@ export default function App() {
           </PrivateRoute>
         }
       />
-      <Route path="/cadastroPecas" element={<CadastroPecas />} />
-      <Route path="/buscaPecas" element={<BuscaPecas />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-
+      <Route
+        path="/cadastroPecas"
+        element={
+          <PrivateRoute>
+            <CadastroPecas />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/buscaPecas"
+        element={
+          <PrivateRoute>
+            <BuscaPecas />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/perfil"
         element={
@@ -39,6 +86,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

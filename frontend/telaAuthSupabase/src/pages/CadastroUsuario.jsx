@@ -228,8 +228,8 @@ export default function CadastroUsuario() {
         telefone: form.telefone.trim(),
       });
 
-      setMessage({ type: 'success', text: 'Conta criada com sucesso.' });
-      setTimeout(() => navigate('/login'), 2000);
+      setMessage({ type: 'success', text: 'Conta criada. Verifique seu email para ativar o acesso.' });
+      setTimeout(() => navigate('/login'), 3500);
     } catch (error) {
       setMessage({ type: 'error', text: mapSupabaseAuthError(error, 'register') });
     } finally {
