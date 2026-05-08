@@ -24,7 +24,7 @@ async function getAuthToken() {
   return token;
 }
 
-export async function cadastrarUsuario(dados) {
+export async function salvarPerfilUsuario(dados) {
   try {
     const token = await getAuthToken();
 
@@ -87,3 +87,5 @@ export async function buscarPerfilUsuario() {
     );
   }
 }
+
+export const cadastrarUsuario = salvarPerfilUsuario;

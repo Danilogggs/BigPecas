@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError } from '../components/StyledComponents.jsx';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme.js';
@@ -11,6 +11,7 @@ const REGEX = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [form, setForm] = useState({ email: '', password: '' });
@@ -65,7 +66,8 @@ export default function LoginPage() {
 
     try {
       await login(form.email.trim().toLowerCase(), form.password);
-      navigate('/dashboard');
+      const redirectTo = location.state?.from?.pathname || '/dashboard';
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(mapSupabaseAuthError(err, 'login'));
     } finally {

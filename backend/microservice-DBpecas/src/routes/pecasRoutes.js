@@ -1,23 +1,48 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const supabase = require('../config/db');
 const AppError = require('../utils/AppError');
+
+const PECAS_TABLE = process.env.SUPABASE_PECAS_TABLE || 'pecas';
+const USERS_TABLE = process.env.SUPABASE_USER_TABLE || 'users';
 
 const SORT_FIELDS = {
   id: 'id',
   preco: 'preco',
   data: 'data_cadastro',
   data_cadastro: 'data_cadastro',
+  created_at: 'created_at',
   estoque: 'estoque_atual',
   estoque_atual: 'estoque_atual',
   nome: 'nome_peca',
-  nome_peca: 'nome_peca'
+  nome_peca: 'nome_peca',
 };
+
+const ALLOWED_UPDATE_FIELDS = new Set([
+  'nome_peca',
+  'sku',
+  'oem_number',
+  'num_serie',
+  'categoria_id',
+  'material_id',
+  'condicao',
+  'peso_gramas',
+  'comprimento_mm',
+  'largura_mm',
+  'altura_mm',
+  'detalhes_gravacao',
+  'historico_proveniencia',
+  'preco',
+  'estoque_atual',
+  'imagem',
+]);
 
 function validarId(id) {
   if (!/^\d+$/.test(String(id)) || Number(id) < 1) {
     throw new AppError(400, 'Informe um identificador válido.');
   }
+
+  return Number(id);
 }
 
 function validarOrdenacao(sort) {
@@ -60,84 +85,173 @@ function validarAtualizacao(updates) {
 
 function processarValor(val) {
   if (val === '' || val === null || val === undefined) return null;
-  return val;
+  return typeof val === 'string' ? val.trim() : val;
 }
 
 function processarNumero(val) {
-  if (val === '' || val === null || val === undefined || val === '0') return null;
+  if (val === '' || val === null || val === undefined) return null;
   const num = parseInt(val, 10);
   return Number.isNaN(num) ? null : num;
 }
 
 function processarFloat(val) {
   if (val === '' || val === null || val === undefined) return null;
-  const num = parseFloat(val);
+  const num = parseFloat(String(val).replace(',', '.'));
   return Number.isNaN(num) ? null : num;
 }
 
+function obterEmailUsuarioAutenticado(req) {
+  return (
+    req.user?.email ||
+    req.user?.user?.email ||
+    req.authUser?.email ||
+    req.usuario?.email ||
+    null
+  );
+}
+
+function normalizarTexto(valor) {
+  return String(valor || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function usuarioPodeCadastrarPeca(usuario) {
+  const tipoUsuario = normalizarTexto(usuario?.tipo_usuario);
+
+  return tipoUsuario === 'vendedor' || tipoUsuario === 'ambos';
+}
+
+async function obterFornecedor(req) {
+  const emailUsuario = obterEmailUsuarioAutenticado(req);
+
+  if (!emailUsuario) {
+    throw new AppError(401, 'Não foi possível identificar o e-mail do usuário logado.');
+  }
+
+  const { data, error } = await supabase
+    .from(USERS_TABLE)
+    .select('id, email, tipo_usuario, email_verificado')
+    .eq('email', emailUsuario)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.id) {
+    throw new AppError(404, 'Usuário fornecedor não encontrado na tabela users.');
+  }
+
+  return data;
+}
+
+function validarPermissaoCadastroPeca(usuario) {
+  if (!usuarioPodeCadastrarPeca(usuario)) {
+    throw new AppError(
+      403,
+      'Apenas usuários vendedores ou compradores/vendedores podem cadastrar peças.'
+    );
+  }
+
+  if (usuario.email_verificado !== true) {
+    throw new AppError(
+      403,
+      'Confirme seu e-mail antes de cadastrar peças.'
+    );
+  }
+}
+
+function montarPayloadPeca(body = {}, fornecedorId) {
+  return {
+    nome_peca: processarValor(body.nome_peca),
+    sku: processarValor(body.sku),
+    oem_number: processarValor(body.oem_number),
+    num_serie: processarValor(body.num_serie),
+    categoria_id: processarNumero(body.categoria_id),
+    material_id: processarNumero(body.material_id),
+    condicao: processarValor(body.condicao) || 'NOS',
+    peso_gramas: processarNumero(body.peso_gramas),
+    comprimento_mm: processarNumero(body.comprimento_mm),
+    largura_mm: processarNumero(body.largura_mm),
+    altura_mm: processarNumero(body.altura_mm),
+    detalhes_gravacao: processarValor(body.detalhes_gravacao),
+    historico_proveniencia: processarValor(body.historico_proveniencia),
+    preco: processarFloat(body.preco),
+    estoque_atual: processarNumero(body.estoque_atual) ?? 0,
+    imagem: processarValor(body.imagem),
+    fornecedor_id: fornecedorId,
+  };
+}
+
+function validarPayloadCadastro(payload) {
+  if (!payload.fornecedor_id) {
+    throw new AppError(401, 'Não foi possível vincular a peça ao usuário logado.');
+  }
+
+  if (!payload.nome_peca) {
+    throw new AppError(400, 'Informe o nome da peça.');
+  }
+
+  if (payload.preco === null || payload.preco <= 0) {
+    throw new AppError(400, 'Informe um preço válido para a peça.');
+  }
+
+  if (!payload.categoria_id) {
+    throw new AppError(400, 'Informe a categoria da peça.');
+  }
+
+  if (!payload.material_id) {
+    throw new AppError(400, 'Informe o material da peça.');
+  }
+}
+
+function limparPayload(payload) {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  );
+}
+
+async function buscarPecaPorId(id) {
+  const { data, error } = await supabase
+    .from(PECAS_TABLE)
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 router.post('/cadastrar', async (req, res, next) => {
-  const {
-    nome_peca,
-    sku,
-    oem_number,
-    num_serie,
-    categoria_id,
-    material_id,
-    condicao,
-    peso_gramas,
-    comprimento_mm,
-    largura_mm,
-    altura_mm,
-    detalhes_gravacao,
-    historico_proveniencia,
-    preco,
-    estoque_atual
-  } = req.body;
-
-  if (!nome_peca || nome_peca.trim() === '') {
-    return next(new AppError(400, 'Informe o nome da peça.'));
-  }
-
-  if (!preco) {
-    return next(new AppError(400, 'Informe o preço da peça.'));
-  }
-
-  if (processarFloat(preco) === null) {
-    return next(new AppError(400, 'Informe um preço válido para a peça.'));
-  }
-
   try {
-    const values = [
-      nome_peca.trim(),
-      processarValor(sku),
-      processarValor(oem_number),
-      processarValor(num_serie),
-      processarNumero(categoria_id),
-      processarNumero(material_id),
-      condicao || 'NOS',
-      processarNumero(peso_gramas),
-      processarNumero(comprimento_mm),
-      processarNumero(largura_mm),
-      processarNumero(altura_mm),
-      processarValor(detalhes_gravacao),
-      processarValor(historico_proveniencia),
-      processarFloat(preco),
-      processarNumero(estoque_atual) || 0
-    ];
+    const fornecedor = await obterFornecedor(req);
 
-    const query = `
-      INSERT INTO pecas (
-        nome_peca, sku, oem_number, num_serie, categoria_id, material_id,
-        condicao, peso_gramas, comprimento_mm, largura_mm, altura_mm,
-        detalhes_gravacao, historico_proveniencia, preco, estoque_atual
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    validarPermissaoCadastroPeca(fornecedor);
 
-    const [result] = await db.execute(query, values);
+    const payload = limparPayload(montarPayloadPeca(req.body, fornecedor.id));
+
+    validarPayloadCadastro(payload);
+
+    const { data, error } = await supabase
+      .from(PECAS_TABLE)
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw error;
+    }
 
     return res.status(201).json({
-      id: result.insertId,
-      message: 'Peça cadastrada com sucesso!'
+      id: data?.id,
+      message: 'Peça cadastrada com sucesso!',
+      peca: data,
     });
   } catch (error) {
     return next(error);
@@ -157,64 +271,57 @@ router.get('/', async (req, res, next) => {
       oem_number,
       min_estoque,
       sort,
-      ordem
+      ordem,
     } = req.query;
 
-    let query = 'SELECT * FROM pecas WHERE 1=1';
-    const params = [];
+    let query = supabase.from(PECAS_TABLE).select('*');
 
     if (categoria_id) {
-      query += ' AND categoria_id = ?';
-      params.push(validarNumeroConsulta(categoria_id, 'categoria'));
+      query = query.eq('categoria_id', validarNumeroConsulta(categoria_id, 'categoria'));
     }
 
     if (material_id) {
-      query += ' AND material_id = ?';
-      params.push(validarNumeroConsulta(material_id, 'material'));
+      query = query.eq('material_id', validarNumeroConsulta(material_id, 'material'));
     }
 
     if (condicao) {
-      query += ' AND condicao = ?';
-      params.push(condicao);
+      query = query.eq('condicao', condicao);
     }
 
     if (oem_number) {
-      query += ' AND oem_number = ?';
-      params.push(oem_number);
+      query = query.eq('oem_number', oem_number);
     }
 
     if (num_serie) {
-      query += ' AND num_serie = ?';
-      params.push(num_serie);
+      query = query.eq('num_serie', num_serie);
     }
 
     if (nome) {
-      query += ' AND nome_peca LIKE ?';
-      params.push(`%${nome}%`);
+      query = query.ilike('nome_peca', `%${nome}%`);
     }
 
-    if (min_preco) {
-      query += ' AND preco >= ?';
-      params.push(validarNumeroConsulta(min_preco, 'preço mínimo'));
+    if (min_preco !== undefined && min_preco !== '') {
+      query = query.gte('preco', validarNumeroConsulta(min_preco, 'preço mínimo'));
     }
 
-    if (max_preco) {
-      query += ' AND preco <= ?';
-      params.push(validarNumeroConsulta(max_preco, 'preço máximo'));
+    if (max_preco !== undefined && max_preco !== '') {
+      query = query.lte('preco', validarNumeroConsulta(max_preco, 'preço máximo'));
     }
 
-    if (min_estoque) {
-      query += ' AND estoque_atual >= ?';
-      params.push(validarNumeroConsulta(min_estoque, 'estoque mínimo'));
+    if (min_estoque !== undefined && min_estoque !== '') {
+      query = query.gte('estoque_atual', validarNumeroConsulta(min_estoque, 'estoque mínimo'));
     }
 
     const sortField = validarOrdenacao(sort);
-    const sortOrder = ordem && String(ordem).toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+    const ascending = ordem && String(ordem).toLowerCase() === 'asc';
 
-    query += ` ORDER BY ${sortField} ${sortOrder}`;
+    const { data, error } = await query.order(sortField, { ascending });
 
-    const [rows] = await db.execute(query, params);
-    return res.json(rows);
+    if (error) {
+      throw error;
+    }
+
+    return res.json(data || []);
   } catch (error) {
     return next(error);
   }
@@ -222,16 +329,14 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params;
-    validarId(id);
+    const id = validarId(req.params.id);
+    const peca = await buscarPecaPorId(id);
 
-    const [rows] = await db.execute('SELECT * FROM pecas WHERE id = ?', [id]);
-
-    if (rows.length === 0) {
+    if (!peca) {
       throw new AppError(404, 'Peça não encontrada.');
     }
 
-    return res.json(rows[0]);
+    return res.json(peca);
   } catch (error) {
     return next(error);
   }
@@ -239,28 +344,69 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const id = validarId(req.params.id);
     const updates = req.body;
+    const fornecedor = await obterFornecedor(req);
 
-    validarId(id);
     validarAtualizacao(updates);
 
-    const [pecas] = await db.execute('SELECT * FROM pecas WHERE id = ?', [id]);
+    const peca = await buscarPecaPorId(id);
 
-    if (pecas.length === 0) {
+    if (!peca) {
       throw new AppError(404, 'Peça não encontrada.');
     }
 
-    const campos = Object.keys(updates);
-    const valores = Object.values(updates);
-    const setClause = campos.map((campo) => `${campo} = ?`).join(', ');
+    if (String(peca.fornecedor_id) !== String(fornecedor.id)) {
+      throw new AppError(403, 'Você só pode atualizar peças cadastradas por você.');
+    }
 
-    const query = `UPDATE pecas SET ${setClause} WHERE id = ?`;
-    await db.execute(query, [...valores, id]);
+    const sanitizedUpdates = {};
+
+    Object.entries(updates).forEach(([field, value]) => {
+      if (!ALLOWED_UPDATE_FIELDS.has(field)) {
+        return;
+      }
+
+      if ([
+        'categoria_id',
+        'material_id',
+        'peso_gramas',
+        'comprimento_mm',
+        'largura_mm',
+        'altura_mm',
+        'estoque_atual',
+      ].includes(field)) {
+        sanitizedUpdates[field] = processarNumero(value);
+        return;
+      }
+
+      if (field === 'preco') {
+        sanitizedUpdates[field] = processarFloat(value);
+        return;
+      }
+
+      sanitizedUpdates[field] = processarValor(value);
+    });
+
+    if (Object.keys(sanitizedUpdates).length === 0) {
+      throw new AppError(400, 'Informe ao menos um campo válido para atualizar.');
+    }
+
+    const { data, error } = await supabase
+      .from(PECAS_TABLE)
+      .update(sanitizedUpdates)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw error;
+    }
 
     return res.json({
-      id: Number(id),
-      message: 'Peça atualizada com sucesso!'
+      id,
+      message: 'Peça atualizada com sucesso!',
+      peca: data,
     });
   } catch (error) {
     return next(error);
@@ -269,19 +415,29 @@ router.put('/:id', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params;
-    validarId(id);
+    const id = validarId(req.params.id);
+    const fornecedor = await obterFornecedor(req);
+    const peca = await buscarPecaPorId(id);
 
-    const [pecas] = await db.execute('SELECT * FROM pecas WHERE id = ?', [id]);
-
-    if (pecas.length === 0) {
+    if (!peca) {
       throw new AppError(404, 'Peça não encontrada.');
     }
 
-    await db.execute('DELETE FROM pecas WHERE id = ?', [id]);
+    if (String(peca.fornecedor_id) !== String(fornecedor.id)) {
+      throw new AppError(403, 'Você só pode deletar peças cadastradas por você.');
+    }
+
+    const { error } = await supabase
+      .from(PECAS_TABLE)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
 
     return res.json({
-      message: 'Peça deletada com sucesso!'
+      message: 'Peça deletada com sucesso!',
     });
   } catch (error) {
     return next(error);

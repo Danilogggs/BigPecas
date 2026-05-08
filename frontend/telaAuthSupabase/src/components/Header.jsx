@@ -44,9 +44,9 @@ export default function Header() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (localSearch.trim()) {
-      navigate(`/buscapecas?nome=${encodeURIComponent(localSearch)}`);
+      navigate(`/buscaPecas?nome=${encodeURIComponent(localSearch)}`);
     } else {
-      navigate('/buscapecas');
+      navigate('/buscaPecas');
     }
   };
 

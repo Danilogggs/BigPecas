@@ -1,22 +1,24 @@
-const mysql = require('mysql2/promise');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl) {
+  throw new Error('A variável SUPABASE_URL não foi configurada no microservice-DBpecas.');
+}
+
+if (!supabaseServiceRoleKey) {
+  throw new Error('A variável SUPABASE_SERVICE_ROLE_KEY não foi configurada no microservice-DBpecas.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
 });
 
-// teste pra ver se ta funfando
-pool.getConnection()
-  .then(conn => {
-    console.log("Conexão com MySQL estabelecida (Porta 3002)");
-    conn.release();
-  })
-  .catch(err => console.error("Falha no MySQL:", err.message));
+console.log('Conexão com Supabase configurada no microservice-DBpecas.');
 
-module.exports = pool;
+module.exports = supabase;

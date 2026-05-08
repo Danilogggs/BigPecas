@@ -4,16 +4,47 @@ import {
   parseErrorResponse,
   parseUnexpectedError,
 } from '../utils/friendlyErrors';
+import { getSupabaseClient } from './supabase';
 
 const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
 
-export const listarPecas = async () => {
+async function getAuthHeaders() {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    throw createFriendlyError('Você precisa entrar novamente para continuar.');
+  }
+
+  const token = data?.session?.access_token;
+
+  if (!token) {
+    throw createFriendlyError('Você precisa estar autenticado para continuar.');
+  }
+
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+function buildQuery(params = {}) {
+  return new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params).filter(([, value]) => value !== '' && value !== null && value !== undefined)
+    )
+  ).toString();
+}
+
+export const listarPecas = async (params = {}) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/pecas`, {
+    const headers = await getAuthHeaders();
+    const query = buildQuery(params);
+    const url = query ? `${API_BASE_URL}/pecas?${query}` : `${API_BASE_URL}/pecas`;
+
+    const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -28,64 +59,76 @@ export const listarPecas = async () => {
   }
 };
 
+export const listarCategorias = async () => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/categorias`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível carregar as categorias agora.');
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao listar categorias:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar as categorias agora.'));
+  }
+};
+
+export const listarMateriais = async () => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/materiais`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível carregar os materiais agora.');
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao listar materiais:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar os materiais agora.'));
+  }
+};
+
 /**
- * Cadastra uma nova peça no banco de dados
- * @param {Object} pecaData - Dados da peça com campos: nome_peca, sku, oem_number, num_serie,
- * categoria, material, condicao, peso_gramas, comprimento_mm, largura_mm, altura_mm,
- * detalhes_gravacao, historico_proveniencia, preco, estoque_atual
+ * Cadastra uma nova peça no Supabase por meio do microservice-DBpecas.
  */
 export const cadastrarPeca = async (pecaData) => {
   try {
-    console.log('=== INICIANDO CADASTRO ===');
-    console.log('Dados recebidos do formulário:', pecaData);
-
-    const dadosMapeados = {
-      ...pecaData,
-      categoria_id: pecaData.categoria ? parseInt(pecaData.categoria, 10) : null,
-      material_id: pecaData.material ? parseInt(pecaData.material, 10) : null,
-    };
-
-    delete dadosMapeados.categoria;
-    delete dadosMapeados.material;
-
-    console.log('Dados após mapeamento:', dadosMapeados);
-    console.log('JSON que será enviado:', JSON.stringify(dadosMapeados, null, 2));
-
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/pecas/cadastrar`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dadosMapeados),
+      headers,
+      body: JSON.stringify(pecaData),
     });
-
-    console.log('Status da resposta:', response.status);
 
     if (!response.ok) {
       const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.create);
       throw createFriendlyError(message);
     }
 
-    const data = await response.json();
-    console.log('Peça cadastrada com sucesso:', data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Erro ao cadastrar peça:', error);
     throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.create));
   }
 };
 
-/**
- * Busca uma peça pelo ID
- * @param {number} id - ID da peça
- */
 export const buscarPecaPorId = async (id) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/pecas/${id}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -100,22 +143,16 @@ export const buscarPecaPorId = async (id) => {
   }
 };
 
-/**
- * Atualiza uma peça existente
- * @param {number} id - ID da peça
- * @param {Object} pecaData - Dados a atualizar
- */
 export const atualizarPeca = async (id, pecaData) => {
   try {
+    const headers = await getAuthHeaders();
     const dadosFiltrados = Object.fromEntries(
-      Object.entries(pecaData).filter(([_, value]) => value !== '' && value !== null)
+      Object.entries(pecaData).filter(([, value]) => value !== '' && value !== null && value !== undefined)
     );
 
     const response = await fetch(`${API_BASE_URL}/pecas/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(dadosFiltrados),
     });
 
@@ -131,17 +168,12 @@ export const atualizarPeca = async (id, pecaData) => {
   }
 };
 
-/**
- * Deleta uma peça
- * @param {number} id - ID da peça
- */
 export const deletarPeca = async (id) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/pecas/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (!response.ok) {

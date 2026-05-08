@@ -1,4 +1,4 @@
-const { supabaseAdmin } = require('../config/supabaseClient');
+const supabase = require('../config/db');
 const AppError = require('../utils/AppError');
 
 async function verifyToken(req, res, next) {
@@ -15,7 +15,7 @@ async function verifyToken(req, res, next) {
   }
 
   try {
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    const { data, error } = await supabase.auth.getUser(token);
 
     if (error || !data?.user) {
       return next(new AppError(401, 'Sua autenticação não pôde ser validada. Faça login novamente.'));

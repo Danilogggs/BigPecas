@@ -31,7 +31,7 @@ export default function QuickFilters() {
 
   // 🔗 Navegação inteligente
   const buildUrl = ({ categoria_id, query, extra }) => {
-    let url = '/buscapecas';
+    let url = '/buscaPecas';
     const params = new URLSearchParams();
 
     if (categoria_id) params.append('categoria_id', categoria_id);
@@ -54,7 +54,7 @@ export default function QuickFilters() {
     <div style={{ padding: SPACING.XXL }}>
 
       {/* 🔥 CATEGORIAS GRANDES */}
-      <h2 style={{ ...TYPOGRAPHY.H2, color: COLORS.DARK_TEXT, color: COLORS.BORDEAUX, fontFamily: "'Georgia', serif", }}>
+      <h2 style={{ ...TYPOGRAPHY.H2, color: COLORS.BORDEAUX, fontFamily: "'Georgia', serif", }}>
         Explore por categoria
       </h2>
 
