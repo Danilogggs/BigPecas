@@ -15,6 +15,7 @@ import {
 import { parseUnexpectedError } from '../utils/friendlyErrors';
 
 const MAX_PRICE_FILTER = 50000;
+const SLIDER_MAX = 2000;
 
 export default function BuscaPecas() {
   const [searchParams] = useSearchParams();
@@ -131,6 +132,31 @@ export default function BuscaPecas() {
   }
 
   const shouldShowEmptyState = !loading && !errorMessage && pecas.length === 0;
+
+  // Valor real -> valor visual do slider
+  function priceToSlider(price) {
+    if (price <= 1000) {
+      return price;
+    }
+
+    return (
+      1000 +
+      ((price - 1000) / (MAX_PRICE_FILTER - 1000)) * 1000
+    );
+  }
+
+  // Valor do slider -> valor real
+  function sliderToPrice(slider) {
+    if (slider <= 1000) {
+      return slider;
+    }
+
+    return Math.round(
+      1000 +
+        ((slider - 1000) / 1000) *
+          (MAX_PRICE_FILTER - 1000)
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
@@ -267,116 +293,205 @@ export default function BuscaPecas() {
                 </select>
               </div>
 
+
               <div style={{ gridColumn: 'span 2', marginTop: SPACING.SM }}>
-                <label style={LABEL_STYLE}>Faixa de Preço</label>
+  <label style={LABEL_STYLE}>Faixa de Preço</label>
 
-                <div style={{ position: 'relative', height: '40px', marginTop: '25px' }}>
+  <div
+    style={{
+      position: 'relative',
+      height: '70px',
+      marginTop: '25px',
+    }}
+  >
+    {/* input mínimo */}
+    <div
+      style={{
+        position: 'absolute',
+        top: '-8px',
+        left: `${
+          (priceToSlider(filters.min_preco) /
+            SLIDER_MAX) *
+          100
+        }%`,
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+      }}
+    >
+      <input
+        type="number"
+        min="0"
+        max={filters.max_preco}
+        value={filters.min_preco}
+        onChange={(e) => {
+          const value = Number(e.target.value);
 
-                  <div style={{
-                    position: 'absolute',
-                    top: '-22px',
-                    left: `${(filters.min_preco / MAX_PRICE_FILTER) * 100}%`,
-                    transform: 'translateX(-50%)',
-                    backgroundColor: COLORS.BORDEAUX,
-                    color: '#fff',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    R$ {filters.min_preco}
-                  </div>
+          setFilters((prev) => ({
+            ...prev,
+            min_preco: Math.min(
+              value,
+              prev.max_preco
+            ),
+          }));
+        }}
+        style={{
+          width: '90px',
+          backgroundColor: COLORS.BORDEAUX,
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          padding: '4px 8px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          outline: 'none',
+        }}
+      />
+    </div>
 
-                  <div style={{
-                    position: 'absolute',
-                    top: '-22px',
-                    left: `${(filters.max_preco / MAX_PRICE_FILTER) * 100}%`,
-                    transform: 'translateX(-50%)',
-                    backgroundColor: COLORS.BORDEAUX,
-                    color: '#fff',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    R$ {filters.max_preco}
-                  </div>
+    {/* input máximo */}
+    <div
+      style={{
+        position: 'absolute',
+        top: '-8px',
+        left: `${
+          (priceToSlider(filters.max_preco) /
+            SLIDER_MAX) *
+          100
+        }%`,
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+      }}
+    >
+      <input
+        type="number"
+        min={filters.min_preco}
+        max={MAX_PRICE_FILTER}
+        value={filters.max_preco}
+        onChange={(e) => {
+          const value = Number(e.target.value);
 
-                  <div style={{
-                    position: 'absolute',
-                    top: '18px',
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: '#ddd',
-                    borderRadius: '4px',
-                  }} />
+          setFilters((prev) => ({
+            ...prev,
+            max_preco: Math.max(
+              value,
+              prev.min_preco
+            ),
+          }));
+        }}
+        style={{
+          width: '90px',
+          backgroundColor: COLORS.BORDEAUX,
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          padding: '4px 8px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          outline: 'none',
+        }}
+      />
+    </div>
 
-                  <div style={{
-                    position: 'absolute',
-                    top: '18px',
-                    left: `${(filters.min_preco / MAX_PRICE_FILTER) * 100}%`,
-                    right: `${100 - (filters.max_preco / MAX_PRICE_FILTER) * 100}%`,
-                    height: '4px',
-                    background: COLORS.BORDEAUX,
-                    borderRadius: '4px',
-                  }} />
+    {/* trilha */}
+    <div
+      style={{
+        position: 'absolute',
+        top: '38px',
+        left: 0,
+        right: 0,
+        height: '4px',
+        background: '#ddd',
+        borderRadius: '4px',
+      }}
+    />
 
-                  <input
-                    type="range"
-                    className="dual-range"
-                    min="0"
-                    max={MAX_PRICE_FILTER}
-                    value={filters.min_preco}
-                    onChange={(e) => {
-                      const value = Number(e.target.value);
-                      if (value > filters.max_preco) {
-                        setFilters((prev) => ({ ...prev, min_preco: value, max_preco: value }));
-                      } else {
-                        setFilters((prev) => ({ ...prev, min_preco: value }));
-                      }
-                    }}
-                    style={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '40px',
-                      appearance: 'none',
-                      background: 'none',
-                      zIndex: 3,
-                    }}
-                  />
+    {/* faixa ativa */}
+    <div
+      style={{
+        position: 'absolute',
+        top: '38px',
+        left: `${
+          (priceToSlider(filters.min_preco) /
+            SLIDER_MAX) *
+          100
+        }%`,
+        right: `${
+          100 -
+          (priceToSlider(filters.max_preco) /
+            SLIDER_MAX) *
+            100
+        }%`,
+        height: '4px',
+        background: COLORS.BORDEAUX,
+        borderRadius: '4px',
+      }}
+    />
 
-                  <input
-                    type="range"
-                    className="dual-range"
-                    min="0"
-                    max={MAX_PRICE_FILTER}
-                    value={filters.max_preco}
-                    onChange={(e) => {
-                      const value = Number(e.target.value);
-                      if (value < filters.min_preco) {
-                        setFilters((prev) => ({ ...prev, max_preco: value, min_preco: value }));
-                      } else {
-                        setFilters((prev) => ({ ...prev, max_preco: value }));
-                      }
-                    }}
-                    style={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '40px',
-                      appearance: 'none',
-                      background: 'none',
-                      zIndex: 4,
-                    }}
-                  />
-                </div>
-              </div>
+    {/* slider mínimo */}
+    <input
+      type="range"
+      className="dual-range"
+      min="0"
+      max={SLIDER_MAX}
+      value={priceToSlider(filters.min_preco)}
+      onChange={(e) => {
+        const value = sliderToPrice(
+          Number(e.target.value)
+        );
+
+        setFilters((prev) => ({
+          ...prev,
+          min_preco: Math.min(
+            value,
+            prev.max_preco
+          ),
+        }));
+      }}
+      style={{
+        position: 'absolute',
+        top: '20px',
+        width: '100%',
+        height: '40px',
+        appearance: 'none',
+        background: 'none',
+        zIndex: 3,
+      }}
+    />
+
+    {/* slider máximo */}
+    <input
+      type="range"
+      className="dual-range"
+      min="0"
+      max={SLIDER_MAX}
+      value={priceToSlider(filters.max_preco)}
+      onChange={(e) => {
+        const value = sliderToPrice(
+          Number(e.target.value)
+        );
+
+        setFilters((prev) => ({
+          ...prev,
+          max_preco: Math.max(
+            value,
+            prev.min_preco
+          ),
+        }));
+      }}
+      style={{
+        position: 'absolute',
+        top: '20px',
+        width: '100%',
+        height: '40px',
+        appearance: 'none',
+        background: 'none',
+        zIndex: 4,
+      }}
+    />
+  </div>
+</div>
             </div>
           </div>
         )}
