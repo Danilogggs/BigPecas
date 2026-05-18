@@ -449,6 +449,23 @@ export default function ProfilePage() {
 
             <button
               type="button"
+              onClick={() => navigate('/editar-pecas')}
+              style={{
+                border: '1px solid #7B1D2E33',
+                borderRadius: '9999px',
+                padding: '12px 24px',
+                backgroundColor: '#FFFFFF',
+                color: '#7B1D2E',
+                fontWeight: 700,
+                fontSize: '15px',
+                cursor: 'pointer',
+              }}
+            >
+              Editar minhas peças
+            </button>
+
+            <button
+              type="button"
               onClick={() => navigate('/dashboard')}
               style={{
                 border: '1px solid #7B1D2E33',
