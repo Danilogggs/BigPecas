@@ -1,8 +1,3 @@
-/**
- * EditarPecas.jsx
- * Edit parts page where users can modify their own parts
- */
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listarMinhasPecas, listarCategorias, listarMateriais, buscarPecaPorId, atualizarPeca } from '../services/pecasService';
