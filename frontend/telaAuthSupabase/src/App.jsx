@@ -9,7 +9,7 @@ import CadastroPecas from './pages/CadastroPecas';
 import CadastroUsuario from './pages/CadastroUsuario';
 import BuscaPecas from './pages/BuscaPecas';
 import ProfilePage from './pages/ProfilePage';
-import EeditarPecas from './pages/EeditarPecas';
+import EditarPecas from './pages/EditarPecas';
 
 export default function App() {
   return (
@@ -91,7 +91,7 @@ export default function App() {
         path="/editar-pecas"
         element={
           <PrivateRoute>
-            <EeditarPecas />
+            <EditarPecas />
           </PrivateRoute>
         }
       />
