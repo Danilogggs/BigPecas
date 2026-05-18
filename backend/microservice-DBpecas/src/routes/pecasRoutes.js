@@ -272,9 +272,15 @@ router.get('/', async (req, res, next) => {
       min_estoque,
       sort,
       ordem,
+      minhas_pecas,
     } = req.query;
 
     let query = supabase.from(PECAS_TABLE).select('*');
+
+    if (minhas_pecas === 'true') {
+      const fornecedor = await obterFornecedor(req);
+      query = query.eq('fornecedor_id', fornecedor.id);
+    }
 
     if (categoria_id) {
       query = query.eq('categoria_id', validarNumeroConsulta(categoria_id, 'categoria'));

@@ -59,6 +59,30 @@ export const listarPecas = async (params = {}) => {
   }
 };
 
+export const listarMinhasPecas = async (params = {}) => {
+  try {
+    const headers = await getAuthHeaders();
+    const queryParams = { ...params, minhas_pecas: 'true' };
+    const query = buildQuery(queryParams);
+    const url = query ? `${API_BASE_URL}/pecas?${query}` : `${API_BASE_URL}/pecas?minhas_pecas=true`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.list);
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao listar minhas peças:', error);
+    throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.list));
+  }
+};
+
 export const listarCategorias = async () => {
   try {
     const headers = await getAuthHeaders();
