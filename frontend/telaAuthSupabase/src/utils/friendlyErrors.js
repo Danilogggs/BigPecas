@@ -143,6 +143,11 @@ export function mapSupabaseAuthError(error, context = 'generic') {
       validation_failed: 'Informe um email válido.',
       over_request_rate_limit: 'Muitas tentativas realizadas. Aguarde um instante e tente novamente.',
     },
+    updatePassword: {
+      weak_password: 'Sua senha é muito fraca. Use pelo menos 8 caracteres.',
+      validation_failed: 'Informe uma senha válida.',
+      over_request_rate_limit: 'Muitas tentativas realizadas. Aguarde um instante e tente novamente.',
+    },
   };
 
   if (contextMessages[context]?.[code]) {
@@ -169,6 +174,7 @@ export function mapSupabaseAuthError(error, context = 'generic') {
     login: 'Não foi possível entrar agora. Verifique seus dados e tente novamente.',
     register: 'Não foi possível criar sua conta agora. Tente novamente.',
     resetPassword: 'Não foi possível enviar o email de recuperação agora. Tente novamente.',
+    updatePassword: 'Não foi possível redefinir sua senha agora. Solicite um novo link e tente novamente.',
     generic: DEFAULT_MESSAGES.generic,
   };
 

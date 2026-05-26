@@ -42,7 +42,7 @@ export default function Sidebar({ activeNav, setActiveNav }) {
             key={key}
             onClick={() => {
               setActiveNav(key);
-              if (key === 'catalog') navigate('/cadastroPecas');
+              if (key === 'catalog') navigate('/buscaPecas');
             }}
             style={{
               display: 'flex',

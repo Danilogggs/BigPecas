@@ -24,6 +24,7 @@ export default function ProductCard({ product }) {
         transition: 'all 0.2s',
         cursor: 'pointer',
       }}
+      onClick={() => navigate('/buscaPecas')}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -132,9 +133,12 @@ export default function ProductCard({ product }) {
             }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            onClick={() => navigate('/login')}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/buscaPecas');
+            }}
           >
-            🛒 Adicionar
+            Ver catálogo
           </button>
         </div>
       </div>
