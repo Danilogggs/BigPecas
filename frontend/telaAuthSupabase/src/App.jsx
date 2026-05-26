@@ -13,6 +13,7 @@ import EditarPecas from './pages/EditarPecas';
 import DetalhePeca from './pages/DetalhePeca';
 import FornecedorPerfil from './pages/FornecedorPerfil';
 import WishPage from './pages/WishPage';
+import CarrinhoPage from './pages/CarrinhoPage';
 
 export default function App() {
   return (
@@ -121,6 +122,15 @@ export default function App() {
         }
       />
 
+      <Route
+        path="/carrinho"
+        element={
+          <PrivateRoute>
+            <CarrinhoPage />
+          </PrivateRoute>
+        }
+      />
+      
       <Route
         path="/editar-pecas"
         element={

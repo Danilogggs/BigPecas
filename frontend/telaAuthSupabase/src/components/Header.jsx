@@ -1,8 +1,3 @@
-/**
- * Header.jsx
- * Componente do topo da aplicação com barra de busca e menu do usuário
- */
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -224,7 +219,21 @@ export default function Header() {
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   onClick={() => { navigate('/wish'); setDropdownOpen(false); }}
                 >
-                  Minha lista de desejos
+                  Lista de Desejos
+                </button>
+
+                <button
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: SPACING.MD,
+                    padding: `${SPACING.MD} ${SPACING.LG}`, fontSize: '0.875rem', color: BORDEAUX,
+                    border: 'none', cursor: 'pointer', backgroundColor: 'transparent', textAlign: 'left',
+                    fontWeight: 500, borderBottom: '1px solid #F3E8D8',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  onClick={() => { navigate('/carrinho'); setDropdownOpen(false); }}
+                >
+                  Carrinho
                 </button>
 
                 <button
