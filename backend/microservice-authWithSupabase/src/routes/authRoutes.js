@@ -60,6 +60,8 @@ function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     String(value)
   );
+}
+
 function isSupabaseEmailConfirmed(user) {
   return Boolean(user?.email_confirmed_at || user?.confirmed_at);
 }
@@ -332,18 +334,18 @@ router.get('/users/:id', verifyToken, async (req, res, next) => {
     const id = normalizeString(req.params.id);
 
     if (!id) {
-      return next(new AppError(400, 'Informe o id do usuÃ¡rio.'));
+      return next(new AppError(400, 'Informe o id do usuário.'));
     }
 
     if (!isIntegerId(id) && !isUuid(id)) {
-      return next(new AppError(400, 'Informe um id de usuÃ¡rio vÃ¡lido.'));
+      return next(new AppError(400, 'Informe um id de usuário válido.'));
     }
 
     if (isIntegerId(id)) {
       const profile = await findUserProfileById(Number(id));
 
       if (!profile) {
-        return next(new AppError(404, 'UsuÃ¡rio nÃ£o encontrado.'));
+        return next(new AppError(404, 'Usuário não encontrado.'));
       }
 
       return res.json({
@@ -358,7 +360,7 @@ router.get('/users/:id', verifyToken, async (req, res, next) => {
     const { data, error } = await supabaseAdmin.auth.admin.getUserById(id);
 
     if (error || !data?.user) {
-      return next(new AppError(404, 'UsuÃ¡rio nÃ£o encontrado.'));
+      return next(new AppError(404, 'Usuário não encontrado.'));
     }
 
     const email = normalizeEmail(data.user.email);
@@ -396,10 +398,13 @@ router.post('/profile', verifyToken, async (req, res, next) => {
     }
 
     const existingProfile = await findUserProfileByEmail(email);
+
     let profile = await saveUserProfile(userBody, {
       forceEmailVerificadoOnInsert: isSupabaseEmailConfirmed(req.user),
     });
+
     await updateAuthMetadata(req.user.id, userBody);
+
     profile = await syncProfileEmailVerification(profile, req.user);
 
     return res.status(existingProfile ? 200 : 201).json({
