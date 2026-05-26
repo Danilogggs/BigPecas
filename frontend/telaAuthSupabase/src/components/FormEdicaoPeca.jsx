@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { FormInput, FormSelect, FormTextarea } from './FormComponents';
-import '../pages/EditarPecas.css';
 
 const FormEdicaoPeca = memo(function FormEdicaoPeca({
   formData,

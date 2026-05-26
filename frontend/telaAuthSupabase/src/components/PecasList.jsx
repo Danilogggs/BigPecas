@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import '../pages/EditarPecas.css';
 
 const PecasList = memo(function PecasList({
   pecas,
