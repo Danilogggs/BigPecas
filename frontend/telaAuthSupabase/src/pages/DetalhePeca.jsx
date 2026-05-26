@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
+import { useCart } from '../contexts/CartContext';
 import {
   adicionarPecaWish,
   buscarFornecedoresRecomendados,
@@ -193,6 +194,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, notice }
 export default function DetalhePeca() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart, removeFromCart, cartItems } = useCart();
 
   const [peca, setPeca] = useState(null);
   const [categorias, setCategorias] = useState([]);
@@ -210,6 +212,8 @@ export default function DetalhePeca() {
   const [salvoNaWish, setSalvoNaWish] = useState(false);
   const [loadingWish, setLoadingWish] = useState(false);
   const [wishMessage, setWishMessage] = useState('');
+  const [carrinhoMessage, setCarrinhoMessage] = useState('');
+  const [itemNoCarrinho, setItemNoCarrinho] = useState(false);
 
   useEffect(() => {
     async function carregarDetalhes() {
@@ -319,6 +323,12 @@ export default function DetalhePeca() {
     carregarFornecedor();
   }, [peca?.fornecedor_id]);
 
+  useEffect(() => {
+    // Verificar se o item já está no carrinho
+    const jaNoCarrinho = cartItems.some((item) => item.id === peca?.id);
+    setItemNoCarrinho(jaNoCarrinho);
+  }, [peca?.id, cartItems]);
+
   const categoriaNome = useMemo(() => {
     if (peca?.categoria?.nome) return peca.categoria.nome;
     return buscarNome(categorias, peca?.categoria_id, 'Categoria nao informada');
@@ -359,6 +369,42 @@ export default function DetalhePeca() {
     } finally {
       setLoadingWish(false);
     }
+  }
+
+  function handleAddToCart() {
+    if (!peca) return;
+
+    if (itemNoCarrinho) {
+      // Remover do carrinho
+      removeFromCart(peca.id);
+      setCarrinhoMessage('✓ Peça removida do carrinho!');
+    } else {
+      // Validar se há estoque
+      if (Number(peca.estoque_atual) <= 0) {
+        setCarrinhoMessage('Desculpe, este item não está em estoque no momento.');
+        return;
+      }
+
+      // Preparar dados do item para o carrinho
+      const itemParaCarrinho = {
+        id: peca.id,
+        nome: peca.nome_peca,
+        descricao: peca.descricao,
+        preco: peca.preco,
+        imagem: peca.imagem,
+        estoque: peca.estoque_atual,
+        sku: peca.sku,
+      };
+
+      // Adicionar ao carrinho
+      addToCart(itemParaCarrinho);
+      setCarrinhoMessage('✓ Peça adicionada ao carrinho com sucesso!');
+    }
+
+    // Limpar mensagem após 3 segundos
+    setTimeout(() => {
+      setCarrinhoMessage('');
+    }, 3000);
   }
 
   function RecomendacoesSection() {
@@ -831,9 +877,15 @@ export default function DetalhePeca() {
                   <div style={{ display: 'flex', gap: SPACING.MD, flexWrap: 'wrap', alignItems: 'center' }}>
                     <button
                       type="button"
-                      style={{ ...BUTTON_PRIMARY_STYLE, alignSelf: 'flex-start' }}
+                      onClick={handleAddToCart}
+                      style={{
+                        ...BUTTON_SECONDARY_STYLE,
+                        alignSelf: 'flex-start',
+                        backgroundColor: itemNoCarrinho ? COLORS.BORDEAUX : 'transparent',
+                        color: itemNoCarrinho ? '#fff' : COLORS.BORDEAUX,
+                      }}
                     >
-                      Adicionar ao carrinho
+                      {itemNoCarrinho ? '✗ Remover do carrinho' : '🛒︎ Adicionar ao carrinho'}
                     </button>
 
                     <button
@@ -865,6 +917,21 @@ export default function DetalhePeca() {
                       }}
                     >
                       {wishMessage}
+                    </div>
+                  )}
+
+                  {carrinhoMessage && (
+                    <div
+                      style={{
+                        color: COLORS.BORDEAUX,
+                        backgroundColor: '#FFF7D6',
+                        border: '1px solid #F0C060',
+                        borderRadius: BORDER_RADIUS.MD,
+                        padding: SPACING.SM,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {carrinhoMessage}
                     </div>
                   )}
                 </div>
