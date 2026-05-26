@@ -11,7 +11,7 @@ import BuscaPecas from './pages/BuscaPecas';
 import ProfilePage from './pages/ProfilePage';
 import EditarPecas from './pages/EditarPecas';
 import DetalhePeca from './pages/DetalhePeca';
-import WhitelistPage from './pages/WhitelistPage';
+import FornecedorPerfil from './pages/FornecedorPerfil';
 
 export default function App() {
   return (
@@ -24,6 +24,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route
         path="/home"
         element={
@@ -32,6 +33,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route
         path="/login"
         element={
@@ -40,7 +42,9 @@ export default function App() {
           </PublicRoute>
         }
       />
+
       <Route path="/cadastro" element={<Navigate to="/cadastro-usuario" replace />} />
+
       <Route
         path="/cadastro-usuario"
         element={
@@ -49,6 +53,7 @@ export default function App() {
           </PublicRoute>
         }
       />
+
       <Route
         path="/recuperar-senha"
         element={
@@ -57,7 +62,9 @@ export default function App() {
           </PublicRoute>
         }
       />
+
       <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
+
       <Route
         path="/cadastroPecas"
         element={
@@ -66,6 +73,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route
         path="/buscaPecas"
         element={
@@ -74,6 +82,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route
         path="/pecas/:id"
         element={
@@ -82,14 +91,16 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route
-        path="/whitelist"
+        path="/vendedores/:id"
         element={
           <PrivateRoute>
-            <WhitelistPage />
+            <FornecedorPerfil />
           </PrivateRoute>
         }
       />
+
       <Route
         path="/perfil"
         element={
@@ -98,6 +109,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route
         path="/editar-pecas"
         element={
@@ -106,6 +118,7 @@ export default function App() {
           </PrivateRoute>
         }
       />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

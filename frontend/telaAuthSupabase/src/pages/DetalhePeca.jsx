@@ -3,7 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import {
   adicionarPecaWhitelist,
+  buscarFornecedoresRecomendados,
   buscarPecaPorId,
+  buscarRecomendacoesPorPeca,
   buscarStatusWhitelist,
   listarCategorias,
   listarMateriais,
@@ -199,6 +201,10 @@ export default function DetalhePeca() {
   const [loadingFornecedor, setLoadingFornecedor] = useState(false);
   const [fornecedorError, setFornecedorError] = useState('');
   const [fornecedorNotice, setFornecedorNotice] = useState('');
+  const [recomendacoes, setRecomendacoes] = useState([]);
+  const [loadingRecomendacoes, setLoadingRecomendacoes] = useState(false);
+  const [fornecedoresRecomendados, setFornecedoresRecomendados] = useState([]);
+  const [loadingFornecedoresRecomendados, setLoadingFornecedoresRecomendados] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [salvoNaWhitelist, setSalvoNaWhitelist] = useState(false);
@@ -249,6 +255,44 @@ export default function DetalhePeca() {
   }, [peca?.id]);
 
   useEffect(() => {
+    async function carregarRecomendacoes() {
+      if (!id) return;
+
+      setLoadingRecomendacoes(true);
+
+      try {
+        const data = await buscarRecomendacoesPorPeca(id, 4);
+        setRecomendacoes(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Erro ao carregar recomendações:', error);
+        setRecomendacoes([]);
+      } finally {
+        setLoadingRecomendacoes(false);
+      }
+    }
+
+    carregarRecomendacoes();
+  }, [id]);
+
+  useEffect(() => {
+    async function carregarFornecedoresRecomendados() {
+      setLoadingFornecedoresRecomendados(true);
+
+      try {
+        const data = await buscarFornecedoresRecomendados(4);
+        setFornecedoresRecomendados(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores recomendados:', error);
+        setFornecedoresRecomendados([]);
+      } finally {
+        setLoadingFornecedoresRecomendados(false);
+      }
+    }
+
+    carregarFornecedoresRecomendados();
+  }, []);
+
+  useEffect(() => {
     async function carregarFornecedor() {
       if (!peca?.fornecedor_id) {
         setFornecedor(null);
@@ -291,9 +335,8 @@ export default function DetalhePeca() {
 
   function handleFornecedorClick() {
     if (!peca?.fornecedor_id) return;
-    setFornecedorNotice('Perfil publico e avaliacoes do vendedor serao exibidos aqui em breve.');
+    navigate(`/vendedores/${peca.fornecedor_id}`);
   }
-
 
   async function handleToggleWhitelist() {
     if (!peca?.id || loadingWhitelist) return;
@@ -316,6 +359,270 @@ export default function DetalhePeca() {
     } finally {
       setLoadingWhitelist(false);
     }
+  }
+
+  function RecomendacoesSection() {
+    if (loadingRecomendacoes) {
+      return (
+        <section
+          style={{
+            backgroundColor: '#fff',
+            borderRadius: BORDER_RADIUS.LG,
+            boxShadow: SHADOWS.SM,
+            border: '1px solid rgba(123, 29, 46, 0.12)',
+            padding: SPACING.XL,
+          }}
+        >
+          <h2
+            style={{
+              color: COLORS.BORDEAUX,
+              fontSize: '1.1rem',
+              margin: `0 0 ${SPACING.SM}`,
+            }}
+          >
+            Peças relacionadas
+          </h2>
+
+          <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.6 }}>
+            Carregando recomendações...
+          </p>
+        </section>
+      );
+    }
+
+    if (!recomendacoes.length) {
+      return null;
+    }
+
+    return (
+      <section
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: BORDER_RADIUS.LG,
+          boxShadow: SHADOWS.SM,
+          border: '1px solid rgba(123, 29, 46, 0.12)',
+          padding: SPACING.XL,
+        }}
+      >
+        <h2
+          style={{
+            color: COLORS.BORDEAUX,
+            fontSize: '1.1rem',
+            margin: `0 0 ${SPACING.SM}`,
+          }}
+        >
+          Peças relacionadas
+        </h2>
+
+        <p
+          style={{
+            marginTop: 0,
+            marginBottom: SPACING.LG,
+            color: '#6A5F58',
+            lineHeight: 1.6,
+          }}
+        >
+          Sugestões baseadas em categoria, material, condição, fornecedor e faixa de preço.
+        </p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: SPACING.LG,
+          }}
+        >
+          {recomendacoes.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => navigate(`/pecas/${item.id}`)}
+              style={{
+                textAlign: 'left',
+                backgroundColor: '#FAF4E8',
+                border: '1px solid #EAD8BE',
+                borderRadius: BORDER_RADIUS.MD,
+                padding: SPACING.MD,
+                cursor: 'pointer',
+              }}
+            >
+              {item.imagem && (
+                <img
+                  src={item.imagem}
+                  alt={item.nome_peca || 'Imagem da peça recomendada'}
+                  style={{
+                    width: '100%',
+                    height: 120,
+                    objectFit: 'cover',
+                    borderRadius: BORDER_RADIUS.MD,
+                    marginBottom: SPACING.SM,
+                  }}
+                />
+              )}
+
+              <strong
+                style={{
+                  color: COLORS.DARK_TEXT,
+                  display: 'block',
+                  marginBottom: 6,
+                }}
+              >
+                {item.nome_peca || 'Peça sem nome'}
+              </strong>
+
+              <span style={{ color: COLORS.BORDEAUX, fontWeight: 700 }}>
+                {formatarPreco(item.preco)}
+              </span>
+
+              <div
+                style={{
+                  marginTop: 8,
+                  color: '#8A6B58',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                }}
+              >
+                Compatibilidade: {item.score_recomendacao} pts
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  function FornecedoresRecomendadosSection() {
+    if (loadingFornecedoresRecomendados) {
+      return (
+        <section
+          style={{
+            backgroundColor: '#fff',
+            borderRadius: BORDER_RADIUS.LG,
+            boxShadow: SHADOWS.SM,
+            border: '1px solid rgba(123, 29, 46, 0.12)',
+            padding: SPACING.XL,
+          }}
+        >
+          <h2
+            style={{
+              color: COLORS.BORDEAUX,
+              fontSize: '1.1rem',
+              margin: `0 0 ${SPACING.SM}`,
+            }}
+          >
+            Fornecedores recomendados
+          </h2>
+          <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.6 }}>
+            Carregando fornecedores...
+          </p>
+        </section>
+      );
+    }
+
+    if (!fornecedoresRecomendados.length) {
+      return null;
+    }
+
+    return (
+      <section
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: BORDER_RADIUS.LG,
+          boxShadow: SHADOWS.SM,
+          border: '1px solid rgba(123, 29, 46, 0.12)',
+          padding: SPACING.XL,
+        }}
+      >
+        <h2
+          style={{
+            color: COLORS.BORDEAUX,
+            fontSize: '1.1rem',
+            margin: `0 0 ${SPACING.SM}`,
+          }}
+        >
+          Fornecedores recomendados
+        </h2>
+
+        <p
+          style={{
+            marginTop: 0,
+            marginBottom: SPACING.LG,
+            color: '#6A5F58',
+            lineHeight: 1.6,
+          }}
+        >
+          Sugestões baseadas em quantidade de peças cadastradas, estoque disponível e completude do perfil.
+        </p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: SPACING.LG,
+          }}
+        >
+          {fornecedoresRecomendados.map((fornecedorItem) => {
+            const nome =
+              fornecedorItem.nome_loja ||
+              fornecedorItem.full_name ||
+              fornecedorItem.email ||
+              'Vendedor BigPeças';
+
+            return (
+              <button
+                key={fornecedorItem.id}
+                type="button"
+                onClick={() => navigate(`/vendedores/${fornecedorItem.id}`)}
+                style={{
+                  textAlign: 'left',
+                  backgroundColor: '#FAF4E8',
+                  border: '1px solid #EAD8BE',
+                  borderRadius: BORDER_RADIUS.MD,
+                  padding: SPACING.MD,
+                  cursor: 'pointer',
+                }}
+              >
+                <strong
+                  style={{
+                    color: COLORS.DARK_TEXT,
+                    display: 'block',
+                    marginBottom: 6,
+                  }}
+                >
+                  {nome}
+                </strong>
+
+                <div style={{ color: '#8A6B58', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  {fornecedorItem.descricao_loja || 'Fornecedor com peças cadastradas no BigPeças.'}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: SPACING.SM,
+                    color: COLORS.BORDEAUX,
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                  }}
+                >
+                  {fornecedorItem.total_pecas} peças • {fornecedorItem.pecas_com_estoque} com estoque
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 8,
+                    color: '#8A6B58',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  Relevância: {fornecedorItem.score_recomendacao} pts
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -571,6 +878,10 @@ export default function DetalhePeca() {
                 onClick={handleFornecedorClick}
                 notice={fornecedorNotice}
               />
+
+              <RecomendacoesSection />
+
+              <FornecedoresRecomendadosSection />
 
               <section
                 className="detalhe-peca-info-grid"

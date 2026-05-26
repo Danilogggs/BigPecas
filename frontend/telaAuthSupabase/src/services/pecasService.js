@@ -123,9 +123,6 @@ export const listarMateriais = async () => {
   }
 };
 
-/**
- * Cadastra uma nova peça no Supabase por meio do microservice-DBpecas.
- */
 export const cadastrarPeca = async (pecaData) => {
   try {
     const headers = await getAuthHeaders();
@@ -289,5 +286,82 @@ export const removerPecaWhitelist = async (pecaId) => {
   } catch (error) {
     console.error('Erro ao remover peça da whitelist:', error);
     throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível remover a peça da whitelist.'));
+  }
+};
+
+export const buscarRecomendacoesPorPeca = async (id, limite = 4) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/pecas/${id}/recomendacoes?limite=${limite}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(
+        response,
+        'Não foi possível carregar recomendações para esta peça.'
+      );
+      throw createFriendlyError(message);
+    }
+
+    const data = await response.json();
+    return data?.recomendacoes || [];
+  } catch (error) {
+    console.error('Erro ao buscar recomendações:', error);
+    throw createFriendlyError(
+      parseUnexpectedError(error, 'Não foi possível carregar recomendações para esta peça.')
+    );
+  }
+};
+
+export const buscarFornecedoresRecomendados = async (limite = 4) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/pecas/fornecedores/recomendados?limite=${limite}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(
+        response,
+        'Não foi possível carregar fornecedores recomendados agora.'
+      );
+      throw createFriendlyError(message);
+    }
+
+    const data = await response.json();
+    return data?.fornecedores || [];
+  } catch (error) {
+    console.error('Erro ao buscar fornecedores recomendados:', error);
+    throw createFriendlyError(
+      parseUnexpectedError(error, 'Não foi possível carregar fornecedores recomendados agora.')
+    );
+  }
+};
+
+export const buscarPerfilFornecedor = async (id) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/pecas/fornecedores/${id}/perfil`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(
+        response,
+        'Não foi possível carregar o perfil do vendedor agora.'
+      );
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar perfil do fornecedor:', error);
+    throw createFriendlyError(
+      parseUnexpectedError(error, 'Não foi possível carregar o perfil do vendedor agora.')
+    );
   }
 };
