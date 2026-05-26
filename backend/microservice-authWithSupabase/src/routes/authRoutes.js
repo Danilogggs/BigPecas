@@ -55,6 +55,16 @@ function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function isIntegerId(value) {
+  return /^\d+$/.test(String(value));
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value)
+  );
+}
+
 function buildUserMetadata(userBody) {
   return {
     full_name: userBody.full_name,
@@ -239,6 +249,20 @@ async function findUserProfileByEmail(email) {
     .from(USER_TABLE)
     .select('*')
     .eq('email', email)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function findUserProfileById(id) {
+  const { data, error } = await supabaseAdmin
+    .from(USER_TABLE)
+    .select('*')
+    .eq('id', id)
     .maybeSingle();
 
   if (error) {
@@ -457,6 +481,55 @@ router.get('/me', verifyToken, async (req, res, next) => {
         id: req.user.id,
         email: req.user.email || null,
         profile: profile || buildFallbackProfileFromAuthUser(req.user),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/users/:id', verifyToken, async (req, res, next) => {
+  try {
+    const id = normalizeString(req.params.id);
+
+    if (!id) {
+      return next(new AppError(400, 'Informe o id do usuÃ¡rio.'));
+    }
+
+    if (!isIntegerId(id) && !isUuid(id)) {
+      return next(new AppError(400, 'Informe um id de usuÃ¡rio vÃ¡lido.'));
+    }
+
+    if (isIntegerId(id)) {
+      const profile = await findUserProfileById(Number(id));
+
+      if (!profile) {
+        return next(new AppError(404, 'UsuÃ¡rio nÃ£o encontrado.'));
+      }
+
+      return res.json({
+        user: {
+          id: profile.id,
+          email: profile.email || null,
+          profile,
+        },
+      });
+    }
+
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(id);
+
+    if (error || !data?.user) {
+      return next(new AppError(404, 'UsuÃ¡rio nÃ£o encontrado.'));
+    }
+
+    const email = normalizeEmail(data.user.email);
+    const profile = email ? await findUserProfileByEmail(email) : null;
+
+    return res.json({
+      user: {
+        id: data.user.id,
+        email: data.user.email || null,
+        profile: profile || buildFallbackProfileFromAuthUser(data.user),
       },
     });
   } catch (error) {

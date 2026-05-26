@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import { listarCategorias, listarPecas } from '../services/pecasService';
 
@@ -182,6 +182,18 @@ export default function BuscaPecas() {
         .peca-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 18px 30px rgba(0, 0, 0, 0.14);
+        }
+
+        .peca-card-link {
+          color: inherit;
+          display: flex;
+          text-decoration: none;
+        }
+
+        .peca-card-link:focus-visible {
+          border-radius: ${BORDER_RADIUS.LG};
+          outline: 3px solid ${COLORS.BORDEAUX};
+          outline-offset: 4px;
         }
       `}</style>
 
@@ -530,8 +542,13 @@ export default function BuscaPecas() {
           padding: SPACING.XL,
         }}>
           {pecas.map((item) => (
-            <article
+            <Link
               key={item.id}
+              to={`/pecas/${item.id}`}
+              className="peca-card-link"
+              aria-label={`Ver detalhes de ${item.nome_peca || 'peca sem nome'}`}
+            >
+            <article
               className="peca-card"
               style={{
                 backgroundColor: '#fff',
@@ -541,6 +558,8 @@ export default function BuscaPecas() {
                 border: '1px solid rgba(123, 29, 46, 0.12)',
                 display: 'flex',
                 flexDirection: 'column',
+                width: '100%',
+                cursor: 'pointer',
               }}
             >
               <div
@@ -685,6 +704,7 @@ export default function BuscaPecas() {
                 </div>
               </div>
             </article>
+            </Link>
           ))}
         </div>
       </main>

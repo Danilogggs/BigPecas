@@ -88,4 +88,34 @@ export async function buscarPerfilUsuario() {
   }
 }
 
+export async function buscarUsuarioPorId(id) {
+  try {
+    const token = await getAuthToken();
+
+    const response = await fetch(`${AUTH_API_URL}/api/auth/users/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const mensagem = await parseErrorResponse(
+        response,
+        'NÃ£o foi possÃ­vel carregar os dados do dono da peÃ§a agora.'
+      );
+      throw createFriendlyError(mensagem);
+    }
+
+    const data = await response.json();
+    return data?.user || data;
+  } catch (error) {
+    console.error('Erro ao buscar usuÃ¡rio por id:', error);
+    throw createFriendlyError(
+      parseUnexpectedError(error, 'NÃ£o foi possÃ­vel carregar os dados do dono da peÃ§a agora.')
+    );
+  }
+}
+
 export const cadastrarUsuario = salvarPerfilUsuario;
