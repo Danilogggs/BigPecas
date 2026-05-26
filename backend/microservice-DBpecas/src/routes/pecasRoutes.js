@@ -118,6 +118,95 @@ function normalizarTexto(valor) {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
+
+function calcularSimilaridadePeca(pecaBase, pecaCandidata) {
+  let score = 0;
+
+  if (pecaBase.categoria_id && pecaBase.categoria_id === pecaCandidata.categoria_id) {
+    score += 40;
+  }
+
+  if (pecaBase.material_id && pecaBase.material_id === pecaCandidata.material_id) {
+    score += 20;
+  }
+
+  if (pecaBase.condicao && pecaBase.condicao === pecaCandidata.condicao) {
+    score += 15;
+  }
+
+  if (pecaBase.fornecedor_id && pecaBase.fornecedor_id === pecaCandidata.fornecedor_id) {
+    score += 10;
+  }
+
+  const precoBase = Number(pecaBase.preco);
+  const precoCandidata = Number(pecaCandidata.preco);
+
+  if (!Number.isNaN(precoBase) && !Number.isNaN(precoCandidata) && precoBase > 0) {
+    const diferencaPercentual = Math.abs(precoBase - precoCandidata) / precoBase;
+
+    if (diferencaPercentual <= 0.2) {
+      score += 15;
+    } else if (diferencaPercentual <= 0.5) {
+      score += 8;
+    }
+  }
+
+  const nomeBase = normalizarTexto(pecaBase.nome_peca);
+  const nomeCandidata = normalizarTexto(pecaCandidata.nome_peca);
+
+  const palavrasBase = nomeBase
+    .split(' ')
+    .filter((palavra) => palavra.length >= 4);
+
+  const possuiPalavraRelacionada = palavrasBase.some((palavra) =>
+    nomeCandidata.includes(palavra)
+  );
+
+  if (possuiPalavraRelacionada) {
+    score += 10;
+  }
+
+  return score;
+}
+
+function calcularScoreFornecedor(fornecedor, pecasFornecedor = []) {
+  let score = 0;
+
+  const pecasComEstoque = pecasFornecedor.filter(
+    (peca) => Number(peca.estoque_atual) > 0
+  );
+
+  score += pecasFornecedor.length * 10;
+  score += pecasComEstoque.length * 5;
+
+  if (fornecedor.nome_loja) score += 15;
+  if (fornecedor.descricao_loja) score += 10;
+  if (fornecedor.telefone) score += 5;
+  if (fornecedor.email_verificado === true) score += 10;
+
+  return score;
+}
+
+function montarFornecedorPublico(fornecedor, pecasFornecedor = []) {
+  const pecasComEstoque = pecasFornecedor.filter(
+    (peca) => Number(peca.estoque_atual) > 0
+  );
+
+  return {
+    id: fornecedor.id,
+    full_name: fornecedor.full_name,
+    nome_loja: fornecedor.nome_loja,
+    descricao_loja: fornecedor.descricao_loja,
+    email: fornecedor.email,
+    telefone: fornecedor.telefone,
+    tipo_usuario: fornecedor.tipo_usuario,
+    email_verificado: fornecedor.email_verificado,
+    total_pecas: pecasFornecedor.length,
+    pecas_com_estoque: pecasComEstoque.length,
+    score_recomendacao: calcularScoreFornecedor(fornecedor, pecasFornecedor),
+  };
+}
+
 function usuarioPodeCadastrarPeca(usuario) {
   const tipoUsuario = normalizarTexto(usuario?.tipo_usuario);
 
@@ -274,6 +363,7 @@ router.get('/', async (req, res, next) => {
       max_preco,
       oem_number,
       min_estoque,
+      fornecedor_id,
       sort,
       ordem,
       minhas_pecas,
@@ -284,6 +374,10 @@ router.get('/', async (req, res, next) => {
     if (minhas_pecas === 'true') {
       const fornecedor = await obterFornecedor(req);
       query = query.eq('fornecedor_id', fornecedor.id);
+    }
+
+    if (fornecedor_id) {
+      query = query.eq('fornecedor_id', validarNumeroConsulta(fornecedor_id, 'fornecedor'));
     }
 
     if (categoria_id) {
@@ -332,6 +426,158 @@ router.get('/', async (req, res, next) => {
     }
 
     return res.json(data || []);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+
+router.get('/fornecedores/recomendados', async (req, res, next) => {
+  try {
+    const limite = validarNumeroConsulta(req.query.limite, 'limite') || 4;
+
+    const { data: fornecedores, error: fornecedoresError } = await supabase
+      .from(USERS_TABLE)
+      .select('id, full_name, email, tipo_usuario, nome_loja, descricao_loja, telefone, email_verificado')
+      .in('tipo_usuario', ['vendedor', 'ambos']);
+
+    if (fornecedoresError) {
+      throw fornecedoresError;
+    }
+
+    if (!fornecedores?.length) {
+      return res.json({ total: 0, fornecedores: [] });
+    }
+
+    const fornecedorIds = fornecedores.map((fornecedor) => fornecedor.id);
+
+    const { data: pecas, error: pecasError } = await supabase
+      .from(PECAS_TABLE)
+      .select('id, nome_peca, fornecedor_id, preco, estoque_atual, imagem')
+      .in('fornecedor_id', fornecedorIds);
+
+    if (pecasError) {
+      throw pecasError;
+    }
+
+    const ranking = fornecedores
+      .map((fornecedor) => {
+        const pecasFornecedor = (pecas || []).filter(
+          (peca) => String(peca.fornecedor_id) === String(fornecedor.id)
+        );
+
+        return montarFornecedorPublico(fornecedor, pecasFornecedor);
+      })
+      .filter((fornecedor) => fornecedor.total_pecas > 0)
+      .sort((a, b) => b.score_recomendacao - a.score_recomendacao)
+      .slice(0, limite);
+
+    return res.json({
+      total: ranking.length,
+      fornecedores: ranking,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/fornecedores/:id/perfil', async (req, res, next) => {
+  try {
+    const id = validarId(req.params.id);
+
+    const { data: fornecedor, error: fornecedorError } = await supabase
+      .from(USERS_TABLE)
+      .select('id, full_name, email, tipo_usuario, nome_loja, descricao_loja, telefone, email_verificado, created_at')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fornecedorError) {
+      throw fornecedorError;
+    }
+
+    if (!fornecedor) {
+      throw new AppError(404, 'Fornecedor não encontrado.');
+    }
+
+    if (!usuarioPodeCadastrarPeca(fornecedor)) {
+      throw new AppError(404, 'Este usuário não possui perfil de vendedor.');
+    }
+
+    const { data: pecas, error: pecasError } = await supabase
+      .from(PECAS_TABLE)
+      .select('*')
+      .eq('fornecedor_id', id)
+      .order('id', { ascending: false });
+
+    if (pecasError) {
+      throw pecasError;
+    }
+
+    return res.json({
+      fornecedor: montarFornecedorPublico(fornecedor, pecas || []),
+      pecas: pecas || [],
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/:id/recomendacoes', async (req, res, next) => {
+  try {
+    const id = validarId(req.params.id);
+    const limite = validarNumeroConsulta(req.query.limite, 'limite') || 4;
+
+    const pecaBase = await buscarPecaPorId(id);
+
+    if (!pecaBase) {
+      throw new AppError(404, 'Peça base não encontrada para gerar recomendações.');
+    }
+
+    const filtrosOr = [];
+
+    if (pecaBase.categoria_id) {
+      filtrosOr.push(`categoria_id.eq.${pecaBase.categoria_id}`);
+    }
+
+    if (pecaBase.material_id) {
+      filtrosOr.push(`material_id.eq.${pecaBase.material_id}`);
+    }
+
+    if (pecaBase.condicao) {
+      filtrosOr.push(`condicao.eq.${pecaBase.condicao}`);
+    }
+
+    let query = supabase
+      .from(PECAS_TABLE)
+      .select('*')
+      .neq('id', id)
+      .gt('estoque_atual', 0)
+      .limit(30);
+
+    if (filtrosOr.length > 0) {
+      query = query.or(filtrosOr.join(','));
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    const recomendacoes = (data || [])
+      .map((peca) => ({
+        ...peca,
+        score_recomendacao: calcularSimilaridadePeca(pecaBase, peca),
+      }))
+      .filter((peca) => peca.score_recomendacao > 0)
+      .sort((a, b) => b.score_recomendacao - a.score_recomendacao)
+      .slice(0, limite);
+
+    return res.json({
+      peca_base_id: id,
+      total: recomendacoes.length,
+      recomendacoes,
+    });
   } catch (error) {
     return next(error);
   }
