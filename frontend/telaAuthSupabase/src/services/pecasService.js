@@ -211,3 +211,83 @@ export const deletarPeca = async (id) => {
     throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.delete));
   }
 };
+
+export const listarWhitelist = async () => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/whitelist`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível carregar sua whitelist agora.');
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao listar whitelist:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar sua whitelist agora.'));
+  }
+};
+
+export const buscarStatusWhitelist = async (pecaId) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/whitelist/status/${pecaId}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível verificar a whitelist agora.');
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao verificar status da whitelist:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível verificar a whitelist agora.'));
+  }
+};
+
+export const adicionarPecaWhitelist = async (pecaId) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/whitelist/${pecaId}`, {
+      method: 'POST',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível adicionar a peça à whitelist.');
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao adicionar peça à whitelist:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível adicionar a peça à whitelist.'));
+  }
+};
+
+export const removerPecaWhitelist = async (pecaId) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/whitelist/${pecaId}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível remover a peça da whitelist.');
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao remover peça da whitelist:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível remover a peça da whitelist.'));
+  }
+};

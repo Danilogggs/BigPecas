@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
-import { buscarPecaPorId, listarCategorias, listarMateriais } from '../services/pecasService';
+import {
+  adicionarPecaWhitelist,
+  buscarPecaPorId,
+  buscarStatusWhitelist,
+  listarCategorias,
+  listarMateriais,
+  removerPecaWhitelist,
+} from '../services/pecasService';
 import { buscarUsuarioPorId } from '../services/usuarioService';
 import {
   BORDER_RADIUS,
@@ -194,6 +201,9 @@ export default function DetalhePeca() {
   const [fornecedorNotice, setFornecedorNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [salvoNaWhitelist, setSalvoNaWhitelist] = useState(false);
+  const [loadingWhitelist, setLoadingWhitelist] = useState(false);
+  const [whitelistMessage, setWhitelistMessage] = useState('');
 
   useEffect(() => {
     async function carregarDetalhes() {
@@ -219,6 +229,24 @@ export default function DetalhePeca() {
 
     carregarDetalhes();
   }, [id]);
+
+  useEffect(() => {
+    async function carregarStatusWhitelist() {
+      if (!peca?.id) {
+        setSalvoNaWhitelist(false);
+        return;
+      }
+
+      try {
+        const status = await buscarStatusWhitelist(peca.id);
+        setSalvoNaWhitelist(Boolean(status?.in_whitelist));
+      } catch (error) {
+        console.error('Erro ao carregar status da whitelist:', error);
+      }
+    }
+
+    carregarStatusWhitelist();
+  }, [peca?.id]);
 
   useEffect(() => {
     async function carregarFornecedor() {
@@ -264,6 +292,30 @@ export default function DetalhePeca() {
   function handleFornecedorClick() {
     if (!peca?.fornecedor_id) return;
     setFornecedorNotice('Perfil publico e avaliacoes do vendedor serao exibidos aqui em breve.');
+  }
+
+
+  async function handleToggleWhitelist() {
+    if (!peca?.id || loadingWhitelist) return;
+
+    setLoadingWhitelist(true);
+    setWhitelistMessage('');
+
+    try {
+      if (salvoNaWhitelist) {
+        await removerPecaWhitelist(peca.id);
+        setSalvoNaWhitelist(false);
+        setWhitelistMessage('Peça removida da sua whitelist.');
+      } else {
+        await adicionarPecaWhitelist(peca.id);
+        setSalvoNaWhitelist(true);
+        setWhitelistMessage('Peça adicionada à sua whitelist.');
+      }
+    } catch (error) {
+      setWhitelistMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua whitelist agora.'));
+    } finally {
+      setLoadingWhitelist(false);
+    }
   }
 
   return (
@@ -469,12 +521,45 @@ export default function DetalhePeca() {
                     <InfoItem label="Cadastro" value={formatarData(peca.data_cadastro || peca.created_at)} />
                   </div>
 
-                  <button
-                    type="button"
-                    style={{ ...BUTTON_PRIMARY_STYLE, alignSelf: 'flex-start' }}
-                  >
-                    Adicionar ao carrinho
-                  </button>
+                  <div style={{ display: 'flex', gap: SPACING.MD, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      style={{ ...BUTTON_PRIMARY_STYLE, alignSelf: 'flex-start' }}
+                    >
+                      Adicionar ao carrinho
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleToggleWhitelist}
+                      disabled={loadingWhitelist}
+                      style={{
+                        ...BUTTON_SECONDARY_STYLE,
+                        alignSelf: 'flex-start',
+                        backgroundColor: salvoNaWhitelist ? COLORS.BORDEAUX : 'transparent',
+                        color: salvoNaWhitelist ? '#fff' : COLORS.BORDEAUX,
+                        opacity: loadingWhitelist ? 0.65 : 1,
+                        cursor: loadingWhitelist ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {salvoNaWhitelist ? '♥ Remover da whitelist' : '♡ Adicionar à whitelist'}
+                    </button>
+                  </div>
+
+                  {whitelistMessage && (
+                    <div
+                      style={{
+                        color: COLORS.BORDEAUX,
+                        backgroundColor: '#FFF7D6',
+                        border: '1px solid #F0C060',
+                        borderRadius: BORDER_RADIUS.MD,
+                        padding: SPACING.SM,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {whitelistMessage}
+                    </div>
+                  )}
                 </div>
               </section>
 
