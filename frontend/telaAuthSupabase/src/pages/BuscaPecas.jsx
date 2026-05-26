@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
-import { listarCategorias, listarPecas } from '../services/pecasService';
+import {
+  adicionarPecaWhitelist,
+  listarCategorias,
+  listarPecas,
+  listarWhitelist,
+  removerPecaWhitelist,
+} from '../services/pecasService';
 
 import {
   COLORS,
@@ -28,6 +34,9 @@ export default function BuscaPecas() {
   const [loading, setLoading] = useState(false);
   const [loadingCategorias, setLoadingCategorias] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [whitelistIds, setWhitelistIds] = useState(() => new Set());
+  const [whitelistLoadingId, setWhitelistLoadingId] = useState(null);
 
   const [filters, setFilters] = useState({
     nome: nomeUrl,
@@ -78,7 +87,16 @@ export default function BuscaPecas() {
 
     try {
       const data = await listarPecas(params);
-      setPecas(Array.isArray(data) ? data : []);
+      const pecasData = Array.isArray(data) ? data : [];
+      setPecas(pecasData);
+
+      try {
+        const whitelistData = await listarWhitelist();
+        const pecasWhitelist = Array.isArray(whitelistData?.pecas) ? whitelistData.pecas : [];
+        setWhitelistIds(new Set(pecasWhitelist.map((peca) => String(peca.id))));
+      } catch (whitelistError) {
+        console.error('Erro ao sincronizar whitelist:', whitelistError);
+      }
     } catch (error) {
       console.error('Erro ao buscar peças:', error);
       setPecas([]);
@@ -112,6 +130,40 @@ export default function BuscaPecas() {
       setOrdem('asc');
     }
   };
+
+
+  async function handleWhitelistClick(event, peca) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!peca?.id || whitelistLoadingId) return;
+
+    const pecaId = String(peca.id);
+    const jaEstaNaWhitelist = whitelistIds.has(pecaId);
+
+    setWhitelistLoadingId(peca.id);
+    setFeedbackMessage('');
+
+    try {
+      if (jaEstaNaWhitelist) {
+        await removerPecaWhitelist(peca.id);
+        setWhitelistIds((prev) => {
+          const novoSet = new Set(prev);
+          novoSet.delete(pecaId);
+          return novoSet;
+        });
+        setFeedbackMessage('Peça removida da sua whitelist.');
+      } else {
+        await adicionarPecaWhitelist(peca.id);
+        setWhitelistIds((prev) => new Set(prev).add(pecaId));
+        setFeedbackMessage('Peça adicionada à sua whitelist.');
+      }
+    } catch (error) {
+      setFeedbackMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua whitelist agora.'));
+    } finally {
+      setWhitelistLoadingId(null);
+    }
+  }
 
   function formatarPreco(valor) {
     const numero = Number(valor);
@@ -508,6 +560,22 @@ export default function BuscaPecas() {
           </div>
         )}
 
+        {feedbackMessage && (
+          <div
+            style={{
+              margin: `0 ${SPACING.XL} ${SPACING.MD}`,
+              backgroundColor: '#FFF7D6',
+              color: COLORS.BORDEAUX,
+              padding: SPACING.MD,
+              borderRadius: '0.625rem',
+              border: '2px solid #F0C060',
+              fontWeight: 700,
+            }}
+          >
+            {feedbackMessage}
+          </div>
+        )}
+
         {errorMessage && (
           <div
             style={{
@@ -571,8 +639,35 @@ export default function BuscaPecas() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
+                <button
+                  type="button"
+                  onClick={(event) => handleWhitelistClick(event, item)}
+                  disabled={whitelistLoadingId === item.id}
+                  title={whitelistIds.has(String(item.id)) ? 'Remover da whitelist' : 'Adicionar à whitelist'}
+                  style={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    zIndex: 2,
+                    width: 42,
+                    height: 42,
+                    borderRadius: '999px',
+                    border: `2px solid ${whitelistIds.has(String(item.id)) ? COLORS.BORDEAUX : '#fff'}`,
+                    backgroundColor: whitelistIds.has(String(item.id)) ? COLORS.BORDEAUX : 'rgba(255, 255, 255, 0.92)',
+                    color: whitelistIds.has(String(item.id)) ? '#fff' : COLORS.BORDEAUX,
+                    boxShadow: '0 8px 18px rgba(0,0,0,0.18)',
+                    cursor: whitelistLoadingId === item.id ? 'not-allowed' : 'pointer',
+                    fontSize: '1.25rem',
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    opacity: whitelistLoadingId === item.id ? 0.7 : 1,
+                  }}
+                >
+                  {whitelistIds.has(String(item.id)) ? '♥' : '♡'}
+                </button>
                 {item.imagem ? (
                   <img
                     src={item.imagem}

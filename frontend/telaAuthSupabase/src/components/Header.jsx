@@ -216,6 +216,20 @@ export default function Header() {
                 <button
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', gap: SPACING.MD,
+                    padding: `${SPACING.MD} ${SPACING.LG}`, fontSize: '0.875rem', color: BORDEAUX,
+                    border: 'none', cursor: 'pointer', backgroundColor: 'transparent', textAlign: 'left',
+                    fontWeight: 500, borderBottom: '1px solid #F3E8D8',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  onClick={() => { navigate('/whitelist'); setDropdownOpen(false); }}
+                >
+                  Minha whitelist
+                </button>
+
+                <button
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: SPACING.MD,
                     padding: `${SPACING.MD} ${SPACING.LG}`, fontSize: '0.875rem', color: '#B91C1C',
                     border: 'none', cursor: 'pointer', backgroundColor: 'transparent', textAlign: 'left',
                     fontWeight: 500,
