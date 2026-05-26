@@ -1,18 +1,15 @@
 const express = require('express');
-const crypto = require('crypto');
 const { supabaseAdmin, supabasePublic } = require('../config/supabaseClient');
 const verifyToken = require('../middlewares/verifyToken');
 const AppError = require('../utils/AppError');
 
 const router = express.Router();
 const USER_TABLE = process.env.SUPABASE_USER_TABLE || 'users';
-
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const AUTH_API_PUBLIC_URL = process.env.AUTH_API_PUBLIC_URL || 'http://localhost:3001';
-const EMAIL_VERIFICATION_SECRET =
-  process.env.EMAIL_VERIFICATION_SECRET ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'dev-email-verification-secret';
+
+function getEmailConfirmRedirectTo() {
+  return process.env.SUPABASE_EMAIL_CONFIRM_REDIRECT_TO || `${FRONTEND_URL}/login?emailConfirmado=1`;
+}
 
 function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -63,6 +60,8 @@ function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     String(value)
   );
+function isSupabaseEmailConfirmed(user) {
+  return Boolean(user?.email_confirmed_at || user?.confirmed_at);
 }
 
 function buildUserMetadata(userBody) {
@@ -114,133 +113,7 @@ function buildFallbackProfileFromAuthUser(user) {
     nome_loja: metadata.nome_loja || '',
     descricao_loja: metadata.descricao_loja || '',
     telefone: metadata.telefone || '',
-    email_verificado: false,
-  };
-}
-
-function base64UrlEncode(value) {
-  return Buffer.from(JSON.stringify(value)).toString('base64url');
-}
-
-function base64UrlDecode(value) {
-  return JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
-}
-
-function signValue(value) {
-  return crypto
-    .createHmac('sha256', EMAIL_VERIFICATION_SECRET)
-    .update(value)
-    .digest('base64url');
-}
-
-function generateEmailVerificationToken(email) {
-  const payload = {
-    email,
-    exp: Date.now() + 1000 * 60 * 60 * 24 * 7,
-  };
-
-  const encodedPayload = base64UrlEncode(payload);
-  const signature = signValue(encodedPayload);
-
-  return `${encodedPayload}.${signature}`;
-}
-
-function verifyEmailVerificationToken(token) {
-  if (!token || typeof token !== 'string' || !token.includes('.')) {
-    throw new AppError(400, 'Link de verificação inválido.');
-  }
-
-  const [encodedPayload, signature] = token.split('.');
-
-  const expectedSignature = signValue(encodedPayload);
-
-  if (signature !== expectedSignature) {
-    throw new AppError(400, 'Link de verificação inválido ou adulterado.');
-  }
-
-  const payload = base64UrlDecode(encodedPayload);
-
-  if (!payload?.email || !validateEmail(payload.email)) {
-    throw new AppError(400, 'Link de verificação inválido.');
-  }
-
-  if (!payload?.exp || Date.now() > payload.exp) {
-    throw new AppError(400, 'Link de verificação expirado. Solicite um novo link.');
-  }
-
-  return {
-    email: normalizeEmail(payload.email),
-  };
-}
-
-function buildVerificationLink(email) {
-  const token = generateEmailVerificationToken(email);
-  return `${AUTH_API_PUBLIC_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
-}
-
-async function sendVerificationEmail(email, verificationLink) {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const from = process.env.VERIFY_EMAIL_FROM || 'BigPeças <onboarding@resend.dev>';
-
-  if (!resendApiKey) {
-    console.warn('⚠️ RESEND_API_KEY não configurada. Link de verificação gerado apenas no terminal:');
-    console.warn(verificationLink);
-    return {
-      sent: false,
-      reason: 'RESEND_API_KEY não configurada.',
-    };
-  }
-
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
-      to: email,
-      subject: 'Confirme seu e-mail no BigPeças',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #222;">
-          <h2 style="color: #7B1D2E;">Confirme seu e-mail no BigPeças</h2>
-          <p>Olá!</p>
-          <p>Recebemos seu cadastro no BigPeças.</p>
-          <p>Para liberar recursos de vendedor, como cadastrar peças, confirme seu e-mail clicando no botão abaixo:</p>
-          <p>
-            <a
-              href="${verificationLink}"
-              style="
-                display: inline-block;
-                padding: 12px 18px;
-                background: #7B1D2E;
-                color: #fff;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: bold;
-              "
-            >
-              Confirmar e-mail
-            </a>
-          </p>
-          <p>Se o botão não funcionar, copie e cole este link no navegador:</p>
-          <p style="word-break: break-all;">${verificationLink}</p>
-          <p>Este link expira em 7 dias.</p>
-        </div>
-      `,
-    }),
-  });
-
-  const responseData = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    console.error('Erro ao enviar e-mail pelo Resend:', responseData);
-    throw new AppError(502, 'Não foi possível enviar o e-mail de verificação agora.');
-  }
-
-  return {
-    sent: true,
-    data: responseData,
+    email_verificado: isSupabaseEmailConfirmed(user),
   };
 }
 
@@ -256,6 +129,31 @@ async function findUserProfileByEmail(email) {
   }
 
   return data;
+}
+
+async function syncProfileEmailVerification(profile, authUser) {
+  if (!profile || !isSupabaseEmailConfirmed(authUser) || profile.email_verificado === true) {
+    return profile;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from(USER_TABLE)
+    .update({
+      email_verificado: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('email', profile.email)
+    .select('*')
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data || {
+    ...profile,
+    email_verificado: true,
+  };
 }
 
 async function findUserProfileById(id) {
@@ -302,7 +200,7 @@ async function saveUserProfile(userBody, options = {}) {
     .insert({
       ...payload,
       email: userBody.email,
-      email_verificado: forceEmailVerificadoOnInsert ? true : false,
+      email_verificado: forceEmailVerificadoOnInsert ? true : Boolean(userBody.email_verificado),
       created_at: new Date().toISOString(),
     })
     .select('*')
@@ -369,6 +267,7 @@ router.post('/register', async (req, res, next) => {
       password: userBody.password,
       options: {
         data: buildUserMetadata(userBody),
+        emailRedirectTo: getEmailConfirmRedirectTo(),
       },
     });
 
@@ -382,88 +281,24 @@ router.post('/register', async (req, res, next) => {
       return next(new AppError(500, 'Não foi possível criar o usuário no Supabase.'));
     }
 
-    const profile = await saveUserProfile({
-      ...userBody,
-      email_verificado: false,
-    });
-
-    const verificationLink = buildVerificationLink(userBody.email);
-    const emailResult = await sendVerificationEmail(userBody.email, verificationLink);
+    const profile = await saveUserProfile(
+      {
+        ...userBody,
+        email_verificado: isSupabaseEmailConfirmed(authUser),
+      },
+      {
+        forceEmailVerificadoOnInsert: isSupabaseEmailConfirmed(authUser),
+      }
+    );
 
     return res.status(201).json({
-      message: emailResult.sent
-        ? 'Conta criada. Enviamos um link de verificação para seu email.'
-        : 'Conta criada. Link de verificação gerado no terminal do backend.',
+      message: 'Conta criada. Verifique seu email para confirmar o cadastro.',
       emailVerificationRequiredForSelling: true,
       authUser: {
         id: authUser.id,
         email: authUser.email,
       },
       profile,
-      devVerificationLink: process.env.NODE_ENV === 'production' ? undefined : verificationLink,
-    });
-  } catch (error) {
-    return next(error);
-  }
-});
-
-router.get('/verify-email', async (req, res, next) => {
-  try {
-    const { token } = req.query;
-    const { email } = verifyEmailVerificationToken(token);
-
-    const { data, error } = await supabaseAdmin
-      .from(USER_TABLE)
-      .update({
-        email_verificado: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('email', email)
-      .select('id, email, email_verificado')
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      return next(new AppError(404, 'Usuário não encontrado para verificação.'));
-    }
-
-    return res.redirect(`${FRONTEND_URL}/login?emailVerificado=1`);
-  } catch (error) {
-    return next(error);
-  }
-});
-
-router.post('/resend-verification', async (req, res, next) => {
-  try {
-    const email = normalizeEmail(req.body?.email);
-
-    if (!email || !validateEmail(email)) {
-      return next(new AppError(400, 'Informe um email válido.'));
-    }
-
-    const profile = await findUserProfileByEmail(email);
-
-    if (!profile) {
-      return next(new AppError(404, 'Usuário não encontrado.'));
-    }
-
-    if (profile.email_verificado) {
-      return res.json({
-        message: 'Este e-mail já está verificado.',
-      });
-    }
-
-    const verificationLink = buildVerificationLink(email);
-    const emailResult = await sendVerificationEmail(email, verificationLink);
-
-    return res.json({
-      message: emailResult.sent
-        ? 'Novo link de verificação enviado para seu email.'
-        : 'Novo link de verificação gerado no terminal do backend.',
-      devVerificationLink: process.env.NODE_ENV === 'production' ? undefined : verificationLink,
     });
   } catch (error) {
     return next(error);
@@ -473,7 +308,11 @@ router.post('/resend-verification', async (req, res, next) => {
 router.get('/me', verifyToken, async (req, res, next) => {
   try {
     const email = normalizeEmail(req.user.email);
-    const profile = email ? await findUserProfileByEmail(email) : null;
+    let profile = email ? await findUserProfileByEmail(email) : null;
+
+    if (profile) {
+      profile = await syncProfileEmailVerification(profile, req.user);
+    }
 
     return res.json({
       message: 'Token validado com sucesso no backend.',
@@ -557,8 +396,11 @@ router.post('/profile', verifyToken, async (req, res, next) => {
     }
 
     const existingProfile = await findUserProfileByEmail(email);
-    const profile = await saveUserProfile(userBody);
+    let profile = await saveUserProfile(userBody, {
+      forceEmailVerificadoOnInsert: isSupabaseEmailConfirmed(req.user),
+    });
     await updateAuthMetadata(req.user.id, userBody);
+    profile = await syncProfileEmailVerification(profile, req.user);
 
     return res.status(existingProfile ? 200 : 201).json({
       message: existingProfile ? 'Perfil atualizado com sucesso.' : 'Perfil salvo com sucesso.',
@@ -577,11 +419,13 @@ router.get('/profile', verifyToken, async (req, res, next) => {
       return next(new AppError(400, 'Não foi possível identificar o email do usuário autenticado.'));
     }
 
-    const profile = await findUserProfileByEmail(email);
+    let profile = await findUserProfileByEmail(email);
 
     if (!profile) {
       return res.json(buildFallbackProfileFromAuthUser(req.user));
     }
+
+    profile = await syncProfileEmailVerification(profile, req.user);
 
     return res.json(profile);
   } catch (error) {

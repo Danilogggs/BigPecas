@@ -148,7 +148,11 @@ async function obterFornecedor(req) {
   return data;
 }
 
-function validarPermissaoCadastroPeca(usuario) {
+function isSupabaseEmailConfirmed(user) {
+  return Boolean(user?.email_confirmed_at || user?.confirmed_at);
+}
+
+function validarPermissaoCadastroPeca(usuario, authUser) {
   if (!usuarioPodeCadastrarPeca(usuario)) {
     throw new AppError(
       403,
@@ -156,7 +160,7 @@ function validarPermissaoCadastroPeca(usuario) {
     );
   }
 
-  if (usuario.email_verificado !== true) {
+  if (!isSupabaseEmailConfirmed(authUser)) {
     throw new AppError(
       403,
       'Confirme seu e-mail antes de cadastrar peças.'
@@ -232,7 +236,7 @@ router.post('/cadastrar', async (req, res, next) => {
   try {
     const fornecedor = await obterFornecedor(req);
 
-    validarPermissaoCadastroPeca(fornecedor);
+    validarPermissaoCadastroPeca(fornecedor, req.user);
 
     const payload = limparPayload(montarPayloadPeca(req.body, fornecedor.id));
 

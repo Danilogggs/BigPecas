@@ -681,11 +681,11 @@ export default function CadastroPecas() {
                       borderBottom: '1px solid #F3E8D8',
                     }}
                     onClick={() => {
-                      navigate('/dashboard');
+                      navigate('/');
                       setDropdownOpen(false);
                     }}
                   >
-                    Dashboard
+                    Início
                   </button>
 
                   <button

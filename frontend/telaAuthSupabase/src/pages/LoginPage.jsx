@@ -66,7 +66,7 @@ export default function LoginPage() {
 
     try {
       await login(form.email.trim().toLowerCase(), form.password);
-      const redirectTo = location.state?.from?.pathname || '/dashboard';
+      const redirectTo = location.state?.from?.pathname || '/';
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(mapSupabaseAuthError(err, 'login'));
