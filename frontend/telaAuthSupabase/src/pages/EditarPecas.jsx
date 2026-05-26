@@ -233,7 +233,7 @@ export default function EditarPecas() {
       {/* Header */}
       <div className="editar-pecas-header">
         <h1>BigPeças</h1>
-        <button onClick={() => navigate('/dashboard')}>← Voltar ao dashboard</button>
+        <button onClick={() => navigate('/')}>← Voltar para home</button>
       </div>
 
       {/* Content */}

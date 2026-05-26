@@ -72,8 +72,6 @@ export default function ProfilePage() {
     setForm((prev) => ({
       ...prev,
       [name]: value,
-      nome_loja: name === 'tipo_usuario' && value === 'comprador' ? '' : prev.nome_loja,
-      descricao_loja: name === 'tipo_usuario' && value === 'comprador' ? '' : prev.descricao_loja,
     }));
 
     clearFieldError(name);
@@ -184,20 +182,20 @@ export default function ProfilePage() {
         gender: form.gender.trim(),
         cep: form.cep.trim(),
         tipo_usuario: form.tipo_usuario.trim(),
-        nome_loja: precisaDadosLoja ? form.nome_loja.trim() : '',
-        descricao_loja: precisaDadosLoja ? form.descricao_loja.trim() : '',
+        nome_loja: form.nome_loja.trim(),
+        descricao_loja: form.descricao_loja.trim(),
         telefone: form.telefone.trim(),
       });
 
       setForm({
-        full_name: perfilAtualizado?.full_name || form.full_name,
-        email: perfilAtualizado?.email || form.email,
-        gender: perfilAtualizado?.gender || form.gender,
-        cep: perfilAtualizado?.cep || form.cep,
-        tipo_usuario: perfilAtualizado?.tipo_usuario || form.tipo_usuario,
-        nome_loja: perfilAtualizado?.nome_loja || form.nome_loja,
-        descricao_loja: perfilAtualizado?.descricao_loja || form.descricao_loja,
-        telefone: perfilAtualizado?.telefone || form.telefone,
+        full_name: perfilAtualizado?.full_name ?? form.full_name,
+        email: perfilAtualizado?.email ?? form.email,
+        gender: perfilAtualizado?.gender ?? form.gender,
+        cep: perfilAtualizado?.cep ?? form.cep,
+        tipo_usuario: perfilAtualizado?.tipo_usuario ?? form.tipo_usuario,
+        nome_loja: perfilAtualizado?.nome_loja ?? form.nome_loja,
+        descricao_loja: perfilAtualizado?.descricao_loja ?? form.descricao_loja,
+        telefone: perfilAtualizado?.telefone ?? form.telefone,
       });
 
       setErrors({});
@@ -384,36 +382,32 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {precisaDadosLoja && (
-            <>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Nome da loja *</label>
-                <input
-                  type="text"
-                  name="nome_loja"
-                  value={form.nome_loja}
-                  onChange={handleChange}
-                  style={getInputStyle('nome_loja')}
-                />
-                <FieldError name="nome_loja" />
-              </div>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Nome da loja {precisaDadosLoja ? '*' : ''}</label>
+            <input
+              type="text"
+              name="nome_loja"
+              value={form.nome_loja}
+              onChange={handleChange}
+              style={getInputStyle('nome_loja')}
+            />
+            <FieldError name="nome_loja" />
+          </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Descrição da loja *</label>
-                <textarea
-                  name="descricao_loja"
-                  value={form.descricao_loja}
-                  onChange={handleChange}
-                  rows={4}
-                  style={{
-                    ...getInputStyle('descricao_loja'),
-                    resize: 'vertical',
-                  }}
-                />
-                <FieldError name="descricao_loja" />
-              </div>
-            </>
-          )}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Descrição da loja {precisaDadosLoja ? '*' : ''}</label>
+            <textarea
+              name="descricao_loja"
+              value={form.descricao_loja}
+              onChange={handleChange}
+              rows={4}
+              style={{
+                ...getInputStyle('descricao_loja'),
+                resize: 'vertical',
+              }}
+            />
+            <FieldError name="descricao_loja" />
+          </div>
 
           {message.text && (
             <p
@@ -466,7 +460,7 @@ export default function ProfilePage() {
 
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               style={{
                 border: '1px solid #7B1D2E33',
                 borderRadius: '9999px',
@@ -478,7 +472,7 @@ export default function ProfilePage() {
                 cursor: 'pointer',
               }}
             >
-              Voltar para dashboard
+              Voltar para home
             </button>
           </div>
         </form>

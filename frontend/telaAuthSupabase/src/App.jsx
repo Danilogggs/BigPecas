@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import DashboardPage from './pages/DashboardPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import PrivateRoute from './routes/PrivateRoute';
 import PublicRoute from './routes/PublicRoute';
 import CadastroPecas from './pages/CadastroPecas';
@@ -55,14 +55,7 @@ export default function App() {
           </PublicRoute>
         }
       />
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
-        }
-      />
+      <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
       <Route
         path="/cadastroPecas"
         element={

@@ -113,7 +113,7 @@ export function AuthProvider({ children }) {
 
   async function resetPassword(email) {
     const supabase = getSupabaseClient();
-    const redirectTo = `${window.location.origin}/login`;
+    const redirectTo = `${window.location.origin}/redefinir-senha`;
 
     const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
       redirectTo,
@@ -122,6 +122,23 @@ export function AuthProvider({ children }) {
     if (error) {
       throw error;
     }
+
+    return data;
+  }
+
+  async function updatePassword(newPassword) {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
 
     return data;
   }
@@ -150,6 +167,7 @@ export function AuthProvider({ children }) {
       login,
       logout,
       resetPassword,
+      updatePassword,
       getToken,
     }),
     [user, session, loading]

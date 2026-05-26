@@ -194,9 +194,9 @@ export default function Header() {
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  onClick={() => { navigate('/dashboard'); setDropdownOpen(false); }}
+                  onClick={() => { navigate('/'); setDropdownOpen(false); }}
                 >
-                  Dashboard
+                  Início
                 </button>
                 <button
                   style={{
