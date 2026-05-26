@@ -35,6 +35,7 @@ export default function Sidebar({ activeNav, setActiveNav }) {
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {[
           { label: 'Catálogo', icon: WrenchIcon, key: 'catalog' },
+          { label: 'Minha whitelist', icon: BoltIcon, key: 'whitelist' },
           { label: 'FAQ', icon: BoltIcon, key: 'faq' },
           { label: 'Fornecedores', icon: BoltIcon, key: 'suppliers' },
         ].map(({ label, icon: Icon, key }) => (
@@ -43,6 +44,7 @@ export default function Sidebar({ activeNav, setActiveNav }) {
             onClick={() => {
               setActiveNav(key);
               if (key === 'catalog') navigate('/buscaPecas');
+              if (key === 'whitelist') navigate('/whitelist');
             }}
             style={{
               display: 'flex',

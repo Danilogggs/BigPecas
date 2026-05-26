@@ -11,6 +11,7 @@ import BuscaPecas from './pages/BuscaPecas';
 import ProfilePage from './pages/ProfilePage';
 import EditarPecas from './pages/EditarPecas';
 import DetalhePeca from './pages/DetalhePeca';
+import WhitelistPage from './pages/WhitelistPage';
 
 export default function App() {
   return (
@@ -78,6 +79,14 @@ export default function App() {
         element={
           <PrivateRoute>
             <DetalhePeca />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/whitelist"
+        element={
+          <PrivateRoute>
+            <WhitelistPage />
           </PrivateRoute>
         }
       />
