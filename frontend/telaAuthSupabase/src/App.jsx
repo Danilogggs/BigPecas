@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage';
 import EditarPecas from './pages/EditarPecas';
 import DetalhePeca from './pages/DetalhePeca';
 import FornecedorPerfil from './pages/FornecedorPerfil';
+import WishPage from './pages/WishPage';
 
 export default function App() {
   return (
@@ -106,6 +107,16 @@ export default function App() {
         element={
           <PrivateRoute>
             <ProfilePage />
+          </PrivateRoute>
+        }
+      />
+
+
+      <Route
+        path="/wish"
+        element={
+          <PrivateRoute>
+            <WishPage />
           </PrivateRoute>
         }
       />

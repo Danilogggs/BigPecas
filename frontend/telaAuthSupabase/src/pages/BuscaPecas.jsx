@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import {
-  adicionarPecaWhitelist,
+  adicionarPecaWish,
   listarCategorias,
   listarPecas,
-  listarWhitelist,
-  removerPecaWhitelist,
+  listarWish,
+  removerPecaWish,
 } from '../services/pecasService';
 
 import {
@@ -35,8 +35,8 @@ export default function BuscaPecas() {
   const [loadingCategorias, setLoadingCategorias] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [whitelistIds, setWhitelistIds] = useState(() => new Set());
-  const [whitelistLoadingId, setWhitelistLoadingId] = useState(null);
+  const [wishIds, setWishIds] = useState(() => new Set());
+  const [wishLoadingId, setWishLoadingId] = useState(null);
 
   const [filters, setFilters] = useState({
     nome: nomeUrl,
@@ -91,11 +91,11 @@ export default function BuscaPecas() {
       setPecas(pecasData);
 
       try {
-        const whitelistData = await listarWhitelist();
-        const pecasWhitelist = Array.isArray(whitelistData?.pecas) ? whitelistData.pecas : [];
-        setWhitelistIds(new Set(pecasWhitelist.map((peca) => String(peca.id))));
-      } catch (whitelistError) {
-        console.error('Erro ao sincronizar whitelist:', whitelistError);
+        const wishData = await listarWish();
+        const pecasWish = Array.isArray(wishData?.pecas) ? wishData.pecas : [];
+        setWishIds(new Set(pecasWish.map((peca) => String(peca.id))));
+      } catch (wishError) {
+        console.error('Erro ao sincronizar lista de desejos:', wishError);
       }
     } catch (error) {
       console.error('Erro ao buscar peças:', error);
@@ -132,36 +132,36 @@ export default function BuscaPecas() {
   };
 
 
-  async function handleWhitelistClick(event, peca) {
+  async function handleWishClick(event, peca) {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!peca?.id || whitelistLoadingId) return;
+    if (!peca?.id || wishLoadingId) return;
 
     const pecaId = String(peca.id);
-    const jaEstaNaWhitelist = whitelistIds.has(pecaId);
+    const jaEstaNaWish = wishIds.has(pecaId);
 
-    setWhitelistLoadingId(peca.id);
+    setWishLoadingId(peca.id);
     setFeedbackMessage('');
 
     try {
-      if (jaEstaNaWhitelist) {
-        await removerPecaWhitelist(peca.id);
-        setWhitelistIds((prev) => {
+      if (jaEstaNaWish) {
+        await removerPecaWish(peca.id);
+        setWishIds((prev) => {
           const novoSet = new Set(prev);
           novoSet.delete(pecaId);
           return novoSet;
         });
-        setFeedbackMessage('Peça removida da sua whitelist.');
+        setFeedbackMessage('Peça removida da sua lista de desejos.');
       } else {
-        await adicionarPecaWhitelist(peca.id);
-        setWhitelistIds((prev) => new Set(prev).add(pecaId));
-        setFeedbackMessage('Peça adicionada à sua whitelist.');
+        await adicionarPecaWish(peca.id);
+        setWishIds((prev) => new Set(prev).add(pecaId));
+        setFeedbackMessage('Peça adicionada à sua lista de desejos.');
       }
     } catch (error) {
-      setFeedbackMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua whitelist agora.'));
+      setFeedbackMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua lista de desejos agora.'));
     } finally {
-      setWhitelistLoadingId(null);
+      setWishLoadingId(null);
     }
   }
 
@@ -644,9 +644,9 @@ export default function BuscaPecas() {
               >
                 <button
                   type="button"
-                  onClick={(event) => handleWhitelistClick(event, item)}
-                  disabled={whitelistLoadingId === item.id}
-                  title={whitelistIds.has(String(item.id)) ? 'Remover da whitelist' : 'Adicionar à whitelist'}
+                  onClick={(event) => handleWishClick(event, item)}
+                  disabled={wishLoadingId === item.id}
+                  title={wishIds.has(String(item.id)) ? 'Remover da lista de desejos' : 'Adicionar à lista de desejos'}
                   style={{
                     position: 'absolute',
                     top: 12,
@@ -655,18 +655,18 @@ export default function BuscaPecas() {
                     width: 42,
                     height: 42,
                     borderRadius: '999px',
-                    border: `2px solid ${whitelistIds.has(String(item.id)) ? COLORS.BORDEAUX : '#fff'}`,
-                    backgroundColor: whitelistIds.has(String(item.id)) ? COLORS.BORDEAUX : 'rgba(255, 255, 255, 0.92)',
-                    color: whitelistIds.has(String(item.id)) ? '#fff' : COLORS.BORDEAUX,
+                    border: `2px solid ${wishIds.has(String(item.id)) ? COLORS.BORDEAUX : '#fff'}`,
+                    backgroundColor: wishIds.has(String(item.id)) ? COLORS.BORDEAUX : 'rgba(255, 255, 255, 0.92)',
+                    color: wishIds.has(String(item.id)) ? '#fff' : COLORS.BORDEAUX,
                     boxShadow: '0 8px 18px rgba(0,0,0,0.18)',
-                    cursor: whitelistLoadingId === item.id ? 'not-allowed' : 'pointer',
+                    cursor: wishLoadingId === item.id ? 'not-allowed' : 'pointer',
                     fontSize: '1.25rem',
                     fontWeight: 900,
                     lineHeight: 1,
-                    opacity: whitelistLoadingId === item.id ? 0.7 : 1,
+                    opacity: wishLoadingId === item.id ? 0.7 : 1,
                   }}
                 >
-                  {whitelistIds.has(String(item.id)) ? '♥' : '♡'}
+                  {wishIds.has(String(item.id)) ? '♥' : '♡'}
                 </button>
                 {item.imagem ? (
                   <img

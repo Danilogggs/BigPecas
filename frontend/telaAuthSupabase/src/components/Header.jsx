@@ -222,9 +222,9 @@ export default function Header() {
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FFF5E8')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  onClick={() => { navigate('/whitelist'); setDropdownOpen(false); }}
+                  onClick={() => { navigate('/wish'); setDropdownOpen(false); }}
                 >
-                  Minha whitelist
+                  Minha lista de desejos
                 </button>
 
                 <button

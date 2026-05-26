@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { listarWhitelist, removerPecaWhitelist } from '../services/pecasService';
+import { listarWish, removerPecaWish } from '../services/pecasService';
 import {
   BORDER_RADIUS,
   BUTTON_PRIMARY_STYLE,
@@ -25,7 +25,7 @@ function formatarPreco(valor) {
   });
 }
 
-export default function WhitelistPage() {
+export default function WishPage() {
   const navigate = useNavigate();
   const [pecas, setPecas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,23 +33,23 @@ export default function WhitelistPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  async function carregarWhitelist() {
+  async function carregarWish() {
     setLoading(true);
     setErrorMessage('');
 
     try {
-      const data = await listarWhitelist();
+      const data = await listarWish();
       setPecas(Array.isArray(data?.pecas) ? data.pecas : []);
     } catch (error) {
       setPecas([]);
-      setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar sua whitelist agora.'));
+      setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar sua lista de desejos agora.'));
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    carregarWhitelist();
+    carregarWish();
   }, []);
 
   async function handleRemover(event, pecaId) {
@@ -62,27 +62,27 @@ export default function WhitelistPage() {
     setErrorMessage('');
 
     try {
-      await removerPecaWhitelist(pecaId);
+      await removerPecaWish(pecaId);
       setPecas((prev) => prev.filter((peca) => String(peca.id) !== String(pecaId)));
-      setSuccessMessage('Peça removida da sua whitelist.');
+      setSuccessMessage('Peça removida da sua lista de desejos.');
     } catch (error) {
-      setErrorMessage(parseUnexpectedError(error, 'Não foi possível remover a peça da whitelist.'));
+      setErrorMessage(parseUnexpectedError(error, 'Não foi possível remover a peça da lista de desejos.'));
     } finally {
       setRemovingId(null);
     }
   }
 
-  const whitelistVazia = !loading && !errorMessage && pecas.length === 0;
+  const wishVazia = !loading && !errorMessage && pecas.length === 0;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
       <style>{`
         @media (max-width: 780px) {
-          .whitelist-header {
+          .wish-header {
             grid-template-columns: 1fr !important;
           }
 
-          .whitelist-card {
+          .wish-card {
             grid-template-columns: 1fr !important;
           }
         }
@@ -101,7 +101,7 @@ export default function WhitelistPage() {
           }}
         >
           <section
-            className="whitelist-header"
+            className="wish-header"
             style={{
               display: 'grid',
               gridTemplateColumns: '1.2fr 0.8fr',
@@ -142,7 +142,7 @@ export default function WhitelistPage() {
                   lineHeight: 1.15,
                 }}
               >
-                Minha whitelist de peças
+                Minha lista de desejos
               </h1>
 
               <p style={{ margin: `${SPACING.MD} 0 0`, lineHeight: 1.65, color: '#F8E9C5' }}>
@@ -165,7 +165,7 @@ export default function WhitelistPage() {
             >
               <strong style={{ color: COLORS.BORDEAUX, fontSize: '2rem' }}>{pecas.length}</strong>
               <span style={{ color: COLORS.MUTED_TEXT, fontWeight: 700 }}>
-                {pecas.length === 1 ? 'peça salva' : 'peças salvas'} na sua whitelist
+                {pecas.length === 1 ? 'peça salva' : 'peças salvas'} na sua lista de desejos
               </span>
               <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_PRIMARY_STYLE}>
                 Explorar catálogo
@@ -204,11 +204,11 @@ export default function WhitelistPage() {
 
           {loading && (
             <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
-              Carregando sua whitelist...
+              Carregando sua lista de desejos...
             </div>
           )}
 
-          {whitelistVazia && (
+          {wishVazia && (
             <section
               style={{
                 backgroundColor: '#fff',
@@ -220,7 +220,7 @@ export default function WhitelistPage() {
               }}
             >
               <div style={{ fontSize: '3rem', marginBottom: SPACING.MD }}>♡</div>
-              <h2 style={{ margin: 0, color: COLORS.BORDEAUX }}>Sua whitelist ainda está vazia</h2>
+              <h2 style={{ margin: 0, color: COLORS.BORDEAUX }}>Sua lista de desejos ainda está vazia</h2>
               <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>
                 Abra o catálogo e clique no coração das peças que deseja guardar.
               </p>
@@ -235,7 +235,7 @@ export default function WhitelistPage() {
               {pecas.map((peca) => (
                 <article
                   key={peca.id}
-                  className="whitelist-card"
+                  className="wish-card"
                   onClick={() => navigate(`/pecas/${peca.id}`)}
                   style={{
                     display: 'grid',

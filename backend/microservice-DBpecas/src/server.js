@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const pecasRoutes = require('./routes/pecasRoutes');
-const whitelistRoutes = require('./routes/whitelistRoutes');
+const wishRoutes = require('./routes/wishRoutes');
 const supabase = require('./config/db');
 const verifyToken = require('./middlewares/verifyToken');
 const errorHandler = require('./middlewares/errorHandler');
@@ -97,7 +97,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/pecas', verifyToken, pecasRoutes);
-app.use('/api/whitelist', verifyToken, whitelistRoutes);
+app.use('/api/wish', verifyToken, wishRoutes);
 
 app.get('/api/categorias', verifyToken, async (req, res, next) => {
   try {

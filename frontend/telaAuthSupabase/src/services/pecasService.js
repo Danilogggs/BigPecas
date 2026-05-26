@@ -209,83 +209,83 @@ export const deletarPeca = async (id) => {
   }
 };
 
-export const listarWhitelist = async () => {
+export const listarWish = async () => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/whitelist`, {
+    const response = await fetch(`${API_BASE_URL}/wish`, {
       method: 'GET',
       headers,
     });
 
     if (!response.ok) {
-      const message = await parseErrorResponse(response, 'Não foi possível carregar sua whitelist agora.');
+      const message = await parseErrorResponse(response, 'Não foi possível carregar sua lista de desejos agora.');
       throw createFriendlyError(message);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Erro ao listar whitelist:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar sua whitelist agora.'));
+    console.error('Erro ao listar lista de desejos:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar sua lista de desejos agora.'));
   }
 };
 
-export const buscarStatusWhitelist = async (pecaId) => {
+export const buscarStatusWish = async (pecaId) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/whitelist/status/${pecaId}`, {
+    const response = await fetch(`${API_BASE_URL}/wish/status/${pecaId}`, {
       method: 'GET',
       headers,
     });
 
     if (!response.ok) {
-      const message = await parseErrorResponse(response, 'Não foi possível verificar a whitelist agora.');
+      const message = await parseErrorResponse(response, 'Não foi possível verificar a lista de desejos agora.');
       throw createFriendlyError(message);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Erro ao verificar status da whitelist:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível verificar a whitelist agora.'));
+    console.error('Erro ao verificar status da lista de desejos:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível verificar a lista de desejos agora.'));
   }
 };
 
-export const adicionarPecaWhitelist = async (pecaId) => {
+export const adicionarPecaWish = async (pecaId) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/whitelist/${pecaId}`, {
+    const response = await fetch(`${API_BASE_URL}/wish/${pecaId}`, {
       method: 'POST',
       headers,
     });
 
     if (!response.ok) {
-      const message = await parseErrorResponse(response, 'Não foi possível adicionar a peça à whitelist.');
+      const message = await parseErrorResponse(response, 'Não foi possível adicionar a peça à lista de desejos.');
       throw createFriendlyError(message);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Erro ao adicionar peça à whitelist:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível adicionar a peça à whitelist.'));
+    console.error('Erro ao adicionar peça à lista de desejos:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível adicionar a peça à lista de desejos.'));
   }
 };
 
-export const removerPecaWhitelist = async (pecaId) => {
+export const removerPecaWish = async (pecaId) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/whitelist/${pecaId}`, {
+    const response = await fetch(`${API_BASE_URL}/wish/${pecaId}`, {
       method: 'DELETE',
       headers,
     });
 
     if (!response.ok) {
-      const message = await parseErrorResponse(response, 'Não foi possível remover a peça da whitelist.');
+      const message = await parseErrorResponse(response, 'Não foi possível remover a peça da lista de desejos.');
       throw createFriendlyError(message);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Erro ao remover peça da whitelist:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível remover a peça da whitelist.'));
+    console.error('Erro ao remover peça da lista de desejos:', error);
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível remover a peça da lista de desejos.'));
   }
 };
 

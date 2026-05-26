@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import {
-  adicionarPecaWhitelist,
+  adicionarPecaWish,
   buscarFornecedoresRecomendados,
   buscarPecaPorId,
   buscarRecomendacoesPorPeca,
-  buscarStatusWhitelist,
+  buscarStatusWish,
   listarCategorias,
   listarMateriais,
-  removerPecaWhitelist,
+  removerPecaWish,
 } from '../services/pecasService';
 import { buscarUsuarioPorId } from '../services/usuarioService';
 import {
@@ -207,9 +207,9 @@ export default function DetalhePeca() {
   const [loadingFornecedoresRecomendados, setLoadingFornecedoresRecomendados] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [salvoNaWhitelist, setSalvoNaWhitelist] = useState(false);
-  const [loadingWhitelist, setLoadingWhitelist] = useState(false);
-  const [whitelistMessage, setWhitelistMessage] = useState('');
+  const [salvoNaWish, setSalvoNaWish] = useState(false);
+  const [loadingWish, setLoadingWish] = useState(false);
+  const [wishMessage, setWishMessage] = useState('');
 
   useEffect(() => {
     async function carregarDetalhes() {
@@ -237,21 +237,21 @@ export default function DetalhePeca() {
   }, [id]);
 
   useEffect(() => {
-    async function carregarStatusWhitelist() {
+    async function carregarStatusWish() {
       if (!peca?.id) {
-        setSalvoNaWhitelist(false);
+        setSalvoNaWish(false);
         return;
       }
 
       try {
-        const status = await buscarStatusWhitelist(peca.id);
-        setSalvoNaWhitelist(Boolean(status?.in_whitelist));
+        const status = await buscarStatusWish(peca.id);
+        setSalvoNaWish(Boolean(status?.in_wish));
       } catch (error) {
-        console.error('Erro ao carregar status da whitelist:', error);
+        console.error('Erro ao carregar status da lista de desejos:', error);
       }
     }
 
-    carregarStatusWhitelist();
+    carregarStatusWish();
   }, [peca?.id]);
 
   useEffect(() => {
@@ -338,26 +338,26 @@ export default function DetalhePeca() {
     navigate(`/vendedores/${peca.fornecedor_id}`);
   }
 
-  async function handleToggleWhitelist() {
-    if (!peca?.id || loadingWhitelist) return;
+  async function handleToggleWish() {
+    if (!peca?.id || loadingWish) return;
 
-    setLoadingWhitelist(true);
-    setWhitelistMessage('');
+    setLoadingWish(true);
+    setWishMessage('');
 
     try {
-      if (salvoNaWhitelist) {
-        await removerPecaWhitelist(peca.id);
-        setSalvoNaWhitelist(false);
-        setWhitelistMessage('Peça removida da sua whitelist.');
+      if (salvoNaWish) {
+        await removerPecaWish(peca.id);
+        setSalvoNaWish(false);
+        setWishMessage('Peça removida da sua lista de desejos.');
       } else {
-        await adicionarPecaWhitelist(peca.id);
-        setSalvoNaWhitelist(true);
-        setWhitelistMessage('Peça adicionada à sua whitelist.');
+        await adicionarPecaWish(peca.id);
+        setSalvoNaWish(true);
+        setWishMessage('Peça adicionada à sua lista de desejos.');
       }
     } catch (error) {
-      setWhitelistMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua whitelist agora.'));
+      setWishMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua lista de desejos agora.'));
     } finally {
-      setLoadingWhitelist(false);
+      setLoadingWish(false);
     }
   }
 
@@ -838,22 +838,22 @@ export default function DetalhePeca() {
 
                     <button
                       type="button"
-                      onClick={handleToggleWhitelist}
-                      disabled={loadingWhitelist}
+                      onClick={handleToggleWish}
+                      disabled={loadingWish}
                       style={{
                         ...BUTTON_SECONDARY_STYLE,
                         alignSelf: 'flex-start',
-                        backgroundColor: salvoNaWhitelist ? COLORS.BORDEAUX : 'transparent',
-                        color: salvoNaWhitelist ? '#fff' : COLORS.BORDEAUX,
-                        opacity: loadingWhitelist ? 0.65 : 1,
-                        cursor: loadingWhitelist ? 'not-allowed' : 'pointer',
+                        backgroundColor: salvoNaWish ? COLORS.BORDEAUX : 'transparent',
+                        color: salvoNaWish ? '#fff' : COLORS.BORDEAUX,
+                        opacity: loadingWish ? 0.65 : 1,
+                        cursor: loadingWish ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {salvoNaWhitelist ? '♥ Remover da whitelist' : '♡ Adicionar à whitelist'}
+                      {salvoNaWish ? '♥ Remover da lista de desejos' : '♡ Adicionar à lista de desejos'}
                     </button>
                   </div>
 
-                  {whitelistMessage && (
+                  {wishMessage && (
                     <div
                       style={{
                         color: COLORS.BORDEAUX,
@@ -864,7 +864,7 @@ export default function DetalhePeca() {
                         fontWeight: 700,
                       }}
                     >
-                      {whitelistMessage}
+                      {wishMessage}
                     </div>
                   )}
                 </div>

@@ -35,7 +35,7 @@ export default function Sidebar({ activeNav, setActiveNav }) {
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {[
           { label: 'Catálogo', icon: WrenchIcon, key: 'catalog' },
-          { label: 'Minha whitelist', icon: BoltIcon, key: 'whitelist' },
+          { label: 'Minha lista de desejos', icon: BoltIcon, key: 'wish' },
           { label: 'FAQ', icon: BoltIcon, key: 'faq' },
           { label: 'Fornecedores', icon: BoltIcon, key: 'suppliers' },
         ].map(({ label, icon: Icon, key }) => (
@@ -44,7 +44,7 @@ export default function Sidebar({ activeNav, setActiveNav }) {
             onClick={() => {
               setActiveNav(key);
               if (key === 'catalog') navigate('/buscaPecas');
-              if (key === 'whitelist') navigate('/whitelist');
+              if (key === 'wish') navigate('/wish');
             }}
             style={{
               display: 'flex',

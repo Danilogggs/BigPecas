@@ -5,7 +5,7 @@ const AppError = require('../utils/AppError');
 
 const PECAS_TABLE = process.env.SUPABASE_PECAS_TABLE || 'pecas';
 const USERS_TABLE = process.env.SUPABASE_USER_TABLE || 'users';
-const WHITELIST_TABLE = process.env.SUPABASE_WHITELIST_TABLE || 'whitelist';
+const WISH_TABLE = process.env.SUPABASE_WISH_TABLE || process.env.SUPABASE_WISHLIST_TABLE || 'wishlist';
 
 function validarId(id, mensagem = 'Informe um identificador válido.') {
   if (!/^\d+$/.test(String(id)) || Number(id) < 1) {
@@ -63,9 +63,9 @@ async function buscarPecaPorId(id) {
   return data;
 }
 
-async function buscarItemWhitelist(userId, pecaId) {
+async function buscarItemWish(userId, pecaId) {
   const { data, error } = await supabase
-    .from(WHITELIST_TABLE)
+    .from(WISH_TABLE)
     .select('*')
     .eq('user_id', userId)
     .eq('peca_id', pecaId)
@@ -78,9 +78,9 @@ async function buscarItemWhitelist(userId, pecaId) {
   return data;
 }
 
-function ordenarPecasPorWhitelist(pecas = [], whitelistItems = []) {
+function ordenarPecasPorWish(pecas = [], wishItems = []) {
   const ordemPorPeca = new Map(
-    whitelistItems.map((item, index) => [String(item.peca_id), index])
+    wishItems.map((item, index) => [String(item.peca_id), index])
   );
 
   return [...pecas].sort((a, b) => {
@@ -94,21 +94,21 @@ router.get('/', async (req, res, next) => {
   try {
     const usuario = await obterUsuarioAtual(req);
 
-    const { data: whitelistItems, error: whitelistError } = await supabase
-      .from(WHITELIST_TABLE)
+    const { data: wishItems, error: wishError } = await supabase
+      .from(WISH_TABLE)
       .select('*')
       .eq('user_id', usuario.id)
       .order('created_at', { ascending: false });
 
-    if (whitelistError) {
-      throw whitelistError;
+    if (wishError) {
+      throw wishError;
     }
 
-    const pecaIds = [...new Set((whitelistItems || []).map((item) => item.peca_id).filter(Boolean))];
+    const pecaIds = [...new Set((wishItems || []).map((item) => item.peca_id).filter(Boolean))];
 
     if (pecaIds.length === 0) {
       return res.json({
-        message: 'Sua whitelist está vazia.',
+        message: 'Sua lista de desejos está vazia.',
         total: 0,
         itens: [],
         pecas: [],
@@ -124,12 +124,12 @@ router.get('/', async (req, res, next) => {
       throw pecasError;
     }
 
-    const pecasOrdenadas = ordenarPecasPorWhitelist(pecas || [], whitelistItems || []);
+    const pecasOrdenadas = ordenarPecasPorWish(pecas || [], wishItems || []);
 
     return res.json({
-      message: 'Whitelist carregada com sucesso.',
+      message: 'Lista de desejos carregada com sucesso.',
       total: pecasOrdenadas.length,
-      itens: whitelistItems || [],
+      itens: wishItems || [],
       pecas: pecasOrdenadas,
     });
   } catch (error) {
@@ -141,11 +141,11 @@ router.get('/status/:pecaId', async (req, res, next) => {
   try {
     const usuario = await obterUsuarioAtual(req);
     const pecaId = validarId(req.params.pecaId, 'Informe uma peça válida.');
-    const item = await buscarItemWhitelist(usuario.id, pecaId);
+    const item = await buscarItemWish(usuario.id, pecaId);
 
     return res.json({
       peca_id: pecaId,
-      in_whitelist: Boolean(item),
+      in_wish: Boolean(item),
       item: item || null,
     });
   } catch (error) {
@@ -164,18 +164,18 @@ router.post('/:pecaId', async (req, res, next) => {
       throw new AppError(404, 'Peça não encontrada.');
     }
 
-    const itemExistente = await buscarItemWhitelist(usuario.id, pecaId);
+    const itemExistente = await buscarItemWish(usuario.id, pecaId);
 
     if (itemExistente) {
       return res.status(200).json({
-        message: 'Essa peça já está na sua whitelist.',
+        message: 'Essa peça já está na sua lista de desejos.',
         item: itemExistente,
         peca,
       });
     }
 
     const { data, error } = await supabase
-      .from(WHITELIST_TABLE)
+      .from(WISH_TABLE)
       .insert({
         user_id: usuario.id,
         peca_id: pecaId,
@@ -188,7 +188,7 @@ router.post('/:pecaId', async (req, res, next) => {
     }
 
     return res.status(201).json({
-      message: 'Peça adicionada à sua whitelist.',
+      message: 'Peça adicionada à sua lista de desejos.',
       item: data,
       peca,
     });
@@ -203,7 +203,7 @@ router.delete('/:pecaId', async (req, res, next) => {
     const pecaId = validarId(req.params.pecaId, 'Informe uma peça válida.');
 
     const { error } = await supabase
-      .from(WHITELIST_TABLE)
+      .from(WISH_TABLE)
       .delete()
       .eq('user_id', usuario.id)
       .eq('peca_id', pecaId);
@@ -213,7 +213,7 @@ router.delete('/:pecaId', async (req, res, next) => {
     }
 
     return res.json({
-      message: 'Peça removida da sua whitelist.',
+      message: 'Peça removida da sua lista de desejos.',
       peca_id: pecaId,
     });
   } catch (error) {
