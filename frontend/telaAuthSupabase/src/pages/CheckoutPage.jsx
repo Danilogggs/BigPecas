@@ -1,0 +1,1199 @@
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
+import { useCart } from '../contexts/CartContext';
+import { useOrders } from '../contexts/OrderContext';
+import { formatarCep, validarCep, sanitizarCep } from '../services/freteService';
+
+const BORDEAUX = '#7B1D2E';
+const CREAM = '#F5EDD8';
+const HIGHLIGHT = '#F0C060';
+const DARK = '#2C1A17';
+const MUTED = '#6A5F58';
+const BORDER = '#E5DCC5';
+const ERROR_BG = '#FEE2E2';
+const ERROR_FG = '#7F1D1D';
+
+const formatBRL = (v) =>
+  Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const FORMAS_PAGAMENTO = [
+  {
+    id: 'pix',
+    nome: 'PIX',
+    descricao: 'Aprovação imediata',
+    icone: '📱',
+    desconto: 0.05,
+  },
+  {
+    id: 'cartao',
+    nome: 'Cartão de Crédito',
+    descricao: 'Em até 12x sem juros',
+    icone: '💳',
+    desconto: 0,
+  },
+  {
+    id: 'boleto',
+    nome: 'Boleto Bancário',
+    descricao: 'Compensação em até 2 dias úteis',
+    icone: '🧾',
+    desconto: 0.03,
+  },
+];
+
+export default function CheckoutPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { cartItems, getTotal, clearCart } = useCart();
+  const { criarPedido } = useOrders();
+
+  const dadosCarrinho = location.state || {};
+
+  const [etapa, setEtapa] = useState(1);
+
+  const [endereco, setEndereco] = useState({
+    nome: '',
+    cep: dadosCarrinho.cep || '',
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    uf: '',
+    telefone: '',
+  });
+
+  const [pagamento, setPagamento] = useState('pix');
+
+  const [dadosCartao, setDadosCartao] = useState({
+    numero: '',
+    nome: '',
+    validade: '',
+    cvv: '',
+    parcelas: 1,
+  });
+
+  const [processando, setProcessando] = useState(false);
+  const [erroFinal, setErroFinal] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const subtotal = getTotal();
+  const cupom = dadosCarrinho.cupom;
+  const frete = dadosCarrinho.frete;
+
+  const totais = useMemo(() => {
+    let desconto = 0;
+    let valorFrete = frete?.valor || 0;
+
+    if (cupom) {
+      if (cupom.tipo === 'percentual') desconto = subtotal * cupom.valor;
+      else if (cupom.tipo === 'frete_gratis') {
+        desconto = valorFrete;
+        valorFrete = 0;
+      }
+    }
+
+    const formaPag = FORMAS_PAGAMENTO.find((f) => f.id === pagamento);
+    const descontoPagamento = formaPag ? subtotal * formaPag.desconto : 0;
+
+    const total = Math.max(0, subtotal - desconto - descontoPagamento + valorFrete);
+
+    return { desconto, valorFrete, descontoPagamento, total };
+  }, [subtotal, cupom, frete, pagamento]);
+
+  const validarEnderecoStep = () => {
+    const newErrors = {};
+    if (!endereco.nome.trim()) newErrors.nome = 'Informe o nome do destinatário.';
+    if (!validarCep(endereco.cep)) newErrors.cep = 'CEP inválido.';
+    if (!endereco.logradouro.trim())
+      newErrors.logradouro = 'Informe o endereço.';
+    if (!endereco.numero.trim()) newErrors.numero = 'Informe o número.';
+    if (!endereco.bairro.trim()) newErrors.bairro = 'Informe o bairro.';
+    if (!endereco.cidade.trim()) newErrors.cidade = 'Informe a cidade.';
+    if (!endereco.uf.trim()) newErrors.uf = 'Informe o UF.';
+    if (!endereco.telefone.trim() || endereco.telefone.length < 10)
+      newErrors.telefone = 'Telefone inválido.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validarPagamentoStep = () => {
+    if (pagamento !== 'cartao') return true;
+
+    const newErrors = {};
+    const numLimpo = dadosCartao.numero.replace(/\D/g, '');
+    if (numLimpo.length < 13 || numLimpo.length > 19)
+      newErrors.cardNumero = 'Número de cartão inválido.';
+    if (!dadosCartao.nome.trim()) newErrors.cardNome = 'Informe o nome impresso.';
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(dadosCartao.validade))
+      newErrors.cardValidade = 'Validade no formato MM/AA.';
+    if (!/^\d{3,4}$/.test(dadosCartao.cvv))
+      newErrors.cardCvv = 'CVV inválido.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const proximaEtapa = () => {
+    setErrors({});
+    if (etapa === 1 && !validarEnderecoStep()) return;
+    if (etapa === 2 && !validarPagamentoStep()) return;
+    setEtapa(etapa + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const finalizar = async () => {
+    if (!validarPagamentoStep()) return;
+    setProcessando(true);
+    setErroFinal('');
+
+    try {
+      const pedido = await criarPedido({
+        itens: cartItems,
+        frete,
+        cupom,
+        endereco: {
+          ...endereco,
+          cep: formatarCep(endereco.cep),
+        },
+        formaPagamento: FORMAS_PAGAMENTO.find((f) => f.id === pagamento),
+      });
+
+      clearCart();
+      navigate(`/pedidos/${pedido.id}`, { replace: true });
+    } catch (error) {
+      setErroFinal(error?.message || 'Não foi possível concluir o pedido. Tente novamente.');
+    } finally {
+      setProcessando(false);
+    }
+  };
+
+  if (cartItems.length === 0) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
+        <Header />
+        <div
+          style={{
+            maxWidth: 600,
+            margin: '4rem auto',
+            background: '#fff',
+            borderRadius: 16,
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            border: `1px solid ${BORDER}`,
+          }}
+        >
+          <h2 style={{ color: BORDEAUX, marginTop: 0 }}>
+            Carrinho vazio
+          </h2>
+          <p style={{ color: MUTED }}>
+            Adicione peças ao carrinho antes de finalizar a compra.
+          </p>
+          <button
+            onClick={() => navigate('/buscaPecas')}
+            style={{
+              backgroundColor: BORDEAUX,
+              color: CREAM,
+              padding: '12px 28px',
+              border: 'none',
+              borderRadius: 10,
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginTop: 12,
+            }}
+          >
+            Explorar Peças
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!frete) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
+        <Header />
+        <div
+          style={{
+            maxWidth: 600,
+            margin: '4rem auto',
+            background: '#fff',
+            borderRadius: 16,
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            border: `1px solid ${BORDER}`,
+          }}
+        >
+          <h2 style={{ color: BORDEAUX, marginTop: 0 }}>
+            Calcule o frete primeiro
+          </h2>
+          <p style={{ color: MUTED }}>
+            Volte ao carrinho e selecione uma opção de entrega.
+          </p>
+          <button
+            onClick={() => navigate('/carrinho')}
+            style={{
+              backgroundColor: BORDEAUX,
+              color: CREAM,
+              padding: '12px 28px',
+              border: 'none',
+              borderRadius: 10,
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginTop: 12,
+            }}
+          >
+            Voltar ao Carrinho
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
+      <style>{`
+        @media (max-width: 980px) {
+          .checkout-grid { grid-template-columns: 1fr !important; }
+        }
+        .input-clean {
+          width: 100%;
+          padding: 11px 14px;
+          border: 2px solid ${BORDER};
+          border-radius: 10px;
+          font-size: 0.93rem;
+          background: #fff;
+          color: ${DARK};
+          outline: none;
+          transition: border-color 0.18s;
+          box-sizing: border-box;
+        }
+        .input-clean:focus { border-color: ${BORDEAUX}; }
+        .input-error { border-color: #FCA5A5 !important; background: #FEF2F2; }
+        .label-clean {
+          display: block;
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: ${MUTED};
+          margin-bottom: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .pag-card {
+          padding: 16px;
+          border: 2px solid ${BORDER};
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.18s;
+          background: #fff;
+          display: flex; align-items: center; gap: 14px;
+        }
+        .pag-card:hover { border-color: ${HIGHLIGHT}; }
+        .pag-card.ativo { border-color: ${BORDEAUX}; background: ${CREAM}; box-shadow: 0 4px 12px rgba(123,29,46,0.15); }
+        .step-circle {
+          width: 36px; height: 36px;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 700;
+          transition: all 0.25s;
+          flex-shrink: 0;
+        }
+        .spinner-lg {
+          width: 22px; height: 22px;
+          border: 3px solid ${CREAM};
+          border-top-color: ${BORDEAUX};
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+
+      <Header />
+
+      <div
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          padding: '2rem 1.5rem 4rem',
+        }}
+      >
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ fontSize: '0.8rem', color: MUTED, marginBottom: 6 }}>
+            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/carrinho')}>
+              Carrinho
+            </span>{' '}
+            ›{' '}
+            <span style={{ color: BORDEAUX, fontWeight: 600 }}>
+              Finalizar Compra
+            </span>
+          </div>
+          <h1
+            style={{
+              fontSize: '2rem',
+              fontWeight: 700,
+              color: BORDEAUX,
+              margin: 0,
+              fontFamily: "'Georgia', serif",
+            }}
+          >
+            Finalizar Compra
+          </h1>
+        </div>
+
+        {/* Stepper */}
+        <Stepper etapa={etapa} />
+
+        <div
+          className="checkout-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 400px',
+            gap: '1.5rem',
+            alignItems: 'start',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {etapa === 1 && (
+              <EnderecoForm
+                endereco={endereco}
+                setEndereco={setEndereco}
+                errors={errors}
+              />
+            )}
+            {etapa === 2 && (
+              <PagamentoForm
+                pagamento={pagamento}
+                setPagamento={setPagamento}
+                dadosCartao={dadosCartao}
+                setDadosCartao={setDadosCartao}
+                errors={errors}
+                totalEstimado={totais.total}
+              />
+            )}
+            {etapa === 3 && (
+              <RevisaoPedido
+                endereco={endereco}
+                pagamento={FORMAS_PAGAMENTO.find((f) => f.id === pagamento)}
+                frete={frete}
+                cartItems={cartItems}
+              />
+            )}
+
+            {erroFinal && (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  backgroundColor: '#FEE2E2',
+                  color: '#7F1D1D',
+                  border: '1px solid #FCA5A5',
+                  borderRadius: 10,
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                }}
+              >
+                ⚠️ {erroFinal}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                gap: 12,
+                justifyContent: 'space-between',
+                marginTop: 8,
+              }}
+            >
+              <button
+                onClick={() => (etapa === 1 ? navigate('/carrinho') : setEtapa(etapa - 1))}
+                disabled={processando}
+                style={{
+                  padding: '12px 22px',
+                  backgroundColor: 'transparent',
+                  color: BORDEAUX,
+                  border: `2px solid ${BORDEAUX}`,
+                  borderRadius: 10,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                }}
+              >
+                ← Voltar
+              </button>
+
+              {etapa < 3 ? (
+                <button
+                  onClick={proximaEtapa}
+                  style={{
+                    padding: '12px 28px',
+                    backgroundColor: BORDEAUX,
+                    color: CREAM,
+                    border: 'none',
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                  }}
+                >
+                  Continuar →
+                </button>
+              ) : (
+                <button
+                  onClick={finalizar}
+                  disabled={processando}
+                  style={{
+                    padding: '12px 32px',
+                    backgroundColor: processando ? MUTED : BORDEAUX,
+                    color: CREAM,
+                    border: 'none',
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    cursor: processando ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}
+                >
+                  {processando ? (
+                    <>
+                      <span className="spinner-lg" /> Processando...
+                    </>
+                  ) : (
+                    'Confirmar Pedido 🔒'
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Resumo lateral */}
+          <div style={{ position: 'sticky', top: 20 }}>
+            <ResumoLateral
+              cartItems={cartItems}
+              subtotal={subtotal}
+              cupom={cupom}
+              frete={frete}
+              totais={totais}
+              pagamento={FORMAS_PAGAMENTO.find((f) => f.id === pagamento)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stepper({ etapa }) {
+  const steps = ['Endereço', 'Pagamento', 'Revisão'];
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: '2rem',
+        backgroundColor: '#fff',
+        padding: '1rem 1.25rem',
+        borderRadius: 12,
+        border: `1px solid ${BORDER}`,
+        flexWrap: 'wrap',
+      }}
+    >
+      {steps.map((label, i) => {
+        const numero = i + 1;
+        const ativo = etapa === numero;
+        const concluido = etapa > numero;
+        return (
+          <div
+            key={label}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 130 }}
+          >
+            <div
+              className="step-circle"
+              style={{
+                backgroundColor: concluido
+                  ? '#065F46'
+                  : ativo
+                  ? BORDEAUX
+                  : '#F2EAD3',
+                color: concluido || ativo ? CREAM : MUTED,
+              }}
+            >
+              {concluido ? '✓' : numero}
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: '0.72rem',
+                  color: MUTED,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.4,
+                }}
+              >
+                Etapa {numero}
+              </div>
+              <div
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  color: ativo || concluido ? DARK : MUTED,
+                }}
+              >
+                {label}
+              </div>
+            </div>
+            {i < steps.length - 1 && (
+              <div
+                style={{
+                  flex: 1,
+                  height: 2,
+                  backgroundColor: concluido ? '#065F46' : BORDER,
+                  margin: '0 6px',
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Field({ label, error, children, span = 1 }) {
+  return (
+    <div style={{ gridColumn: `span ${span}` }}>
+      <label className="label-clean">{label}</label>
+      {children}
+      {error && (
+        <div style={{ fontSize: '0.78rem', color: ERROR_FG, marginTop: 4 }}>
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EnderecoForm({ endereco, setEndereco, errors }) {
+  const handleChange = (campo, valor) =>
+    setEndereco((prev) => ({ ...prev, [campo]: valor }));
+
+  return (
+    <section
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: '1.5rem',
+        border: `1px solid ${BORDER}`,
+      }}
+    >
+      <h2 style={{ margin: '0 0 4px', color: BORDEAUX, fontSize: '1.15rem' }}>
+        Endereço de Entrega
+      </h2>
+      <p style={{ margin: '0 0 1.5rem', color: MUTED, fontSize: '0.88rem' }}>
+        Informe o local onde deseja receber as peças.
+      </p>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(6, 1fr)',
+          gap: '1rem',
+        }}
+      >
+        <Field label="Nome completo do destinatário" error={errors.nome} span={6}>
+          <input
+            className={`input-clean ${errors.nome ? 'input-error' : ''}`}
+            value={endereco.nome}
+            onChange={(e) => handleChange('nome', e.target.value)}
+            placeholder="João da Silva"
+          />
+        </Field>
+
+        <Field label="CEP" error={errors.cep} span={2}>
+          <input
+            className={`input-clean ${errors.cep ? 'input-error' : ''}`}
+            value={endereco.cep}
+            onChange={(e) => handleChange('cep', formatarCep(e.target.value))}
+            placeholder="00000-000"
+            maxLength={9}
+          />
+        </Field>
+        <Field label="Telefone" error={errors.telefone} span={2}>
+          <input
+            className={`input-clean ${errors.telefone ? 'input-error' : ''}`}
+            value={endereco.telefone}
+            onChange={(e) =>
+              handleChange('telefone', e.target.value.replace(/\D/g, '').slice(0, 11))
+            }
+            placeholder="11999998888"
+          />
+        </Field>
+        <Field label="UF" error={errors.uf} span={2}>
+          <input
+            className={`input-clean ${errors.uf ? 'input-error' : ''}`}
+            value={endereco.uf}
+            onChange={(e) =>
+              handleChange('uf', e.target.value.toUpperCase().slice(0, 2))
+            }
+            placeholder="SP"
+            maxLength={2}
+          />
+        </Field>
+
+        <Field label="Endereço" error={errors.logradouro} span={4}>
+          <input
+            className={`input-clean ${errors.logradouro ? 'input-error' : ''}`}
+            value={endereco.logradouro}
+            onChange={(e) => handleChange('logradouro', e.target.value)}
+            placeholder="Rua das Peças"
+          />
+        </Field>
+        <Field label="Número" error={errors.numero} span={2}>
+          <input
+            className={`input-clean ${errors.numero ? 'input-error' : ''}`}
+            value={endereco.numero}
+            onChange={(e) => handleChange('numero', e.target.value)}
+            placeholder="123"
+          />
+        </Field>
+
+        <Field label="Complemento (opcional)" span={3}>
+          <input
+            className="input-clean"
+            value={endereco.complemento}
+            onChange={(e) => handleChange('complemento', e.target.value)}
+            placeholder="Apto, bloco, etc."
+          />
+        </Field>
+        <Field label="Bairro" error={errors.bairro} span={3}>
+          <input
+            className={`input-clean ${errors.bairro ? 'input-error' : ''}`}
+            value={endereco.bairro}
+            onChange={(e) => handleChange('bairro', e.target.value)}
+            placeholder="Centro"
+          />
+        </Field>
+
+        <Field label="Cidade" error={errors.cidade} span={6}>
+          <input
+            className={`input-clean ${errors.cidade ? 'input-error' : ''}`}
+            value={endereco.cidade}
+            onChange={(e) => handleChange('cidade', e.target.value)}
+            placeholder="São Paulo"
+          />
+        </Field>
+      </div>
+    </section>
+  );
+}
+
+function formatarNumeroCartao(valor) {
+  return valor
+    .replace(/\D/g, '')
+    .slice(0, 19)
+    .replace(/(\d{4})(?=\d)/g, '$1 ')
+    .trim();
+}
+
+function formatarValidade(valor) {
+  const limpo = valor.replace(/\D/g, '').slice(0, 4);
+  if (limpo.length <= 2) return limpo;
+  return `${limpo.slice(0, 2)}/${limpo.slice(2)}`;
+}
+
+function PagamentoForm({
+  pagamento,
+  setPagamento,
+  dadosCartao,
+  setDadosCartao,
+  errors,
+  totalEstimado,
+}) {
+  const handleCartao = (campo, valor) =>
+    setDadosCartao((prev) => ({ ...prev, [campo]: valor }));
+
+  return (
+    <section
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: '1.5rem',
+        border: `1px solid ${BORDER}`,
+      }}
+    >
+      <h2 style={{ margin: '0 0 4px', color: BORDEAUX, fontSize: '1.15rem' }}>
+        Forma de Pagamento
+      </h2>
+      <p style={{ margin: '0 0 1.5rem', color: MUTED, fontSize: '0.88rem' }}>
+        Escolha como deseja pagar.
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {FORMAS_PAGAMENTO.map((forma) => {
+          const ativo = pagamento === forma.id;
+          return (
+            <div
+              key={forma.id}
+              className={`pag-card ${ativo ? 'ativo' : ''}`}
+              onClick={() => setPagamento(forma.id)}
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  backgroundColor: ativo ? BORDEAUX : `${BORDEAUX}15`,
+                  color: ativo ? CREAM : BORDEAUX,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.2rem',
+                }}
+              >
+                {forma.icone}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, color: DARK }}>{forma.nome}</div>
+                <div style={{ fontSize: '0.82rem', color: MUTED }}>
+                  {forma.descricao}
+                  {forma.desconto > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 8,
+                        color: '#065F46',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {Math.round(forma.desconto * 100)}% OFF
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  border: `2px solid ${ativo ? BORDEAUX : BORDER}`,
+                  backgroundColor: ativo ? BORDEAUX : '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {ativo && (
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: CREAM,
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {pagamento === 'cartao' && (
+        <div
+          style={{
+            marginTop: '1.5rem',
+            paddingTop: '1.5rem',
+            borderTop: `1px dashed ${BORDER}`,
+          }}
+        >
+          <h3
+            style={{
+              margin: '0 0 1rem',
+              fontSize: '1rem',
+              color: DARK,
+              fontWeight: 700,
+            }}
+          >
+            Dados do Cartão
+          </h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(6, 1fr)',
+              gap: '1rem',
+            }}
+          >
+            <Field label="Número do cartão" error={errors.cardNumero} span={6}>
+              <input
+                className={`input-clean ${errors.cardNumero ? 'input-error' : ''}`}
+                value={dadosCartao.numero}
+                onChange={(e) =>
+                  handleCartao('numero', formatarNumeroCartao(e.target.value))
+                }
+                placeholder="0000 0000 0000 0000"
+                maxLength={23}
+              />
+            </Field>
+            <Field label="Nome impresso" error={errors.cardNome} span={6}>
+              <input
+                className={`input-clean ${errors.cardNome ? 'input-error' : ''}`}
+                value={dadosCartao.nome}
+                onChange={(e) =>
+                  handleCartao('nome', e.target.value.toUpperCase())
+                }
+                placeholder="COMO ESTÁ NO CARTÃO"
+              />
+            </Field>
+            <Field label="Validade" error={errors.cardValidade} span={2}>
+              <input
+                className={`input-clean ${errors.cardValidade ? 'input-error' : ''}`}
+                value={dadosCartao.validade}
+                onChange={(e) =>
+                  handleCartao('validade', formatarValidade(e.target.value))
+                }
+                placeholder="MM/AA"
+                maxLength={5}
+              />
+            </Field>
+            <Field label="CVV" error={errors.cardCvv} span={2}>
+              <input
+                className={`input-clean ${errors.cardCvv ? 'input-error' : ''}`}
+                value={dadosCartao.cvv}
+                onChange={(e) =>
+                  handleCartao(
+                    'cvv',
+                    e.target.value.replace(/\D/g, '').slice(0, 4),
+                  )
+                }
+                placeholder="000"
+                maxLength={4}
+              />
+            </Field>
+            <Field label="Parcelas" span={2}>
+              <select
+                className="input-clean"
+                value={dadosCartao.parcelas}
+                onChange={(e) => handleCartao('parcelas', Number(e.target.value))}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                  <option key={n} value={n}>
+                    {n}x de {formatBRL(totalEstimado / n)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
+      )}
+
+      {pagamento === 'pix' && (
+        <InfoBox
+          icone="📱"
+          titulo="Pagamento via PIX"
+          texto="Após confirmar o pedido, você receberá um QR Code para pagar com seu app bancário. Aprovação em segundos."
+        />
+      )}
+      {pagamento === 'boleto' && (
+        <InfoBox
+          icone="🧾"
+          titulo="Boleto Bancário"
+          texto="O boleto será gerado e enviado para seu e-mail. A compensação ocorre em até 2 dias úteis."
+        />
+      )}
+    </section>
+  );
+}
+
+function InfoBox({ icone, titulo, texto }) {
+  return (
+    <div
+      style={{
+        marginTop: '1.5rem',
+        padding: '1rem 1.25rem',
+        backgroundColor: `${HIGHLIGHT}22`,
+        border: `1px solid ${HIGHLIGHT}`,
+        borderRadius: 10,
+        display: 'flex',
+        gap: 12,
+        alignItems: 'flex-start',
+      }}
+    >
+      <span style={{ fontSize: '1.4rem' }}>{icone}</span>
+      <div>
+        <div style={{ fontWeight: 700, color: DARK }}>{titulo}</div>
+        <div style={{ fontSize: '0.85rem', color: MUTED, marginTop: 4 }}>
+          {texto}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
+  return (
+    <section
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: '1.5rem',
+        border: `1px solid ${BORDER}`,
+      }}
+    >
+      <h2 style={{ margin: '0 0 1.5rem', color: BORDEAUX, fontSize: '1.15rem' }}>
+        Revisão do Pedido
+      </h2>
+
+      <BlocoRevisao titulo="Endereço">
+        <div style={{ color: DARK, fontWeight: 600 }}>{endereco.nome}</div>
+        <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
+          {endereco.logradouro}, {endereco.numero}
+          {endereco.complemento && ` - ${endereco.complemento}`}
+          <br />
+          {endereco.bairro} - {endereco.cidade}/{endereco.uf}
+          <br />
+          CEP {endereco.cep} • Tel: {endereco.telefone}
+        </div>
+      </BlocoRevisao>
+
+      <BlocoRevisao titulo="Entrega">
+        <div style={{ color: DARK, fontWeight: 600 }}>
+          {frete.transportadora} — {frete.tipo}
+        </div>
+        <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
+          {frete.prazoTexto} • {formatBRL(frete.valor)}
+        </div>
+      </BlocoRevisao>
+
+      <BlocoRevisao titulo="Pagamento">
+        <div style={{ color: DARK, fontWeight: 600 }}>
+          {pagamento.icone} {pagamento.nome}
+        </div>
+        <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
+          {pagamento.descricao}
+        </div>
+      </BlocoRevisao>
+
+      <BlocoRevisao titulo={`Itens (${cartItems.length})`} ultimo>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {cartItems.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '0.9rem',
+                color: DARK,
+              }}
+            >
+              <span>
+                {item.quantidade}× {item.nome}
+              </span>
+              <span style={{ fontWeight: 600 }}>
+                {formatBRL(Number(item.preco) * item.quantidade)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </BlocoRevisao>
+    </section>
+  );
+}
+
+function BlocoRevisao({ titulo, children, ultimo }) {
+  return (
+    <div
+      style={{
+        paddingBottom: ultimo ? 0 : '1.25rem',
+        marginBottom: ultimo ? 0 : '1.25rem',
+        borderBottom: ultimo ? 'none' : `1px dashed ${BORDER}`,
+      }}
+    >
+      <div
+        style={{
+          fontSize: '0.72rem',
+          color: MUTED,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          fontWeight: 700,
+          marginBottom: 8,
+        }}
+      >
+        {titulo}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento }) {
+  const totalItens = cartItems.reduce((s, it) => s + it.quantidade, 0);
+
+  return (
+    <section
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: '1.5rem',
+        border: `1px solid ${BORDER}`,
+      }}
+    >
+      <h2 style={{ margin: '0 0 1.25rem', color: BORDEAUX, fontSize: '1.1rem' }}>
+        Resumo do Pedido
+      </h2>
+
+      <div
+        style={{
+          maxHeight: 200,
+          overflowY: 'auto',
+          marginBottom: '1rem',
+          paddingRight: 4,
+        }}
+      >
+        {cartItems.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              display: 'flex',
+              gap: 10,
+              padding: '8px 0',
+              borderBottom: `1px solid ${BORDER}`,
+              alignItems: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 8,
+                backgroundColor: '#F2EAD3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                flexShrink: 0,
+              }}
+            >
+              {item.imagem ? (
+                <img
+                  src={item.imagem}
+                  alt={item.nome}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <span>🔧</span>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: DARK,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {item.nome}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: MUTED }}>
+                Qtd: {item.quantidade}
+              </div>
+            </div>
+            <div
+              style={{
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: BORDEAUX,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {formatBRL(Number(item.preco) * item.quantidade)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <Linha label={`Subtotal (${totalItens} itens)`} valor={formatBRL(subtotal)} />
+        {cupom && (
+          <Linha
+            label={`Cupom ${cupom.codigo}`}
+            valor={`- ${formatBRL(totais.desconto)}`}
+            cor="#065F46"
+          />
+        )}
+        {pagamento && totais.descontoPagamento > 0 && (
+          <Linha
+            label={`Desc. ${pagamento.nome}`}
+            valor={`- ${formatBRL(totais.descontoPagamento)}`}
+            cor="#065F46"
+          />
+        )}
+        <Linha
+          label="Frete"
+          valor={
+            totais.valorFrete === 0 && cupom?.tipo === 'frete_gratis'
+              ? 'Grátis'
+              : formatBRL(totais.valorFrete)
+          }
+        />
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          paddingTop: 14,
+          borderTop: `1.5px dashed ${BORDER}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '0.78rem',
+            color: MUTED,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+          }}
+        >
+          Total
+        </div>
+        <div
+          style={{ fontSize: '1.6rem', fontWeight: 800, color: BORDEAUX, lineHeight: 1 }}
+        >
+          {formatBRL(totais.total)}
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          padding: '10px 12px',
+          backgroundColor: '#FAFAFA',
+          borderRadius: 8,
+          fontSize: '0.75rem',
+          color: MUTED,
+          textAlign: 'center',
+          border: `1px solid ${BORDER}`,
+        }}
+      >
+        🔒 Seus dados estão protegidos
+      </div>
+    </section>
+  );
+}
+
+function Linha({ label, valor, cor = DARK }) {
+  return (
+    <div
+      style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}
+    >
+      <span style={{ color: MUTED }}>{label}</span>
+      <span style={{ color: cor, fontWeight: 600 }}>{valor}</span>
+    </div>
+  );
+}
