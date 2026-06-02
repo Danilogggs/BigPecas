@@ -431,8 +431,7 @@ export default function CarrinhoPage() {
                       Entrega para{' '}
                       <strong style={{ color: DARK }}>
                         {freteResultado.cep}
-                      </strong>{' '}
-                      • {freteResultado.regiao}
+                      </strong>
                     </div>
 
                     <div
@@ -465,7 +464,15 @@ export default function CarrinhoPage() {
                                 flexShrink: 0,
                               }}
                             >
-                              {opcao.icone}
+                              {opcao.logo ? (
+                                <img
+                                  src={opcao.logo}
+                                  alt={opcao.transportadora}
+                                  style={{ width: 28, height: 28, objectFit: 'contain' }}
+                                />
+                              ) : (
+                                <span style={{ fontSize: '1.1rem' }}>🚚</span>
+                              )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div
@@ -484,7 +491,7 @@ export default function CarrinhoPage() {
                                   marginTop: 2,
                                 }}
                               >
-                                {opcao.prazoTexto}
+                                {opcao.prazo_texto}
                               </div>
                               <div
                                 style={{
@@ -685,7 +692,7 @@ export default function CarrinhoPage() {
                       <strong>{opcaoSelecionada.transportadora}</strong> —{' '}
                       {opcaoSelecionada.tipo}
                       <br />
-                      {opcaoSelecionada.prazoTexto}
+                      {opcaoSelecionada.prazo_texto}
                     </div>
                   )}
 

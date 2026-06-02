@@ -697,7 +697,7 @@ function DetalhePedido({ pedido, navigate, atualizarStatus }) {
                       {pedido.frete?.transportadora} — {pedido.frete?.tipo}
                     </div>
                     <div style={{ fontSize: '0.82rem', color: MUTED }}>
-                      {pedido.frete?.prazoTexto}
+                      {pedido.frete?.prazo_texto}
                     </div>
                   </div>
                   <div style={{ color: BORDEAUX, fontWeight: 700 }}>

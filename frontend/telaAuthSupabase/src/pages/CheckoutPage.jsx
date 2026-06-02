@@ -962,7 +962,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
           {frete.transportadora} — {frete.tipo}
         </div>
         <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
-          {frete.prazoTexto} • {formatBRL(frete.valor)}
+          {frete.prazo_texto} • {formatBRL(frete.valor)}
         </div>
       </BlocoRevisao>
 
