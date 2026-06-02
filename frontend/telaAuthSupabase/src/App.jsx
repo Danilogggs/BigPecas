@@ -15,6 +15,8 @@ import FornecedorPerfil from './pages/FornecedorPerfil';
 import WishPage from './pages/WishPage';
 import CarrinhoPage from './pages/CarrinhoPage';
 import ChatPage from './pages/ChatPage';
+import CheckoutPage from './pages/CheckoutPage';
+import PedidosPage from './pages/PedidosPage';
 
 export default function App() {
   return (
@@ -140,7 +142,34 @@ export default function App() {
           </PrivateRoute>
         }
       />
-      
+
+      <Route
+        path="/checkout"
+        element={
+          <PrivateRoute>
+            <CheckoutPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/pedidos"
+        element={
+          <PrivateRoute>
+            <PedidosPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/pedidos/:id"
+        element={
+          <PrivateRoute>
+            <PedidosPage />
+          </PrivateRoute>
+        }
+      />
+
       <Route
         path="/editar-pecas"
         element={

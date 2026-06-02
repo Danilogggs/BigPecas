@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const pecasRoutes = require('./routes/pecasRoutes');
 const wishRoutes = require('./routes/wishRoutes');
+const pedidosRoutes = require('./routes/pedidosRoutes');
 const supabase = require('./config/db');
 const verifyToken = require('./middlewares/verifyToken');
 const errorHandler = require('./middlewares/errorHandler');
@@ -98,6 +99,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/pecas', verifyToken, pecasRoutes);
 app.use('/api/wish', verifyToken, wishRoutes);
+app.use('/api/pedidos', verifyToken, pedidosRoutes);
 
 app.get('/api/categorias', verifyToken, async (req, res, next) => {
   try {
