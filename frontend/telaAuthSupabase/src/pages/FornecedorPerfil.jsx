@@ -181,6 +181,9 @@ export default function FornecedorPerfil() {
             <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_SECONDARY_STYLE}>
               Ver catálogo
             </button>
+            <button type="button" onClick={() => navigate(`/chat/${id}`)} style={BUTTON_PRIMARY_STYLE}>
+              Abrir chat
+            </button>
           </div>
 
           {loading && (

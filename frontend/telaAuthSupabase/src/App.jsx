@@ -14,6 +14,7 @@ import DetalhePeca from './pages/DetalhePeca';
 import FornecedorPerfil from './pages/FornecedorPerfil';
 import WishPage from './pages/WishPage';
 import CarrinhoPage from './pages/CarrinhoPage';
+import ChatPage from './pages/ChatPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PedidosPage from './pages/PedidosPage';
 
@@ -101,6 +102,15 @@ export default function App() {
         element={
           <PrivateRoute>
             <FornecedorPerfil />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/chat/:id"
+        element={
+          <PrivateRoute>
+            <ChatPage />
           </PrivateRoute>
         }
       />
