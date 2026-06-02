@@ -106,7 +106,7 @@ function TextSection({ title, children }) {
   );
 }
 
-function VendedorSection({ nome, fornecedorId, loading, error, onClick, notice }) {
+function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatClick, notice }) {
   const textoNome = loading ? 'Carregando...' : error || nome || 'Vendedor nao informado';
 
   return (
@@ -143,18 +143,33 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, notice }
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onClick}
-          disabled={!fornecedorId || loading}
-          style={{
-            ...BUTTON_SECONDARY_STYLE,
-            opacity: !fornecedorId || loading ? 0.65 : 1,
-            cursor: !fornecedorId || loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          Ver vendedor
-        </button>
+        <div style={{ display: 'flex', gap: SPACING.SM, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={onChatClick}
+            disabled={!fornecedorId || loading}
+            style={{
+              ...BUTTON_PRIMARY_STYLE,
+              opacity: !fornecedorId || loading ? 0.65 : 1,
+              cursor: !fornecedorId || loading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Abrir chat
+          </button>
+
+          <button
+            type="button"
+            onClick={onClick}
+            disabled={!fornecedorId || loading}
+            style={{
+              ...BUTTON_SECONDARY_STYLE,
+              opacity: !fornecedorId || loading ? 0.65 : 1,
+              cursor: !fornecedorId || loading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Ver vendedor
+          </button>
+        </div>
       </div>
 
       <div
@@ -346,6 +361,11 @@ export default function DetalhePeca() {
   function handleFornecedorClick() {
     if (!peca?.fornecedor_id) return;
     navigate(`/vendedores/${peca.fornecedor_id}`);
+  }
+
+  function handleChatClick() {
+    if (!peca?.fornecedor_id) return;
+    navigate(`/chat/${peca.fornecedor_id}`);
   }
 
   async function handleToggleWish() {
@@ -943,6 +963,7 @@ export default function DetalhePeca() {
                 loading={loadingFornecedor}
                 error={fornecedorError}
                 onClick={handleFornecedorClick}
+                onChatClick={handleChatClick}
                 notice={fornecedorNotice}
               />
 

@@ -47,6 +47,7 @@ export default function Header() {
 
   return (
     <header
+      className="app-header"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -57,8 +58,34 @@ export default function Header() {
         flexShrink: 0,
       }}
     >
+      <style>{`
+        @media (max-width: 760px) {
+          .app-header {
+            flex-wrap: wrap;
+            min-height: auto !important;
+            padding: ${SPACING.MD} !important;
+            gap: ${SPACING.MD} !important;
+          }
+
+          .app-header-logo {
+            width: auto !important;
+            justify-content: flex-start !important;
+          }
+
+          .app-header-search {
+            width: 100% !important;
+            order: 4;
+          }
+
+          .app-header-spacer {
+            display: none;
+          }
+        }
+      `}</style>
+
       {/* Logo */}
       <button
+        className="app-header-logo"
         onClick={() => navigate('/')}
         style={{
           width: '20%',
@@ -85,7 +112,7 @@ export default function Header() {
       </button>
 
       {/* Search bar */}
-      <div style={{ width: '25%' }}>
+      <div className="app-header-search" style={{ width: '25%' }}>
         <form
           onSubmit={handleSearchSubmit}
           style={{
@@ -132,7 +159,7 @@ export default function Header() {
       </div>
 
       {/* Spacer */}
-      <div style={{ flex: 1 }} />
+      <div className="app-header-spacer" style={{ flex: 1 }} />
 
       {/* User menu */}
       <div style={{ position: 'relative' }} ref={dropdownRef}>
