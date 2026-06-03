@@ -1,21 +1,22 @@
 // ===== CORES =====
 export const COLORS = {
-  BORDEAUX: '#7B1D2E',
-  CREAM: '#F5EDD8',
-  DARK_TEXT: '#2C1A17',
-  MUTED_TEXT: '#6A5F58',
-  BORDER: '#DDD',
-  BACKGROUND_LIGHT: '#FAFAFA',
-  
+  BORDEAUX: '#152218',        /* verde escuro primário */
+  CREAM: '#EDE4CC',           /* fundo principal */
+  DARK_TEXT: '#1A2820',
+  MUTED_TEXT: '#6B7D6E',
+  BORDER: '#CFC5A5',
+  BACKGROUND_LIGHT: '#F5EDD8',
+  HIGHLIGHT: '#C9A84C',       /* ouro */
+
   // Cores semânticas
   SUCCESS: '#D1FAE5',
-  SUCCESS_DARK: '#065F46',
+  SUCCESS_DARK: '#2D6A4F',
   SUCCESS_BORDER: '#6EE7B7',
-  
+
   ERROR: '#FEE2E2',
   ERROR_DARK: '#7F1D1D',
   ERROR_BORDER: '#FCA5A5',
-  
+
   DISABLED_OPACITY: 0.7,
 };
 

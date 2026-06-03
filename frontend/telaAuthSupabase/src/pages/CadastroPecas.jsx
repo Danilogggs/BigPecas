@@ -1122,9 +1122,11 @@ export default function CadastroPecas() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: SPACING.MD }}>
                 <div>
                   <input
-                    type="text"
+                    type="number"
                     name="comprimento_mm"
                     placeholder="Comprimento"
+                    min="0"
+                    step="1"
                     value={formData.comprimento_mm}
                     onChange={handleInputChange}
                     style={getInputStyle('comprimento_mm')}
@@ -1134,9 +1136,11 @@ export default function CadastroPecas() {
 
                 <div>
                   <input
-                    type="text"
+                    type="number"
                     name="largura_mm"
                     placeholder="Largura"
+                    min="0"
+                    step="1"
                     value={formData.largura_mm}
                     onChange={handleInputChange}
                     style={getInputStyle('largura_mm')}
@@ -1146,9 +1150,11 @@ export default function CadastroPecas() {
 
                 <div>
                   <input
-                    type="text"
+                    type="number"
                     name="altura_mm"
                     placeholder="Altura"
+                    min="0"
+                    step="1"
                     value={formData.altura_mm}
                     onChange={handleInputChange}
                     style={getInputStyle('altura_mm')}
@@ -1163,9 +1169,11 @@ export default function CadastroPecas() {
                 Peso (gramas)
               </label>
               <input
-                type="text"
+                type="number"
                 name="peso_gramas"
                 placeholder="Ex: 5000"
+                min="0"
+                step="1"
                 value={formData.peso_gramas}
                 onChange={handleInputChange}
                 style={getInputStyle('peso_gramas')}

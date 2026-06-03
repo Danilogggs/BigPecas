@@ -5,12 +5,12 @@ import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrderContext';
 import { formatarCep, validarCep, sanitizarCep } from '../services/freteService';
 
-const BORDEAUX = '#7B1D2E';
-const CREAM = '#F5EDD8';
-const HIGHLIGHT = '#F0C060';
-const DARK = '#2C1A17';
-const MUTED = '#6A5F58';
-const BORDER = '#E5DCC5';
+const BORDEAUX = '#152218';
+const CREAM = '#EDE4CC';
+const HIGHLIGHT = '#C9A84C';
+const DARK = '#1A2820';
+const MUTED = '#6B7D6E';
+const BORDER = '#CFC5A5';
 const ERROR_BG = '#FEE2E2';
 const ERROR_FG = '#7F1D1D';
 
@@ -335,7 +335,7 @@ export default function CheckoutPage() {
               fontWeight: 700,
               color: BORDEAUX,
               margin: 0,
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'Playfair Display', Georgia, serif",
             }}
           >
             Finalizar Compra

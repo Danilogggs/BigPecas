@@ -11,12 +11,12 @@ import {
   validarCep,
 } from '../services/freteService';
 
-const BORDEAUX = '#7B1D2E';
-const CREAM = '#F5EDD8';
-const HIGHLIGHT = '#F0C060';
-const DARK = '#2C1A17';
-const MUTED = '#6A5F58';
-const BORDER = '#E5DCC5';
+const BORDEAUX = '#152218';
+const CREAM = '#EDE4CC';
+const HIGHLIGHT = '#C9A84C';
+const DARK = '#1A2820';
+const MUTED = '#6B7D6E';
+const BORDER = '#CFC5A5';
 const SUCCESS = '#065F46';
 const SUCCESS_BG = '#D1FAE5';
 const ERROR_BG = '#FEE2E2';
@@ -251,7 +251,7 @@ export default function CarrinhoPage() {
               fontWeight: 700,
               color: BORDEAUX,
               margin: 0,
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'Playfair Display', Georgia, serif",
             }}
           >
             Meu Carrinho
@@ -1064,7 +1064,7 @@ function EmptyCart({ navigate }) {
           color: BORDEAUX,
           fontSize: '1.4rem',
           margin: '0 0 8px',
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'Playfair Display', Georgia, serif",
         }}
       >
         Seu carrinho está vazio

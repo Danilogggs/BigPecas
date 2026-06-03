@@ -1,76 +1,57 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
+import Footer from '../components/Footer';
 import { useCart } from '../contexts/CartContext';
 import { listarPecas, listarCategorias } from '../services/pecasService';
-
-const BORDEAUX = '#7B1D2E';
-const DEEP_BORDEAUX = '#4E0F1C';
-const CREAM = '#F5EDD8';
-const HIGHLIGHT = '#F0C060';
-const DARK = '#2C1A17';
-const MUTED = '#6A5F58';
-const BORDER = '#E5DCC5';
-
-const formatBRL = (v) =>
-  Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 const CATEGORIA_ICONS = {
   Motor: '⚙️', Lataria: '🚗', Elétrica: '🔌', Interior: '🪑',
   Suspensão: '🛞', Freios: '🛑', Transmissão: '⚡', Carroceria: '🔩',
 };
 
+const formatBRL = (v) =>
+  Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
-  const [activeNav, setActiveNav] = useState('catalog');
 
-  const [pecasDestaque, setPecasDestaque] = useState([]);
-  const [pecasRecentes, setPecasRecentes] = useState([]);
+  const [pecas, setPecas]           = useState([]);
   const [categorias, setCategorias] = useState([]);
-  const [stats, setStats] = useState({ total: 0, categorias: 0 });
-  const [loading, setLoading] = useState(true);
-  const [addedId, setAddedId] = useState(null);
+  const [stats, setStats]           = useState({ total: 0, categorias: 0 });
+  const [loading, setLoading]       = useState(true);
+  const [addedId, setAddedId]       = useState(null);
+  const [heroSearch, setHeroSearch] = useState('');
 
   useEffect(() => {
-    async function carregar() {
+    (async () => {
       setLoading(true);
       try {
         const [todasPecas, cats] = await Promise.all([
           listarPecas({ sort: 'data_cadastro', order: 'desc' }),
           listarCategorias(),
         ]);
-
-        const pecas = Array.isArray(todasPecas) ? todasPecas : [];
-        const categoriasData = Array.isArray(cats) ? cats : [];
-
-        setPecasDestaque(pecas.slice(0, 4));
-        setPecasRecentes(pecas.slice(4, 8));
-        setCategorias(categoriasData);
-        setStats({ total: pecas.length, categorias: categoriasData.length });
-      } catch (err) {
-        console.error('Erro ao carregar homepage:', err);
+        const p = Array.isArray(todasPecas) ? todasPecas : [];
+        const c = Array.isArray(cats) ? cats : [];
+        setPecas(p);
+        setCategorias(c);
+        setStats({ total: p.length, categorias: c.length });
+      } catch (e) {
+        console.error('Erro ao carregar homepage:', e);
       } finally {
         setLoading(false);
       }
-    }
-    carregar();
+    })();
   }, []);
 
   const handleAddToCart = (peca) => {
     addToCart({
-      id: peca.id,
-      nome: peca.nome_peca,
-      preco: Number(peca.preco),
-      estoque: peca.estoque_atual ?? 0,
-      imagem: peca.imagem || null,
-      descricao: peca.historico_proveniencia || '',
-      sku: peca.sku || '',
-      peso_gramas: peca.peso_gramas,
-      comprimento_mm: peca.comprimento_mm,
-      largura_mm: peca.largura_mm,
-      altura_mm: peca.altura_mm,
+      id: peca.id, nome: peca.nome_peca, preco: Number(peca.preco),
+      estoque: peca.estoque_atual ?? 0, imagem: peca.imagem || null,
+      descricao: peca.historico_proveniencia || '', sku: peca.sku || '',
+      peso_gramas: peca.peso_gramas, comprimento_mm: peca.comprimento_mm,
+      largura_mm: peca.largura_mm, altura_mm: peca.altura_mm,
     });
     setAddedId(peca.id);
     setTimeout(() => setAddedId(null), 2000);
@@ -78,291 +59,357 @@ export default function HomePage() {
 
   const jaNoCarrinho = (id) => cartItems.some((it) => it.id === id);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: CREAM }}>
-      <style>{`
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .skeleton {
-          background: linear-gradient(90deg, #efe6cf, #f7efd9, #efe6cf);
-          background-size: 200% 100%;
-          animation: shimmer 1.4s infinite;
-          border-radius: 8px;
-        }
-        .peca-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .peca-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(123,29,46,0.14); }
-        .cat-card { transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s; cursor: pointer; }
-        .cat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 22px rgba(123,29,46,0.12); border-color: ${BORDEAUX} !important; }
-      `}</style>
+  const handleHeroSearch = (e) => {
+    e.preventDefault();
+    const q = heroSearch.trim();
+    navigate(q ? `/buscaPecas?nome=${encodeURIComponent(q)}` : '/buscaPecas');
+  };
 
+  const destaque  = pecas.slice(0, 1)[0];
+  const featured  = pecas.slice(0, 4);
+  const recentes  = pecas.slice(4, 8);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header />
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} />
+      <main style={{ flex: 1 }}>
 
-        <main style={{ flex: 1, overflowY: 'auto', background: `linear-gradient(180deg, #F5EDD8 0%, #FFF8EA 45%, #F5EDD8 100%)` }}>
+        {/* ── HERO ── */}
+        <section className="bp-hero">
+          <div className="bp-hero__bg" />
+          <div className="bp-hero__glow" />
 
-          {/* HERO */}
-          <section style={{
-            position: 'relative',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0,1.2fr) minmax(260px,0.8fr)',
-            gap: '2.5rem',
-            alignItems: 'center',
-            padding: 'clamp(2rem,5vw,4rem) 2.5rem',
-            background: `radial-gradient(circle at 20% 20%, rgba(240,192,96,0.24), transparent 30%), linear-gradient(135deg, ${DEEP_BORDEAUX} 0%, ${BORDEAUX} 58%, #9B2A3E 100%)`,
-            minHeight: 340,
-            overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: `url('https://images.unsplash.com/photo-1591278169757-deac26e49555?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.14 }} />
-
-            <div style={{ position: 'relative', zIndex: 2 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.45rem 0.85rem', borderRadius: '9999px', color: HIGHLIGHT, backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(240,192,96,0.35)', fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Marketplace automotivo vintage
-              </span>
-              <h1 style={{ margin: '1.5rem 0 1rem', color: HIGHLIGHT, fontFamily: "'Georgia', serif", fontSize: 'clamp(1.8rem,4vw,3.2rem)', lineHeight: 1.05, fontWeight: 800, letterSpacing: '-1px' }}>
-                Encontre peças para restaurar clássicos com confiança.
-              </h1>
-              <p style={{ fontSize: '1rem', maxWidth: '40rem', color: 'rgba(255,255,255,0.88)', lineHeight: 1.7, margin: 0 }}>
-                Busque por nome, categoria, preço e condição. Catálogo real atualizado em tempo real.
-              </p>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
-                <button onClick={() => navigate('/buscaPecas')} style={{ padding: '0.85rem 1.5rem', borderRadius: '9999px', fontSize: '0.9rem', backgroundColor: HIGHLIGHT, color: BORDEAUX, fontWeight: 800, border: 'none', cursor: 'pointer', boxShadow: '0 14px 28px rgba(0,0,0,0.18)', transition: 'all 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.9'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                  Explorar catálogo
-                </button>
-                <button onClick={() => navigate('/cadastroPecas')} style={{ padding: '0.85rem 1.5rem', borderRadius: '9999px', fontSize: '0.9rem', backgroundColor: 'rgba(255,255,255,0.10)', color: CREAM, border: '1.5px solid rgba(255,255,255,0.45)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.18)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.10)'}>
-                  Anunciar peça
-                </button>
-              </div>
+          {/* Conteúdo esquerdo */}
+          <div className="bp-hero__content">
+            <div className="bp-hero__tag">
+              <span>◆</span> Marketplace de peças raras
             </div>
 
-            {/* Stats card */}
-            <div style={{ position: 'relative', zIndex: 2, backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.24)', borderRadius: '1.5rem', padding: '1.5rem', backdropFilter: 'blur(10px)', boxShadow: '0 24px 60px rgba(0,0,0,0.22)' }}>
-              <div style={{ color: '#fff', fontWeight: 800, fontSize: '1rem', marginBottom: '1.25rem' }}>Catálogo em tempo real</div>
+            <h1 className="bp-hero__title">
+              Encontre a peça certa<br />do seu <em style={{ fontStyle: 'italic', color: '#E0C882' }}>clássico</em>.
+            </h1>
+
+            <p className="bp-hero__sub">
+              Catálogo segmentado, anúncios verificados e procedência confiável para
+              colecionadores, oficinas e restauradores.
+            </p>
+
+            <form className="bp-hero__search" onSubmit={handleHeroSearch}>
+              <input
+                type="text"
+                value={heroSearch}
+                onChange={(e) => setHeroSearch(e.target.value)}
+                placeholder="Ex.: carburador Solex, farol Opala, emblema…"
+              />
+              <button type="submit">Explorar catálogo</button>
+            </form>
+
+            <div className="bp-hero__trust">
               {[
-                ['🔩', loading ? '...' : `${stats.total} peças`, 'cadastradas no sistema'],
-                ['📂', loading ? '...' : `${stats.categorias} categorias`, 'disponíveis para filtro'],
-                ['🚚', 'Frete calculado', 'pelo Melhor Envio'],
-              ].map(([icon, title, desc]) => (
-                <div key={title} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 0', borderTop: '1px solid rgba(255,255,255,0.16)' }}>
-                  <span style={{ width: 34, height: 34, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: HIGHLIGHT, color: BORDEAUX, fontWeight: 900, fontSize: '1rem' }}>{icon}</span>
-                  <div>
-                    <strong style={{ display: 'block', color: CREAM }}>{title}</strong>
-                    <small style={{ color: 'rgba(245,237,216,0.75)' }}>{desc}</small>
-                  </div>
-                </div>
+                'Anúncios verificados',
+                'Aprovação administrativa',
+                'Curadoria por nicho',
+              ].map((t) => (
+                <span key={t} className="bp-hero__trust-item">
+                  <CheckIcon /> {t}
+                </span>
               ))}
             </div>
-          </section>
+          </div>
 
-          {/* FEATURES RÁPIDAS */}
-          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px,1fr))', gap: '1.5rem', padding: '2rem 2.5rem 0' }}>
-            {[
-              ['🔍', 'Busca avançada', 'Filtre por nome, código, preço e condição'],
-              ['📦', 'Estoque em tempo real', 'Disponibilidade atualizada a cada consulta'],
-              ['🏎️', 'Frete Melhor Envio', 'Cotação real de Correios e Jadlog no carrinho'],
-            ].map(([icon, title, desc]) => (
-              <div key={title} style={{ backgroundColor: '#fff', border: `1px solid ${BORDER}`, borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 2px 8px rgba(123,29,46,0.06)' }}>
-                <div style={{ fontSize: '1.6rem', marginBottom: '0.5rem' }}>{icon}</div>
-                <strong style={{ display: 'block', color: BORDEAUX, marginBottom: '0.3rem' }}>{title}</strong>
-                <span style={{ color: DARK, fontSize: '0.88rem', lineHeight: 1.5 }}>{desc}</span>
+          {/* Card destaque — lado direito */}
+          <div className="bp-hero__card-wrapper">
+            {loading ? (
+              <div className="bp-hero__featured-card">
+                <div className="skeleton" style={{ height: 180, borderRadius: 10, marginBottom: 16 }} />
+                <div className="skeleton" style={{ height: 14, width: '50%', marginBottom: 8 }} />
+                <div className="skeleton" style={{ height: 22, width: '80%', marginBottom: 8 }} />
+                <div className="skeleton" style={{ height: 14, width: '60%' }} />
               </div>
-            ))}
-          </section>
+            ) : destaque ? (
+              <div className="bp-hero__featured-card" onClick={() => navigate(`/pecas/${destaque.id}`)} style={{ cursor: 'pointer' }}>
+                <div className="bp-hero__featured-label">PEÇA EM DESTAQUE</div>
+                <div className="bp-hero__featured-img">
+                  {destaque.imagem
+                    ? <img src={destaque.imagem} alt={destaque.nome_peca} />
+                    : <CarIcon />
+                  }
+                </div>
+                <div className="bp-hero__featured-sku">
+                  SKU · {destaque.sku || `BP-${String(destaque.id).padStart(4,'0')}`}
+                </div>
+                <div className="bp-hero__featured-name">{destaque.nome_peca}</div>
+                {destaque.condicao && (
+                  <div className="bp-hero__featured-app">{destaque.condicao}</div>
+                )}
+                <div className="bp-hero__featured-footer">
+                  <span className="bp-hero__featured-price">{formatBRL(destaque.preco)}</span>
+                  <span className="badge badge-verified">✓ Verificado</span>
+                </div>
+              </div>
+            ) : (
+              <div className="bp-hero__featured-card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: .5 }}><CarIcon /></div>
+                <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.875rem' }}>Sem peças cadastradas</p>
+                <button className="btn btn-gold btn-sm" style={{ marginTop: '1rem' }} onClick={() => navigate('/cadastroPecas')}>
+                  Cadastrar peça
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
 
-          {/* PEÇAS EM DESTAQUE */}
-          <section style={{ padding: '2rem 2.5rem 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        {/* ── CATEGORIAS ── */}
+        <section className="bp-section">
+          <div className="container">
+            <div className="bp-section__header">
               <div>
-                <h2 style={{ margin: 0, color: BORDEAUX, fontFamily: "'Georgia', serif", fontSize: '1.3rem', fontWeight: 700 }}>Peças em Destaque</h2>
-                <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.83rem' }}>As peças mais recentes do catálogo</p>
+                <h2 className="bp-section__title">Categorias</h2>
+                <p className="bp-section__sub">Explore por tipo de peça</p>
               </div>
-              <button onClick={() => navigate('/buscaPecas')} style={{ fontSize: '0.82rem', padding: '0.5rem 1rem', borderRadius: '9999px', color: BORDEAUX, border: `1.5px solid ${BORDEAUX}`, backgroundColor: 'transparent', fontWeight: 600, cursor: 'pointer' }}>
-                Ver todos →
+              <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas')}>
+                Ver todas →
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px,1fr))', gap: '1.25rem' }}>
-              {loading
-                ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-                : pecasDestaque.length > 0
-                  ? pecasDestaque.map(peca => (
-                      <PecaCard
-                        key={peca.id}
-                        peca={peca}
-                        onVerDetalhe={() => navigate(`/pecas/${peca.id}`)}
-                        onAddToCart={() => handleAddToCart(peca)}
-                        jaNoCarrinho={jaNoCarrinho(peca.id)}
-                        addedFeedback={addedId === peca.id}
-                      />
-                    ))
-                  : <EmptyPecas navigate={navigate} />
-              }
-            </div>
-          </section>
-
-          {/* CATEGORIAS */}
-          <section style={{ padding: '2rem 2.5rem 0' }}>
-            <h2 style={{ margin: '0 0 1.25rem', color: BORDEAUX, fontFamily: "'Georgia', serif", fontSize: '1.3rem', fontWeight: 700 }}>Explorar por categoria</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: '1rem' }}>
+            <div className="grid-cats">
               {loading
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="skeleton" style={{ height: 100, borderRadius: 12 }} />
                   ))
-                : categorias.map(cat => (
+                : categorias.map((cat) => (
                     <div
                       key={cat.id}
                       className="cat-card"
                       onClick={() => navigate(`/buscaPecas?categoria_id=${cat.id}`)}
-                      style={{ backgroundColor: '#fff', border: `2px solid ${BORDER}`, borderRadius: 12, padding: '1.25rem 1rem', textAlign: 'center' }}
                     >
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                        {CATEGORIA_ICONS[cat.nome] || '🔧'}
-                      </div>
-                      <p style={{ margin: 0, fontWeight: 700, color: DARK, fontSize: '0.95rem' }}>{cat.nome}</p>
+                      <div className="cat-card__icon">{CATEGORIA_ICONS[cat.nome] || '🔧'}</div>
+                      <div className="cat-card__name">{cat.nome}</div>
                     </div>
                   ))
               }
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* PEÇAS RECENTES */}
-          {(loading || pecasRecentes.length > 0) && (
-            <section style={{ padding: '2rem 2.5rem 0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div>
-                  <h2 style={{ margin: 0, color: BORDEAUX, fontFamily: "'Georgia', serif", fontSize: '1.3rem', fontWeight: 700 }}>Adicionadas Recentemente</h2>
-                  <p style={{ margin: '4px 0 0', color: MUTED, fontSize: '0.83rem' }}>Últimas peças cadastradas no sistema</p>
-                </div>
-                <button onClick={() => navigate('/buscaPecas?sort=data_cadastro&order=desc')} style={{ fontSize: '0.82rem', padding: '0.5rem 1rem', borderRadius: '9999px', color: BORDEAUX, border: `1.5px solid ${BORDEAUX}`, backgroundColor: 'transparent', fontWeight: 600, cursor: 'pointer' }}>
-                  Ver todas →
-                </button>
+        {/* ── PEÇAS EM DESTAQUE ── */}
+        <section className="bp-section" style={{ background: 'rgba(0,0,0,.02)', borderTop: '1px solid var(--bp-border-light)', borderBottom: '1px solid var(--bp-border-light)' }}>
+          <div className="container">
+            <div className="bp-section__header">
+              <div>
+                <h2 className="bp-section__title">Em Destaque no Catálogo</h2>
+                <p className="bp-section__sub">Peças mais recentes</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px,1fr))', gap: '1.25rem' }}>
-                {loading
-                  ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-                  : pecasRecentes.map(peca => (
+              <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas?sort=data_cadastro&order=desc')}>
+                Ver todas →
+              </button>
+            </div>
+
+            <div className="grid-auto">
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+                : featured.length > 0
+                  ? featured.map((peca) => (
                       <PecaCard
                         key={peca.id}
                         peca={peca}
-                        onVerDetalhe={() => navigate(`/pecas/${peca.id}`)}
-                        onAddToCart={() => handleAddToCart(peca)}
-                        jaNoCarrinho={jaNoCarrinho(peca.id)}
-                        addedFeedback={addedId === peca.id}
+                        onDetail={() => navigate(`/pecas/${peca.id}`)}
+                        onAdd={() => handleAddToCart(peca)}
+                        added={addedId === peca.id}
+                        inCart={jaNoCarrinho(peca.id)}
+                      />
+                    ))
+                  : (
+                      <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--bp-text-muted)' }}>
+                        <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Nenhuma peça cadastrada ainda.</p>
+                        <button className="btn btn-primary" onClick={() => navigate('/cadastroPecas')}>
+                          Cadastrar primeira peça
+                        </button>
+                      </div>
+                    )
+              }
+            </div>
+          </div>
+        </section>
+
+        {/* ── ADICIONADAS RECENTEMENTE ── */}
+        {(loading || recentes.length > 0) && (
+          <section className="bp-section">
+            <div className="container">
+              <div className="bp-section__header">
+                <div>
+                  <h2 className="bp-section__title">Adicionadas Recentemente</h2>
+                  <p className="bp-section__sub">Últimas peças inseridas no catálogo</p>
+                </div>
+                <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas')}>
+                  Ver catálogo →
+                </button>
+              </div>
+
+              <div className="grid-auto">
+                {loading
+                  ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+                  : recentes.map((peca) => (
+                      <PecaCard
+                        key={peca.id}
+                        peca={peca}
+                        onDetail={() => navigate(`/pecas/${peca.id}`)}
+                        onAdd={() => handleAddToCart(peca)}
+                        added={addedId === peca.id}
+                        inCart={jaNoCarrinho(peca.id)}
                       />
                     ))
                 }
               </div>
-            </section>
-          )}
+            </div>
+          </section>
+        )}
 
-          {/* FILTROS RÁPIDOS */}
-          <section style={{ padding: '2rem 2.5rem' }}>
-            <h2 style={{ margin: '0 0 1rem', color: BORDEAUX, fontFamily: "'Georgia', serif", fontSize: '1.3rem', fontWeight: 700 }}>Filtros rápidos</h2>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        {/* ── FILTROS RÁPIDOS ── */}
+        <section className="bp-section--sm">
+          <div className="container">
+            <h2 className="bp-section__title" style={{ marginBottom: '1rem' }}>Filtros rápidos</h2>
+            <div className="flex flex-wrap gap-2">
               {[
-                { label: '🔥 Mais baratos', url: '/buscaPecas?sort=preco&order=asc' },
-                { label: '💰 Mais caros', url: '/buscaPecas?sort=preco&order=desc' },
-                { label: '🚀 Mais recentes', url: '/buscaPecas?sort=data_cadastro&order=desc' },
-                { label: '✨ Condição NOS', url: '/buscaPecas?condicao=NOS' },
-                { label: '🛠️ Restauradas', url: '/buscaPecas?condicao=Restaurada' },
-                { label: '💵 Até R$ 500', url: '/buscaPecas?max_preco=500' },
-                { label: '💎 Acima R$ 5.000', url: '/buscaPecas?min_preco=5000' },
+                { label: '🔥 Mais baratos',   url: '/buscaPecas?sort=preco&order=asc' },
+                { label: '💰 Mais caros',      url: '/buscaPecas?sort=preco&order=desc' },
+                { label: '🚀 Mais recentes',   url: '/buscaPecas?sort=data_cadastro&order=desc' },
+                { label: '✨ Condição NOS',     url: '/buscaPecas?condicao=NOS' },
+                { label: '🛠️ Restauradas',      url: '/buscaPecas?condicao=Restaurada' },
+                { label: '💵 Até R$ 500',       url: '/buscaPecas?max_preco=500' },
+                { label: '💎 Acima R$ 5.000',   url: '/buscaPecas?min_preco=5000' },
               ].map(({ label, url }) => (
-                <button
-                  key={label}
-                  onClick={() => navigate(url)}
-                  style={{ padding: '0.6rem 1.1rem', borderRadius: '9999px', border: `1.5px solid ${BORDER}`, backgroundColor: '#fff', color: DARK, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.18s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = BORDEAUX; e.currentTarget.style.color = BORDEAUX; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = DARK; }}
-                >
+                <button key={label} className="btn btn-ghost btn-sm" onClick={() => navigate(url)}>
                   {label}
                 </button>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* CTA FINAL */}
-          <section style={{ margin: '0 2.5rem 3rem', backgroundColor: BORDEAUX, borderRadius: 16, padding: '2.5rem', textAlign: 'center', backgroundImage: 'radial-gradient(circle at 80% 50%, rgba(240,192,96,0.18), transparent 60%)' }}>
-            <h2 style={{ color: HIGHLIGHT, fontFamily: "'Georgia', serif", fontSize: '1.6rem', margin: '0 0 0.75rem' }}>Tem peças para vender?</h2>
-            <p style={{ color: 'rgba(245,237,216,0.85)', marginBottom: '1.5rem' }}>Cadastre suas peças automotivas e alcance compradores de todo o Brasil.</p>
-            <button onClick={() => navigate('/cadastroPecas')} style={{ padding: '0.9rem 2rem', borderRadius: '9999px', backgroundColor: HIGHLIGHT, color: BORDEAUX, fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
-              Cadastrar peça agora
-            </button>
-          </section>
+        {/* ── STATS ── */}
+        <section className="bp-section--sm">
+          <div className="container">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))',
+              gap: '1.25rem',
+            }}>
+              {[
+                { value: loading ? '...' : stats.total,       label: 'Peças no catálogo',   icon: '🔩' },
+                { value: loading ? '...' : stats.categorias,  label: 'Categorias',          icon: '📂' },
+                { value: 'Melhor Envio',                       label: 'Frete integrado',     icon: '🚚' },
+                { value: 'Sandbox',                            label: 'Ambiente de testes',  icon: '🔒' },
+              ].map(({ value, label, icon }) => (
+                <div key={label} className="card card-pad" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.75rem', marginBottom: '.5rem' }}>{icon}</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--bp-green-800)', fontFamily: 'var(--font-serif)' }}>
+                    {value}
+                  </div>
+                  <div style={{ fontSize: '.82rem', color: 'var(--bp-text-muted)', marginTop: '.25rem' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        </main>
-      </div>
+        {/* ── CTA FINAL ── */}
+        <section className="bp-section">
+          <div className="container">
+            <div style={{
+              background: 'linear-gradient(135deg, var(--bp-green-900) 0%, var(--bp-green-800) 70%)',
+              borderRadius: 'var(--r-2xl)', padding: '3rem 2.5rem',
+              textAlign: 'center', position: 'relative', overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'radial-gradient(circle at 80% 50%, rgba(201,168,76,.18), transparent 55%)',
+              }} />
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <p className="label-sm" style={{ color: 'var(--bp-gold)', marginBottom: '.75rem' }}>
+                  ÁREA DO VENDEDOR
+                </p>
+                <h2 style={{
+                  fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.4rem,3vw,2rem)',
+                  color: '#fff', margin: '0 0 .75rem',
+                }}>
+                  Tem peças para vender?
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,.75)', marginBottom: '1.75rem', maxWidth: 480, margin: '0 auto 1.75rem' }}>
+                  Cadastre suas peças automotivas com fotos, especificações e procedência.
+                  Cada anúncio passa por aprovação administrativa.
+                </p>
+                <button className="btn btn-gold btn-lg" onClick={() => navigate('/cadastroPecas')}>
+                  Cadastrar peça agora →
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <Footer />
     </div>
   );
 }
 
-function PecaCard({ peca, onVerDetalhe, onAddToCart, jaNoCarrinho, addedFeedback }) {
+/* ── Sub-componentes ── */
+
+function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
   const semEstoque = Number(peca.estoque_atual) === 0;
 
   return (
-    <article
-      className="peca-card"
-      style={{ backgroundColor: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 8px rgba(123,29,46,0.05)' }}
-    >
-      {/* Imagem */}
-      <div
-        onClick={onVerDetalhe}
-        style={{ height: 180, backgroundColor: '#F2EAD3', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
-      >
-        {peca.imagem ? (
-          <img src={peca.imagem} alt={peca.nome_peca} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: MUTED }}>
-            <span style={{ fontSize: '2.5rem' }}>🔧</span>
-            <span style={{ fontSize: '0.75rem', marginTop: 6 }}>Sem imagem</span>
-          </div>
-        )}
+    <article className="product-card">
+      <div className="product-card__image" onClick={onDetail}>
+        {peca.imagem
+          ? <img src={peca.imagem} alt={peca.nome_peca} />
+          : <CarIconGold />
+        }
         {peca.condicao && (
-          <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: BORDEAUX, color: HIGHLIGHT, fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: 999 }}>
+          <span className="badge badge-dark" style={{ position: 'absolute', top: 10, left: 10 }}>
             {peca.condicao}
           </span>
         )}
         {semEstoque && (
-          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem', backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px 12px', borderRadius: 999 }}>Sem estoque</span>
+          <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span className="badge badge-error">Sem estoque</span>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1, gap: 6 }}>
-        <h3
-          onClick={onVerDetalhe}
-          style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: DARK, cursor: 'pointer', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-        >
+      <div className="product-card__body">
+        {peca.sku && (
+          <div className="product-card__sku">SKU · {peca.sku}</div>
+        )}
+        <div className="product-card__name" onClick={onDetail} style={{ cursor: 'pointer' }}>
           {peca.nome_peca}
-        </h3>
-        {peca.sku && <p style={{ margin: 0, fontSize: '0.75rem', color: MUTED }}>SKU: {peca.sku}</p>}
+        </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 10, borderTop: `1px solid ${BORDER}` }}>
-          <span style={{ fontSize: '1.1rem', fontWeight: 800, color: BORDEAUX }}>{formatBRL(peca.preco)}</span>
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: semEstoque ? '#991B1B' : '#065F46', backgroundColor: semEstoque ? '#FEE2E2' : '#D1FAE5', padding: '3px 8px', borderRadius: 999 }}>
+        <div className="product-card__footer">
+          <span className="product-card__price">{formatBRL(peca.preco)}</span>
+          <span
+            className={`badge ${semEstoque ? 'badge-error' : 'badge-verified'}`}
+          >
             {semEstoque ? 'Indisponível' : `${peca.estoque_atual} un.`}
           </span>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-          <button
-            onClick={onVerDetalhe}
-            style={{ flex: 1, padding: '8px', backgroundColor: 'transparent', border: `1.5px solid ${BORDEAUX}`, borderRadius: 8, color: BORDEAUX, fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem', transition: 'all 0.18s' }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = `${BORDEAUX}10`; }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
+        <div className="flex gap-2" style={{ marginTop: '.75rem' }}>
+          <button className="btn btn-outline btn-sm flex-1" onClick={onDetail}>
             Ver detalhe
           </button>
           <button
-            onClick={onAddToCart}
-            disabled={semEstoque || addedFeedback}
-            style={{ flex: 1, padding: '8px', backgroundColor: addedFeedback ? '#065F46' : semEstoque ? '#ccc' : BORDEAUX, border: 'none', borderRadius: 8, color: '#fff', fontWeight: 600, cursor: semEstoque ? 'not-allowed' : 'pointer', fontSize: '0.82rem', transition: 'all 0.18s' }}
+            className={`btn btn-sm flex-1 ${added ? '' : 'btn-primary'}`}
+            style={added ? { background: 'var(--bp-success)', color: '#fff' } : {}}
+            onClick={onAdd}
+            disabled={semEstoque || added}
           >
-            {addedFeedback ? '✓ Adicionado' : '+ Carrinho'}
+            {added ? '✓ Adicionado' : inCart ? 'No carrinho' : '+ Carrinho'}
           </button>
         </div>
       </div>
@@ -372,30 +419,45 @@ function PecaCard({ peca, onVerDetalhe, onAddToCart, jaNoCarrinho, addedFeedback
 
 function SkeletonCard() {
   return (
-    <div style={{ backgroundColor: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, overflow: 'hidden' }}>
-      <div className="skeleton" style={{ height: 180 }} />
-      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div className="skeleton" style={{ height: 16, width: '80%' }} />
-        <div className="skeleton" style={{ height: 14, width: '50%' }} />
-        <div className="skeleton" style={{ height: 14, width: '40%' }} />
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <div className="skeleton" style={{ flex: 1, height: 34 }} />
-          <div className="skeleton" style={{ flex: 1, height: 34 }} />
+    <div className="product-card" style={{ cursor: 'default' }}>
+      <div className="skeleton" style={{ height: 200 }} />
+      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
+        <div className="skeleton" style={{ height: 13, width: '45%' }} />
+        <div className="skeleton" style={{ height: 18, width: '80%' }} />
+        <div className="skeleton" style={{ height: 14, width: '60%' }} />
+        <div className="flex gap-2" style={{ marginTop: '.5rem' }}>
+          <div className="skeleton flex-1" style={{ height: 34 }} />
+          <div className="skeleton flex-1" style={{ height: 34 }} />
         </div>
       </div>
     </div>
   );
 }
 
-function EmptyPecas({ navigate }) {
+function CheckIcon() {
   return (
-    <div style={{ gridColumn: '1/-1', backgroundColor: '#fff', borderRadius: 14, padding: '3rem', textAlign: 'center', border: `1px solid ${BORDER}` }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔧</div>
-      <h3 style={{ color: BORDEAUX, margin: '0 0 0.5rem' }}>Nenhuma peça cadastrada ainda</h3>
-      <p style={{ color: MUTED, marginBottom: '1.5rem' }}>Seja o primeiro a cadastrar uma peça no catálogo.</p>
-      <button onClick={() => navigate('/cadastroPecas')} style={{ backgroundColor: BORDEAUX, color: CREAM, padding: '10px 24px', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
-        Cadastrar peça
-      </button>
-    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function CarIcon() {
+  return (
+    <svg width="80" height="48" viewBox="0 0 200 80" fill="none" stroke="rgba(201,168,76,.5)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M30 55 Q50 25 80 20 H140 Q165 20 180 40 L190 55" />
+      <circle cx="55" cy="60" r="14" /><circle cx="145" cy="60" r="14" />
+      <path d="M30 55 H190 Q200 55 200 45 V40 H30 Q20 40 20 50 V55 Z" />
+    </svg>
+  );
+}
+
+function CarIconGold() {
+  return (
+    <svg width="80" height="48" viewBox="0 0 200 80" fill="none" stroke="rgba(201,168,76,.6)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M30 55 Q50 25 80 20 H140 Q165 20 180 40 L190 55" />
+      <circle cx="55" cy="60" r="14" /><circle cx="145" cy="60" r="14" />
+      <path d="M30 55 H190 Q200 55 200 45 V40 H30 Q20 40 20 50 V55 Z" />
+    </svg>
   );
 }
