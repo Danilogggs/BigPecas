@@ -91,7 +91,7 @@ export default function HeroBanner() {
           style={{
             margin: `${SPACING.LG} 0 ${SPACING.MD}`,
             color: HIGHLIGHT,
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
             fontSize: 'clamp(2rem, 4vw, 3.5rem)',
             lineHeight: 1.05,
             fontWeight: 800,

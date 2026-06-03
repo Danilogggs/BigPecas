@@ -84,14 +84,20 @@ router.post('/calcular', async (req, res, next) => {
       throw new AppError(400, 'Informe ao menos um produto para calcular o frete.');
     }
 
+    // Extrai apenas dígitos e ponto de qualquer valor — protege contra "2kg", "10cm", etc.
+    const toNum = (v, fallback = 0) => {
+      const n = parseFloat(String(v ?? '').replace(/[^\d.]/g, ''));
+      return isNaN(n) ? fallback : n;
+    };
+
     const productsPayload = produtos.map((p, i) => ({
       id: String(p.id || i + 1),
-      width: Math.max(1, Math.round((Number(p.largura_mm) || 150) / 10)),
-      height: Math.max(1, Math.round((Number(p.altura_mm) || 100) / 10)),
-      length: Math.max(1, Math.round((Number(p.comprimento_mm) || 200) / 10)),
-      weight: Math.max(0.1, Number(p.peso_gramas) / 1000 || 0.5),
-      insurance_value: Number(p.preco) || 0,
-      quantity: Number(p.quantidade) || 1,
+      width:            Math.max(1, Math.round(toNum(p.largura_mm,    150) / 10)),
+      height:           Math.max(1, Math.round(toNum(p.altura_mm,     100) / 10)),
+      length:           Math.max(1, Math.round(toNum(p.comprimento_mm,200) / 10)),
+      weight:           Math.max(0.1, toNum(p.peso_gramas, 500) / 1000),
+      insurance_value:  Math.max(1,   toNum(p.preco, 100)),
+      quantity:         Math.max(1,   Math.round(toNum(p.quantidade, 1))),
     }));
 
     const payload = {

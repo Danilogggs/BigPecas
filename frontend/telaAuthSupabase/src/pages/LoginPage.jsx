@@ -1,227 +1,177 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Field, Input, ButtonPrimary, AlertError } from '../components/StyledComponents.jsx';
-import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme.js';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
 
-const REGEX = {
-  email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-};
+const REGEX = { email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ };
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm]     = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [error, setError] = useState('');
+  const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: '',
-    }));
-
+  const handleChange = ({ target: { name, value } }) => {
+    setForm((p) => ({ ...p, [name]: value }));
+    setErrors((p) => ({ ...p, [name]: '' }));
     setError('');
-  }
+  };
 
-  function validateForm() {
-    const newErrors = {};
+  const validate = () => {
+    const e = {};
+    if (!form.email.trim())                          e.email    = 'Informe seu e-mail.';
+    else if (!REGEX.email.test(form.email.trim()))   e.email    = 'Digite um e-mail válido.';
+    if (!form.password.trim())                       e.password = 'Informe sua senha.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
-    if (!form.email.trim()) {
-      newErrors.email = 'Informe seu email.';
-    } else if (!REGEX.email.test(form.email.trim())) {
-      newErrors.email = 'Digite um email válido. Ex: nome@email.com';
-    }
-
-    if (!form.password.trim()) {
-      newErrors.password = 'Informe sua senha.';
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError('');
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validate()) return;
     setLoading(true);
-
     try {
       await login(form.email.trim().toLowerCase(), form.password);
-      const redirectTo = location.state?.from?.pathname || '/';
-      navigate(redirectTo, { replace: true });
+      navigate(location.state?.from?.pathname || '/', { replace: true });
     } catch (err) {
       setError(mapSupabaseAuthError(err, 'login'));
     } finally {
       setLoading(false);
     }
-  }
-
-  const fieldErrorStyle = {
-    color: COLORS.BORDEAUX,
-    fontSize: '0.82rem',
-    marginTop: '6px',
-    fontWeight: 600,
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: COLORS.CREAM,
-        ...FLEX_CENTER,
-        padding: SPACING.XL,
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '500px',
-          backgroundColor: '#fff',
-          borderRadius: BORDER_RADIUS.LG,
-          border: `2px solid ${COLORS.BORDEAUX}22`,
-          padding: SPACING.XL,
-          boxShadow: SHADOWS.SM,
-        }}
-      >
-        <div style={{ marginBottom: SPACING.XL }}>
-          <span
-            style={{
-              display: 'inline-block',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: COLORS.BORDEAUX,
-              fontWeight: 700,
-              marginBottom: SPACING.MD,
-            }}
-          >
-            BigPeças
-          </span>
+    <div className="auth-layout">
+      {/* Painel esquerdo */}
+      <div className="auth-panel-left">
+        <div className="auth-panel-left__glow" />
 
-          <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            Entrar
+        <div className="auth-panel-left__content">
+          {/* Logo */}
+          <div className="auth-panel-left__logo">
+            <ShieldIcon />
+            <span className="auth-panel-left__logo-text">
+              <span style={{ color: '#fff' }}>Big</span>
+              <span style={{ color: 'var(--bp-gold)' }}>Peças</span>
+            </span>
+          </div>
+
+          <h1 className="auth-panel-left__heading">
+            Cada peça conta<br />uma história.
           </h1>
+
+          <p className="auth-panel-left__sub">
+            Entre para acompanhar seus anúncios, pedidos e a
+            curadoria de peças raras feita para o universo dos carros clássicos.
+          </p>
+
+          <div className="auth-panel-left__features">
+            {[
+              'Anuncie peças com procedência verificada',
+              'Acompanhe pedidos e simulações de frete',
+              'Curadoria por marca, década e condição',
+            ].map((text) => (
+              <div key={text} className="auth-panel-left__feature">
+                <span className="auth-panel-left__feature-icon">✓</span>
+                {text}
+              </div>
+            ))}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Email" required>
-              <Input
+        <div className="auth-panel-left__car">
+          <CarSvg />
+        </div>
+      </div>
+
+      {/* Painel direito */}
+      <div className="auth-panel-right">
+        <div className="auth-form-card">
+          <p className="auth-form-tag">ACESSO À CONTA</p>
+          <h2 className="auth-form-title">Entrar na sua conta</h2>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="form-group" style={{ marginBottom: '1.1rem' }}>
+              <label className="label" htmlFor="email">E-mail</label>
+              <input
+                id="email"
+                className={`input ${errors.email ? 'error' : ''}`}
                 type="email"
                 name="email"
-                placeholder="seuemail@exemplo.com"
+                placeholder="bernardo@bigpecas.com.br"
                 value={form.email}
                 onChange={handleChange}
-                required
+                autoComplete="email"
               />
-              {errors.email && <div style={fieldErrorStyle}>{errors.email}</div>}
-            </Field>
-          </div>
+              {errors.email && <span className="field-error">{errors.email}</span>}
+            </div>
 
-          <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Senha" required>
-              <Input
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <div className="flex-between" style={{ marginBottom: '.4rem' }}>
+                <label className="label" htmlFor="password">Senha</label>
+                <Link to="/recuperar-senha" style={{ fontSize: '.78rem', color: 'var(--bp-gold)', fontWeight: 600 }}>
+                  Esqueci a senha
+                </Link>
+              </div>
+              <input
+                id="password"
+                className={`input ${errors.password ? 'error' : ''}`}
                 type="password"
                 name="password"
-                placeholder="Digite sua senha"
+                placeholder="••••••••"
                 value={form.password}
                 onChange={handleChange}
-                required
+                autoComplete="current-password"
               />
-              {errors.password && <div style={fieldErrorStyle}>{errors.password}</div>}
-            </Field>
+              {errors.password && <span className="field-error">{errors.password}</span>}
+            </div>
+
+            {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-block btn-lg"
+              disabled={loading}
+              style={{ borderRadius: 'var(--r-md)' }}
+            >
+              {loading ? <><span className="spinner" /> Entrando…</> : 'Entrar'}
+            </button>
+          </form>
+
+          <div className="auth-form-footer">
+            <span>
+              Ainda não tem conta?{' '}
+              <Link to="/cadastro-usuario">Cadastre-se</Link>
+            </span>
           </div>
-
-          {error && <AlertError>{error}</AlertError>}
-
-          <ButtonPrimary
-            type="submit"
-            disabled={loading}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 8px 18px ${COLORS.BORDEAUX}33`;
-                e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = `0 4px 12px ${COLORS.BORDEAUX}22`;
-              e.currentTarget.style.backgroundColor = COLORS.BORDEAUX;
-            }}
-            style={{
-              width: '100%',
-              marginTop: SPACING.MD,
-              padding: '14px 18px',
-              border: 'none',
-              outline: 'none',
-              borderRadius: BORDER_RADIUS.MD,
-              backgroundColor: COLORS.BORDEAUX,
-              color: '#fff',
-              fontSize: '1rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </ButtonPrimary>
-        </form>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginTop: SPACING.XL,
-            flexWrap: 'wrap',
-            gap: SPACING.MD,
-          }}
-        >
-          <Link
-            to="/cadastro-usuario"
-            style={{
-              fontSize: '0.875rem',
-              color: COLORS.MUTED_TEXT,
-              textDecoration: 'none',
-            }}
-          >
-            Criar conta
-          </Link>
-
-          <Link
-            to="/recuperar-senha"
-            style={{
-              fontSize: '0.875rem',
-              color: COLORS.MUTED_TEXT,
-              textDecoration: 'none',
-            }}
-          >
-            Esqueci minha senha
-          </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bp-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2Z" />
+      <path d="M9 12l2 2 4-4" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function CarSvg() {
+  return (
+    <svg width="100%" viewBox="0 0 300 100" fill="none" stroke="rgba(201,168,76,.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M40 75 Q70 30 110 22 H200 Q240 22 268 55 L280 75" />
+      <circle cx="75" cy="80" r="18" />
+      <circle cx="220" cy="80" r="18" />
+      <path d="M40 75 H280 Q295 75 295 60 V52 H40 Q25 52 25 65 V75 Z" />
+      <path d="M115 22 Q120 5 140 5 H180 Q200 5 205 22" />
+    </svg>
   );
 }

@@ -137,7 +137,7 @@ export default function WishPage() {
               <h1
                 style={{
                   margin: 0,
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'Playfair Display', Georgia, serif",
                   fontSize: '2rem',
                   lineHeight: 1.15,
                 }}

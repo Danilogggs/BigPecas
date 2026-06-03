@@ -251,45 +251,55 @@ export default function CadastroUsuario() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: COLORS.CREAM,
-        ...FLEX_CENTER,
-        padding: SPACING.XL,
-      }}
-    >
+    <div className="auth-layout">
+      {/* Painel esquerdo */}
+      <div className="auth-panel-left">
+        <div className="auth-panel-left__glow" />
+        <div className="auth-panel-left__content">
+          <div className="auth-panel-left__logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bp-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2Z" />
+              <path d="M9 12l2 2 4-4" strokeWidth="2" />
+            </svg>
+            <span className="auth-panel-left__logo-text">
+              <span style={{ color: '#fff' }}>Big</span>
+              <span style={{ color: 'var(--bp-gold)' }}>Peças</span>
+            </span>
+          </div>
+          <h1 className="auth-panel-left__heading">
+            Faça parte da<br />comunidade clássica.
+          </h1>
+          <p className="auth-panel-left__sub">
+            Anuncie peças com selo de verificação, acompanhe pedidos e acesse
+            curadoria por marca, década e condição.
+          </p>
+          <div className="auth-panel-left__features">
+            {['Anuncie com procedência verificada', 'Acompanhe pedidos e simulações', 'Curadoria por marca, década e condição'].map((t) => (
+              <div key={t} className="auth-panel-left__feature">
+                <span className="auth-panel-left__feature-icon">✓</span>{t}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Painel direito — scrollável */}
+      <div className="auth-panel-right" style={{ alignItems: 'flex-start', overflowY: 'auto', padding: '2rem' }}>
       <div
         style={{
           width: '100%',
-          maxWidth: '760px',
+          maxWidth: '680px',
           backgroundColor: '#fff',
-          borderRadius: BORDER_RADIUS.LG,
-          border: `1px solid ${COLORS.BORDEAUX}14`,
-          padding: '32px',
-          boxShadow: '0 16px 42px rgba(0, 0, 0, 0.07)',
-          maxHeight: '92vh',
-          overflowY: 'auto',
+          borderRadius: 'var(--r-2xl)',
+          border: '1px solid var(--bp-border-light)',
+          padding: '2.5rem',
+          boxShadow: 'var(--shadow-md)',
+          margin: 'auto',
         }}
       >
-        <div style={{ marginBottom: SPACING.XL }}>
-          <span
-            style={{
-              display: 'inline-block',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: COLORS.BORDEAUX,
-              fontWeight: 700,
-              marginBottom: SPACING.MD,
-            }}
-          >
-            BigPeças
-          </span>
-
-          <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            Criar conta
-          </h1>
+        <div style={{ marginBottom: '1.75rem' }}>
+          <p className="auth-form-tag">NOVA CONTA</p>
+          <h2 className="auth-form-title" style={{ marginBottom: 0 }}>Criar sua conta</h2>
         </div>
 
         {message.text && (
@@ -572,6 +582,7 @@ export default function CadastroUsuario() {
             Entrar
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );

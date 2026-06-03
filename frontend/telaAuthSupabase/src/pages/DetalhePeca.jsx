@@ -821,7 +821,7 @@ export default function DetalhePeca() {
                       <h1
                         style={{
                           color: COLORS.BORDEAUX,
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'Playfair Display', Georgia, serif",
                           fontSize: '2rem',
                           lineHeight: 1.15,
                           margin: 0,
