@@ -28,15 +28,15 @@ export default function HomePage() {
     (async () => {
       setLoading(true);
       try {
-        const [todasPecas, cats] = await Promise.all([
-          listarPecas({ sort: 'data_cadastro', order: 'desc' }),
+        const [pecasRes, cats] = await Promise.all([
+          listarPecas({ sort: 'data_cadastro', order: 'desc', limit: 8 }),
           listarCategorias(),
         ]);
-        const p = Array.isArray(todasPecas) ? todasPecas : [];
+        const p = Array.isArray(pecasRes?.data) ? pecasRes.data : [];
         const c = Array.isArray(cats) ? cats : [];
         setPecas(p);
         setCategorias(c);
-        setStats({ total: p.length, categorias: c.length });
+        setStats({ total: pecasRes?.total ?? p.length, categorias: c.length });
       } catch (e) {
         console.error('Erro ao carregar homepage:', e);
       } finally {

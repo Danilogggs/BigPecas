@@ -89,10 +89,7 @@ export const INPUT_STYLE = {
   color: COLORS.DARK_TEXT,
   outline: 'none',
   transition: 'border-color 0.2s',
-  
-  '&:focus': {
-    borderColor: COLORS.BORDEAUX,
-  },
+  // Nota: foco deve ser aplicado via onFocus/onBlur no componente
 };
 
 // Label base
@@ -124,15 +121,7 @@ export const BUTTON_PRIMARY_STYLE = {
   border: 'none',
   opacity: 1,
   transition: 'all 0.2s',
-  
-  '&:hover:not(:disabled)': {
-    opacity: 0.9,
-  },
-  
-  '&:disabled': {
-    opacity: COLORS.DISABLED_OPACITY,
-    cursor: 'not-allowed',
-  },
+  // hover/disabled devem ser aplicados via onMouseEnter/onMouseLeave e prop disabled
 };
 
 // Botão secundário
@@ -146,10 +135,7 @@ export const BUTTON_SECONDARY_STYLE = {
   cursor: 'pointer',
   fontSize: TYPOGRAPHY.BODY.fontSize,
   transition: 'all 0.2s',
-  
-  '&:hover': {
-    backgroundColor: `${COLORS.BORDEAUX}22`,
-  },
+  // hover deve ser aplicado via onMouseEnter/onMouseLeave
 };
 
 // Alerta de sucesso

@@ -8,7 +8,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { SearchIcon, UserIcon, ChevronDownIcon, WrenchIcon, BoltIcon, StarIcon } from '../components/Icons';
 import { cadastrarPeca, listarCategorias, listarMateriais } from '../services/pecasService';
-import { menuItems } from '../data/mockData';
+// Itens de menu da sidebar de cadastro
+const menuItems = [
+  { label: 'Catálogo', active: true, icon: 'wrench' },
+  { label: 'FAQ', active: false, icon: 'bolt' },
+  { label: 'Fornecedores', active: false, icon: 'star' },
+];
 
 const BORDEAUX = '#7B1D2E';
 const CREAM = '#F5EDD8';

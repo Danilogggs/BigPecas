@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const AppError = require('../utils/AppError');
+const logger = require('../utils/logger');
 
 const ME_BASE_URL = process.env.MELHOR_ENVIO_URL || 'https://sandbox.melhorenvio.com.br';
 const CLIENT_ID = process.env.MELHOR_ENVIO_CLIENT_ID;
@@ -20,6 +23,22 @@ const melhorEnvioHeaders = () => ({
   Authorization: `Bearer ${currentTokens.access_token}`,
   'User-Agent': USER_AGENT,
 });
+
+function persistTokensToEnv(accessToken, refreshToken) {
+  try {
+    const envPath = path.resolve(__dirname, '../../../.env');
+    if (!fs.existsSync(envPath)) return;
+
+    let content = fs.readFileSync(envPath, 'utf8');
+    content = content
+      .replace(/^MELHOR_ENVIO_ACCESS_TOKEN=.*/m, `MELHOR_ENVIO_ACCESS_TOKEN=${accessToken}`)
+      .replace(/^MELHOR_ENVIO_REFRESH_TOKEN=.*/m, `MELHOR_ENVIO_REFRESH_TOKEN=${refreshToken}`);
+    fs.writeFileSync(envPath, content, 'utf8');
+    logger.info('Tokens do Melhor Envio persistidos no .env');
+  } catch (err) {
+    logger.warn('Não foi possível persistir tokens no .env', { error: err.message });
+  }
+}
 
 async function refreshAccessToken() {
   const response = await fetch(`${ME_BASE_URL}/oauth/token`, {
@@ -42,7 +61,8 @@ async function refreshAccessToken() {
   const data = await response.json();
   currentTokens.access_token = data.access_token;
   currentTokens.refresh_token = data.refresh_token;
-  console.log('✅ Token do Melhor Envio renovado com sucesso.');
+  persistTokensToEnv(data.access_token, data.refresh_token);
+  logger.info('Token do Melhor Envio renovado com sucesso');
   return data;
 }
 

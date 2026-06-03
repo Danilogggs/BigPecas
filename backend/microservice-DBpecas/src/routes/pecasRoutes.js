@@ -367,6 +367,8 @@ router.get('/', async (req, res, next) => {
       sort,
       ordem,
       minhas_pecas,
+      page,
+      limit,
     } = req.query;
 
     let query = supabase.from(PECAS_TABLE).select('*');
@@ -419,11 +421,26 @@ router.get('/', async (req, res, next) => {
     const sortField = validarOrdenacao(sort);
     const ascending = ordem && String(ordem).toLowerCase() === 'asc';
 
-    const { data, error } = await query.order(sortField, { ascending });
+    query = query.order(sortField, { ascending });
+
+    // Paginação — padrão: 40 itens por página
+    const pageSize  = Math.min(Math.max(Number(limit) || 40, 1), 100);
+    const pageIndex = Math.max(Number(page) || 1, 1);
+    const from      = (pageIndex - 1) * pageSize;
+    const to        = from + pageSize - 1;
+
+    const { data, error, count } = await query
+      .select('*', { count: 'estimated' })
+      .range(from, to);
 
     if (error) {
       throw error;
     }
+
+    res.set('X-Total-Count', String(count ?? 0));
+    res.set('X-Page',        String(pageIndex));
+    res.set('X-Page-Size',   String(pageSize));
+    res.set('Access-Control-Expose-Headers', 'X-Total-Count, X-Page, X-Page-Size');
 
     return res.json(data || []);
   } catch (error) {

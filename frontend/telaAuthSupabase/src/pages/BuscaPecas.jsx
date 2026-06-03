@@ -30,6 +30,10 @@ export default function BuscaPecas() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [pecas, setPecas] = useState([]);
+  const [totalPecas, setTotalPecas] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingCategorias, setLoadingCategorias] = useState(true);
@@ -37,6 +41,7 @@ export default function BuscaPecas() {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [wishIds, setWishIds] = useState(() => new Set());
   const [wishLoadingId, setWishLoadingId] = useState(null);
+  const PAGE_SIZE = 24;
 
   const [filters, setFilters] = useState({
     nome: nomeUrl,
@@ -75,44 +80,45 @@ export default function BuscaPecas() {
     }));
   }, [searchParams]);
 
-  const fetchPecas = async () => {
-    const params = {
-      ...filters,
-      sort,
-      ordem,
-    };
+  const fetchPecas = async (page = 1, append = false) => {
+    const params = { ...filters, sort, ordem, page, limit: PAGE_SIZE };
 
-    setLoading(true);
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     setErrorMessage('');
 
     try {
-      const data = await listarPecas(params);
-      const pecasData = Array.isArray(data) ? data : [];
-      setPecas(pecasData);
+      const result = await listarPecas(params);
+      const pecasData = Array.isArray(result?.data) ? result.data : [];
+
+      setPecas((prev) => append ? [...prev, ...pecasData] : pecasData);
+      setTotalPecas(result?.total ?? pecasData.length);
+      setHasMore(result?.hasMore ?? false);
+      setCurrentPage(page);
 
       try {
         const wishData = await listarWish();
         const pecasWish = Array.isArray(wishData?.pecas) ? wishData.pecas : [];
         setWishIds(new Set(pecasWish.map((peca) => String(peca.id))));
-      } catch (wishError) {
-        console.error('Erro ao sincronizar lista de desejos:', wishError);
-      }
+      } catch { /* wish não é crítico */ }
     } catch (error) {
-      console.error('Erro ao buscar peças:', error);
-      setPecas([]);
+      if (!append) setPecas([]);
       setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar as peças no momento.'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
+  const handleCarregarMais = () => fetchPecas(currentPage + 1, true);
+
   useEffect(() => {
-    fetchPecas();
+    fetchPecas(1);
   }, [sort, ordem]);
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchPecas();
+      fetchPecas(1);
     }, 400);
 
     return () => clearTimeout(delay);
@@ -802,6 +808,29 @@ export default function BuscaPecas() {
             </Link>
           ))}
         </div>
+
+        {/* Paginação — Carregar mais */}
+        {!loading && pecas.length > 0 && (
+          <div style={{ padding: `0 ${SPACING.XL} ${SPACING.XL}`, textAlign: 'center' }}>
+            <p style={{ fontSize: '0.82rem', color: '#9B7B6A', marginBottom: SPACING.MD }}>
+              Exibindo {pecas.length} de {totalPecas} peças
+            </p>
+            {hasMore && (
+              <button
+                onClick={handleCarregarMais}
+                disabled={loadingMore}
+                style={{
+                  ...BUTTON_PRIMARY_STYLE,
+                  opacity: loadingMore ? 0.6 : 1,
+                  cursor: loadingMore ? 'not-allowed' : 'pointer',
+                  padding: '12px 32px',
+                }}
+              >
+                {loadingMore ? 'Carregando...' : 'Carregar mais peças'}
+              </button>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

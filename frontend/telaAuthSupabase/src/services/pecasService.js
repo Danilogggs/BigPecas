@@ -42,19 +42,22 @@ export const listarPecas = async (params = {}) => {
     const query = buildQuery(params);
     const url = query ? `${API_BASE_URL}/pecas?${query}` : `${API_BASE_URL}/pecas`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
+    const response = await fetch(url, { method: 'GET', headers });
 
     if (!response.ok) {
       const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.list);
       throw createFriendlyError(message);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Expõe metadados de paginação junto com os dados
+    const total = Number(response.headers.get('X-Total-Count') ?? data.length);
+    const page  = Number(response.headers.get('X-Page') ?? 1);
+    const pageSize = Number(response.headers.get('X-Page-Size') ?? data.length);
+
+    return { data, total, page, pageSize, hasMore: page * pageSize < total };
   } catch (error) {
-    console.error('Erro ao listar peças:', error);
     throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.list));
   }
 };
@@ -66,19 +69,20 @@ export const listarMinhasPecas = async (params = {}) => {
     const query = buildQuery(queryParams);
     const url = query ? `${API_BASE_URL}/pecas?${query}` : `${API_BASE_URL}/pecas?minhas_pecas=true`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
+    const response = await fetch(url, { method: 'GET', headers });
 
     if (!response.ok) {
       const message = await parseErrorResponse(response, FRIENDLY_DEFAULT_MESSAGES.list);
       throw createFriendlyError(message);
     }
 
-    return await response.json();
+    const data = await response.json();
+    const total = Number(response.headers.get('X-Total-Count') ?? data.length);
+    const page  = Number(response.headers.get('X-Page') ?? 1);
+    const pageSize = Number(response.headers.get('X-Page-Size') ?? data.length);
+
+    return { data, total, page, pageSize, hasMore: page * pageSize < total };
   } catch (error) {
-    console.error('Erro ao listar minhas peças:', error);
     throw createFriendlyError(parseUnexpectedError(error, FRIENDLY_DEFAULT_MESSAGES.list));
   }
 };
