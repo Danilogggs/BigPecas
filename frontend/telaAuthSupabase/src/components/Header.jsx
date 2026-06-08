@@ -112,6 +112,7 @@ export default function Header() {
                   { label: 'Editar perfil',      path: '/perfil' },
                   { label: 'Lista de Desejos',   path: '/wish' },
                   { label: 'Carrinho',           path: '/carrinho' },
+                  { label: 'Chats',              path: '/chats' },
                   { label: 'Meus Pedidos',       path: '/pedidos' },
                 ].map(({ label, path }) => (
                   <button
