@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import {
   listarMinhasPecas,
   listarCategorias,
@@ -34,11 +35,14 @@ const INITIAL_FORM = {
 const pageStyles = `
   .editar-pecas-container {
     min-height: 100vh;
-    background: #f3ead7;
-    padding: 32px 20px;
+    background: #EDE4CC;
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
-    color: #3a1a16;
+    color: #1A2820;
+  }
+
+  .editar-pecas-main {
+    padding: 32px 20px;
   }
 
   .editar-pecas-container * {
@@ -49,26 +53,43 @@ const pageStyles = `
     max-width: 1180px;
     margin: 0 auto 24px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 16px;
   }
 
   .editar-pecas-header h1 {
     margin: 0;
-    color: #7B1D2E;
+    color: #152218;
     font-size: 34px;
     font-weight: 900;
     letter-spacing: -0.04em;
   }
 
+  .editar-pecas-kicker {
+    margin: 0 0 6px;
+    color: #6B7D6E;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .editar-pecas-subtitle {
+    margin: 8px 0 0;
+    color: #6B7D6E;
+    font-size: 15px;
+    max-width: 640px;
+    line-height: 1.5;
+  }
+
   .editar-pecas-header button,
   .form-actions button {
-    border: 1px solid rgba(123, 29, 46, 0.2);
+    border: 1px solid rgba(21, 34, 24, 0.2);
     border-radius: 9999px;
     padding: 12px 20px;
     background: #fff;
-    color: #7B1D2E;
+    color: #152218;
     font-weight: 800;
     cursor: pointer;
     transition: 0.2s ease;
@@ -77,7 +98,7 @@ const pageStyles = `
   .editar-pecas-header button:hover,
   .form-actions button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(123, 29, 46, 0.12);
+    box-shadow: 0 8px 18px rgba(21, 34, 24, 0.12);
   }
 
   .editar-pecas-content {
@@ -104,7 +125,7 @@ const pageStyles = `
   .pecas-list-header h2,
   .form-title {
     margin: 0 0 18px;
-    color: #7B1D2E;
+    color: #152218;
     font-weight: 900;
   }
 
@@ -136,8 +157,8 @@ const pageStyles = `
   .form-input:focus,
   .form-select:focus,
   .form-textarea:focus {
-    border-color: #7B1D2E;
-    box-shadow: 0 0 0 3px rgba(123, 29, 46, 0.12);
+    border-color: #152218;
+    box-shadow: 0 0 0 3px rgba(21, 34, 24, 0.12);
   }
 
   .pecas-list-content {
@@ -155,12 +176,12 @@ const pageStyles = `
   }
 
   .pecas-list-content::-webkit-scrollbar-thumb {
-    background: rgba(123, 29, 46, 0.25);
+    background: rgba(21, 34, 24, 0.25);
     border-radius: 999px;
   }
 
   .pecas-list-empty {
-    color: #8b6b5c;
+    color: #6B7D6E;
     text-align: center;
     padding: 32px 12px;
   }
@@ -170,19 +191,19 @@ const pageStyles = `
     border-radius: 16px;
     padding: 14px;
     cursor: pointer;
-    background: #fffaf0;
+    background: #F5EDD8;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .peca-item:hover,
   .peca-item.active {
-    border-color: #7B1D2E;
-    box-shadow: 0 8px 18px rgba(123, 29, 46, 0.12);
+    border-color: #152218;
+    box-shadow: 0 8px 18px rgba(21, 34, 24, 0.12);
     transform: translateY(-1px);
   }
 
   .peca-item-nome {
-    color: #3a1a16;
+    color: #1A2820;
     font-weight: 900;
     margin-bottom: 6px;
     line-height: 1.3;
@@ -190,7 +211,7 @@ const pageStyles = `
 
   .peca-item-sku,
   .peca-item-preco {
-    color: #8b6b5c;
+    color: #6B7D6E;
     font-size: 14px;
     line-height: 1.5;
   }
@@ -214,7 +235,7 @@ const pageStyles = `
   }
 
   .form-label {
-    color: #7B1D2E;
+    color: #152218;
     font-weight: 800;
     font-size: 14px;
   }
@@ -251,7 +272,7 @@ const pageStyles = `
 
   .form-message.error {
     background: #fee2e2;
-    color: #7B1D2E;
+    color: #152218;
   }
 
   .image-preview {
@@ -270,8 +291,8 @@ const pageStyles = `
 
   .form-actions button[type="submit"] {
     border: none;
-    background: #F0C060;
-    color: #3a1a16;
+    background: #C9A84C;
+    color: #1A2820;
   }
 
   .form-actions button:disabled {
@@ -287,11 +308,11 @@ const pageStyles = `
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: #8b6b5c;
+    color: #6B7D6E;
   }
 
   .editar-form-empty-text {
-    color: #7B1D2E;
+    color: #152218;
     font-size: 24px;
     font-weight: 900;
     margin-bottom: 8px;
@@ -332,13 +353,13 @@ const pageStyles = `
   }
 
   .form-image-help {
-    color: #8b6b5c;
+    color: #6B7D6E;
     font-size: 13px;
     margin-top: 8px;
   }
 
   @media (max-width: 860px) {
-    .editar-pecas-container {
+    .editar-pecas-main {
       padding: 24px 14px;
     }
 
@@ -388,13 +409,19 @@ export default function EditarPecas() {
           listarMateriais(),
         ]);
 
-        setPecas(Array.isArray(pecasData) ? pecasData : []);
+        const minhasPecas = Array.isArray(pecasData?.data)
+          ? pecasData.data
+          : Array.isArray(pecasData)
+            ? pecasData
+            : [];
+
+        setPecas(minhasPecas);
         setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
         setMateriais(Array.isArray(materiaisData) ? materiaisData : []);
       } catch (error) {
         setMessage({
           type: 'error',
-          text: error?.message || 'Não foi possível carregar as peças e opções.',
+          text: error?.message || 'Não foi possível carregar suas peças e opções.',
         });
       } finally {
         setLoading(false);
@@ -595,7 +622,7 @@ export default function EditarPecas() {
             alignItems: 'center',
           }}
         >
-          <span style={{ color: '#7B1D2E', fontWeight: 800 }}>
+          <span style={{ color: '#152218', fontWeight: 800 }}>
             Carregando suas peças...
           </span>
         </div>
@@ -608,14 +635,21 @@ export default function EditarPecas() {
       <style>{pageStyles}</style>
 
       <div className="editar-pecas-container">
-        <div className="editar-pecas-header">
-          <h1>BigPeças</h1>
-          <button type="button" onClick={() => navigate('/')}>
-            ← Voltar para home
-          </button>
-        </div>
+        <Header />
 
-        <div className="editar-pecas-content">
+        <main className="editar-pecas-main">
+          <div className="editar-pecas-header">
+            <div>
+              <p className="editar-pecas-kicker">Área do vendedor</p>
+              <h1>Editar minhas peças</h1>
+              <p className="editar-pecas-subtitle">Selecione uma peça cadastrada para revisar informações, estoque, preço e imagem.</p>
+            </div>
+            <button type="button" onClick={() => navigate('/cadastroPecas')}>
+              + Cadastrar nova peça
+            </button>
+          </div>
+
+          <div className="editar-pecas-content">
           <PecasList
             pecas={pecas}
             filteredPecas={filteredPecas}
@@ -655,7 +689,8 @@ export default function EditarPecas() {
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </main>
       </div>
     </>
   );

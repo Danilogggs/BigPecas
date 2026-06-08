@@ -1,32 +1,22 @@
 /**
  * CadastroPecas.jsx
- * Register parts page following the design pattern
+ * Tela de cadastro de peças ajustada para usar o padrão visual verde do BigPeças.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { SearchIcon, UserIcon, ChevronDownIcon, WrenchIcon, BoltIcon, StarIcon } from '../components/Icons';
+import Header from '../components/Header';
 import { cadastrarPeca, listarCategorias, listarMateriais } from '../services/pecasService';
-// Itens de menu da sidebar de cadastro
-const menuItems = [
-  { label: 'Catálogo', active: true, icon: 'wrench' },
-  { label: 'FAQ', active: false, icon: 'bolt' },
-  { label: 'Fornecedores', active: false, icon: 'star' },
-];
-
-const BORDEAUX = '#7B1D2E';
-const CREAM = '#F5EDD8';
-const HIGHLIGHT = '#F0C060';
-
-const SPACING = {
-  XS: '0.25rem',
-  SM: '0.5rem',
-  MD: '1rem',
-  LG: '1.5rem',
-  XL: '2rem',
-  XXL: '2.5rem',
-};
+import {
+  BORDER_RADIUS,
+  BUTTON_PRIMARY_STYLE,
+  BUTTON_SECONDARY_STYLE,
+  CARD_STYLE,
+  COLORS,
+  SHADOWS,
+  SPACING,
+} from '../styles/theme';
+import { parseUnexpectedError } from '../utils/friendlyErrors';
 
 const INITIAL_FORM = {
   nome_peca: '',
@@ -51,19 +41,160 @@ const REGEX = {
   nome_peca: /^[A-Za-zÀ-ÿ0-9\s.,ºª°/()-]{3,150}$/,
   sku: /^[A-Z0-9-]{3,30}$/,
   codigoOpcional: /^[A-Z0-9-]{2,50}$/,
-  textoSimples: /^[A-Za-zÀ-ÿ0-9\s.,ºª°/()-]{2,80}$/,
   numeroInteiro: /^\d+$/,
   preco: /^\d+([.,]\d{1,2})?$/,
 };
 
+const fieldBaseStyle = {
+  width: '100%',
+  padding: '0.75rem 1rem',
+  border: `1.5px solid ${COLORS.BORDER}`,
+  borderRadius: BORDER_RADIUS.MD,
+  fontSize: '0.93rem',
+  color: COLORS.DARK_TEXT,
+  backgroundColor: '#fff',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+const textareaBaseStyle = {
+  ...fieldBaseStyle,
+  minHeight: 110,
+  resize: 'vertical',
+};
+
+const labelStyle = {
+  display: 'block',
+  marginBottom: SPACING.SM,
+  color: COLORS.MUTED_TEXT,
+  fontSize: '0.78rem',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const errorStyle = {
+  marginTop: SPACING.XS,
+  color: COLORS.ERROR_DARK || '#B91C1C',
+  fontSize: '0.78rem',
+  fontWeight: 600,
+};
+
+function normalizeCode(value) {
+  return value.toUpperCase().replace(/\s/g, '');
+}
+
+function normalizePrice(value) {
+  return value.replace(',', '.');
+}
+
+function getFieldStyle(hasError, baseStyle = fieldBaseStyle) {
+  return {
+    ...baseStyle,
+    borderColor: hasError ? '#B91C1C' : COLORS.BORDER,
+    backgroundColor: hasError ? '#FFF7F7' : '#fff',
+    boxShadow: hasError ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
+  };
+}
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return <div style={errorStyle}>{message}</div>;
+}
+
+function FormGroup({ label, required, error, children, style }) {
+  return (
+    <div style={style}>
+      <label style={labelStyle}>
+        {label}{required ? ' *' : ''}
+      </label>
+      {children}
+      <FieldError message={error} />
+    </div>
+  );
+}
+
+function InfoModal({ open, title, text, onClose }) {
+  if (!open) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.48)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: SPACING.LG,
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 460,
+          backgroundColor: '#fff',
+          borderRadius: BORDER_RADIUS.LG,
+          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden',
+          border: `1px solid ${COLORS.BORDER}`,
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: COLORS.BORDEAUX,
+            color: COLORS.CREAM,
+            padding: SPACING.LG,
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              color: COLORS.CREAM,
+              fontSize: '1.25rem',
+              fontFamily: 'Georgia, serif',
+            }}
+          >
+            {title}
+          </h2>
+        </div>
+
+        <div style={{ padding: SPACING.LG }}>
+          <p
+            style={{
+              margin: 0,
+              color: COLORS.DARK_TEXT,
+              lineHeight: 1.6,
+              fontSize: '0.96rem',
+            }}
+          >
+            {text}
+          </p>
+
+          <div
+            style={{
+              marginTop: SPACING.LG,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              style={BUTTON_PRIMARY_STYLE}
+            >
+              Entendi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CadastroPecas() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState('Catálogo');
-  const [searchQuery, setSearchQuery] = useState('');
-  const dropdownRef = useRef(null);
   const imageInputRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
@@ -74,15 +205,12 @@ export default function CadastroPecas() {
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [imagemPreview, setImagemPreview] = useState('');
-
-  const [modal, setModal] = useState({
-    open: false,
-    title: '',
-    text: '',
-  });
+  const [modal, setModal] = useState({ open: false, title: '', text: '' });
 
   useEffect(() => {
     async function carregarOpcoes() {
+      setLoadingOptions(true);
+
       try {
         const [categoriasData, materiaisData] = await Promise.all([
           listarCategorias(),
@@ -94,7 +222,7 @@ export default function CadastroPecas() {
       } catch (error) {
         setMessage({
           type: 'error',
-          text: error?.message || 'Não foi possível carregar categorias e materiais agora.',
+          text: parseUnexpectedError(error, 'Não foi possível carregar categorias e materiais agora.'),
         });
       } finally {
         setLoadingOptions(false);
@@ -104,34 +232,8 @@ export default function CadastroPecas() {
     carregarOpcoes();
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const iconMap = {
-    wrench: <WrenchIcon size={16} />,
-    bolt: <BoltIcon size={16} />,
-    star: <StarIcon size={16} />,
-  };
-
-  function normalizeCode(value) {
-    return value.toUpperCase().replace(/\s/g, '');
-  }
-
-  function normalizePrice(value) {
-    return value.replace(',', '.');
-  }
-
   function handleInputChange(e) {
     const { name, value } = e.target;
-
     const newValue = ['sku', 'oem_number', 'num_serie'].includes(name)
       ? normalizeCode(value)
       : value;
@@ -155,10 +257,7 @@ export default function CadastroPecas() {
     setMessage({ type: '', text: '' });
 
     if (!file) {
-      setFormData((prev) => ({
-        ...prev,
-        imagem: '',
-      }));
+      setFormData((prev) => ({ ...prev, imagem: '' }));
       setImagemPreview('');
       return;
     }
@@ -171,11 +270,7 @@ export default function CadastroPecas() {
         text: 'Selecione uma imagem nos formatos JPG, PNG ou WEBP.',
       });
 
-      setFormData((prev) => ({
-        ...prev,
-        imagem: '',
-      }));
-
+      setFormData((prev) => ({ ...prev, imagem: '' }));
       setImagemPreview('');
 
       if (imageInputRef.current) {
@@ -194,11 +289,7 @@ export default function CadastroPecas() {
         text: `A imagem deve ter no máximo ${tamanhoMaximoMB}MB.`,
       });
 
-      setFormData((prev) => ({
-        ...prev,
-        imagem: '',
-      }));
-
+      setFormData((prev) => ({ ...prev, imagem: '' }));
       setImagemPreview('');
 
       if (imageInputRef.current) {
@@ -225,11 +316,7 @@ export default function CadastroPecas() {
   }
 
   function removerImagem() {
-    setFormData((prev) => ({
-      ...prev,
-      imagem: '',
-    }));
-
+    setFormData((prev) => ({ ...prev, imagem: '' }));
     setImagemPreview('');
 
     if (imageInputRef.current) {
@@ -240,23 +327,18 @@ export default function CadastroPecas() {
   }
 
   function abrirModal(title, text) {
-    setModal({
-      open: true,
-      title,
-      text,
-    });
+    setModal({ open: true, title, text });
   }
 
   function fecharModal() {
-    setModal({
-      open: false,
-      title: '',
-      text: '',
-    });
+    setModal({ open: false, title: '', text: '' });
   }
 
   function tratarErroCadastro(error) {
-    const textoErro = error?.message || 'Não foi possível cadastrar a peça. Revise os dados e tente novamente.';
+    const textoErro = parseUnexpectedError(
+      error,
+      'Não foi possível cadastrar a peça. Revise os dados e tente novamente.'
+    );
     const textoNormalizado = textoErro.toLowerCase();
 
     if (
@@ -284,10 +366,7 @@ export default function CadastroPecas() {
       return;
     }
 
-    setMessage({
-      type: 'error',
-      text: textoErro,
-    });
+    setMessage({ type: 'error', text: textoErro });
   }
 
   function validateForm() {
@@ -377,7 +456,6 @@ export default function CadastroPecas() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     setMessage({ type: '', text: '' });
 
     if (!validateForm()) {
@@ -403,7 +481,11 @@ export default function CadastroPecas() {
 
     try {
       const response = await cadastrarPeca(payload);
-      setMessage({ type: 'success', text: response.message || 'Peça cadastrada com sucesso!' });
+
+      setMessage({
+        type: 'success',
+        text: response?.message || 'Peça cadastrada com sucesso!',
+      });
       setFormData(INITIAL_FORM);
       setImagemPreview('');
       setErrors({});
@@ -418,713 +500,362 @@ export default function CadastroPecas() {
     }
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: SPACING.MD,
-    border: '1px solid #ddd',
-    borderRadius: '0.5rem',
-    boxSizing: 'border-box',
-  };
-
-  const textAreaStyle = {
-    width: '100%',
-    padding: SPACING.MD,
-    border: '1px solid #ddd',
-    borderRadius: '0.5rem',
-    boxSizing: 'border-box',
-    minHeight: '100px',
-  };
-
-  const errorStyle = {
-    marginTop: '6px',
-    color: '#B91C1C',
-    fontSize: '0.82rem',
-    fontWeight: 600,
-  };
-
-  function getInputStyle(fieldName) {
-    return {
-      ...inputStyle,
-      border: errors[fieldName] ? '1.5px solid #B91C1C' : '1px solid #ddd',
-      boxShadow: errors[fieldName] ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
-    };
-  }
-
-  function getTextAreaStyle(fieldName) {
-    return {
-      ...textAreaStyle,
-      border: errors[fieldName] ? '1.5px solid #B91C1C' : '1px solid #ddd',
-      boxShadow: errors[fieldName] ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
-    };
-  }
-
-  function FieldError({ name }) {
-    if (!errors[name]) return null;
-    return <div style={errorStyle}>{errors[name]}</div>;
-  }
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {modal.open && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: SPACING.LG,
-          }}
-        >
+    <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
+      <InfoModal
+        open={modal.open}
+        title={modal.title}
+        text={modal.text}
+        onClose={fecharModal}
+      />
+
+      <Header />
+
+      <main
+        style={{
+          width: '100%',
+          maxWidth: 1120,
+          margin: '0 auto',
+          padding: `${SPACING.XL} ${SPACING.LG} ${SPACING.XXL}`,
+        }}
+      >
+        <div className="page-header">
+          <div className="page-breadcrumb">
+            <button type="button" onClick={() => navigate('/')}>
+              Início
+            </button>
+            <span>›</span>
+            <button type="button" onClick={() => navigate('/buscaPecas')}>
+              Catálogo
+            </button>
+            <span>›</span>
+            <span className="current">Cadastrar peça</span>
+          </div>
+
           <div
             style={{
-              width: '100%',
-              maxWidth: 460,
-              backgroundColor: '#fff',
-              borderRadius: '1rem',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-              overflow: 'hidden',
-              border: `2px solid ${BORDEAUX}22`,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              gap: SPACING.LG,
+              flexWrap: 'wrap',
             }}
           >
-            <div
-              style={{
-                backgroundColor: BORDEAUX,
-                color: CREAM,
-                padding: SPACING.LG,
-              }}
+            <div>
+              <p
+                style={{
+                  margin: `0 0 ${SPACING.XS}`,
+                  color: COLORS.HIGHLIGHT,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontSize: '0.72rem',
+                }}
+              >
+                Catálogo BigPeças
+              </p>
+
+              <h1 className="page-title">Cadastrar Peça</h1>
+              <p className="page-subtitle">
+                Adicione novos itens ao catálogo usando o mesmo padrão visual das outras telas.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate('/editar-pecas')}
+              style={BUTTON_SECONDARY_STYLE}
             >
+              Minhas peças
+            </button>
+          </div>
+        </div>
+
+        {message.text && (
+          <div
+            style={{
+              padding: SPACING.MD,
+              marginBottom: SPACING.LG,
+              borderRadius: BORDER_RADIUS.MD,
+              backgroundColor: message.type === 'success' ? COLORS.SUCCESS : COLORS.ERROR,
+              color: message.type === 'success' ? COLORS.SUCCESS_DARK : COLORS.ERROR_DARK,
+              border: `1.5px solid ${message.type === 'success' ? COLORS.SUCCESS_BORDER : COLORS.ERROR_BORDER}`,
+              boxShadow: SHADOWS.SM,
+              fontSize: '0.95rem',
+              fontWeight: 600,
+            }}
+          >
+            {message.text}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate>
+          <section
+            style={{
+              ...CARD_STYLE,
+              padding: SPACING.XL,
+              marginBottom: SPACING.LG,
+            }}
+          >
+            <div style={{ marginBottom: SPACING.LG }}>
               <h2
                 style={{
                   margin: 0,
-                  fontSize: '1.25rem',
-                  fontFamily: "'Georgia', serif",
+                  color: COLORS.BORDEAUX,
+                  fontSize: '1.2rem',
+                  fontFamily: 'Georgia, serif',
                 }}
               >
-                {modal.title}
+                Dados principais
               </h2>
-            </div>
-
-            <div style={{ padding: SPACING.LG }}>
               <p
                 style={{
-                  margin: 0,
-                  color: '#6B4F43',
-                  lineHeight: 1.6,
-                  fontSize: '0.96rem',
+                  margin: `${SPACING.XS} 0 0`,
+                  color: COLORS.MUTED_TEXT,
+                  fontSize: '0.9rem',
                 }}
               >
-                {modal.text}
+                Identificação, categoria, material, preço e estoque da peça.
               </p>
-
-              <div
-                style={{
-                  marginTop: SPACING.LG,
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: SPACING.SM,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={fecharModal}
-                  style={{
-                    padding: `${SPACING.SM} ${SPACING.LG}`,
-                    borderRadius: '0.5rem',
-                    border: 'none',
-                    backgroundColor: BORDEAUX,
-                    color: CREAM,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Entendi
-                </button>
-              </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: `0 ${SPACING.LG}`,
-          backgroundColor: BORDEAUX,
-          minHeight: 64,
-          flexShrink: 0,
-          gap: SPACING.LG,
-        }}
-      >
-        <div style={{ width: '20%', display: 'flex', alignItems: 'center', gap: SPACING.SM }}>
-          <span
-            style={{
-              color: CREAM,
-              fontFamily: "'Georgia', serif",
-              fontSize: '1.55rem',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textShadow: '1px 1px 4px rgba(0,0,0,0.35)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            🔧 Big<span style={{ color: HIGHLIGHT }}>Peças</span>
-          </span>
-        </div>
-
-        <div style={{ width: '25%' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '100%',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(255,255,255,0.13)',
-              border: '1.5px solid rgba(255,255,255,0.3)',
-              overflow: 'hidden',
-            }}
-          >
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar peças, modelos..."
-              style={{
-                flex: 1,
-                backgroundColor: 'transparent',
-                outline: 'none',
-                border: 'none',
-                padding: `${SPACING.SM} ${SPACING.MD}`,
-                fontSize: '0.875rem',
-                color: '#fff',
-              }}
-            />
-
-            <button
-              type="button"
-              style={{
-                padding: `${SPACING.SM} ${SPACING.MD}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: HIGHLIGHT,
-                cursor: 'pointer',
-                opacity: 1,
-                transition: 'opacity 0.2s',
-              }}
-            >
-              <SearchIcon size={17} />
-            </button>
-          </div>
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{ position: 'relative' }} ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={() => setDropdownOpen((v) => !v)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              padding: `${SPACING.SM} ${SPACING.MD}`,
-              borderRadius: '9999px',
-              backgroundColor: dropdownOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
-              border: 'none',
-              color: CREAM,
-              cursor: 'pointer',
-              transition: 'all 0.25s',
-            }}
-          >
-            <ChevronDownIcon
-              size={17}
-              color={HIGHLIGHT}
-              style={{
-                transition: 'transform 0.25s',
-                transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              }}
-            />
-            <UserIcon size={26} />
-          </button>
-
-          {dropdownOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: '100%',
-                marginTop: SPACING.SM,
-                minWidth: 190,
-                backgroundColor: '#fff',
-                border: `1.5px solid ${BORDEAUX}22`,
-                borderRadius: '0.75rem',
-                overflow: 'hidden',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                zIndex: 50,
-              }}
-            >
-              {user ? (
-                <>
-                  <button
-                    type="button"
-                    style={{
-                      width: '100%',
-                      padding: `${SPACING.MD} ${SPACING.LG}`,
-                      fontSize: '0.875rem',
-                      color: BORDEAUX,
-                      border: 'none',
-                      cursor: 'pointer',
-                      backgroundColor: 'transparent',
-                      textAlign: 'left',
-                      fontWeight: 500,
-                      borderBottom: '1px solid #F3E8D8',
-                    }}
-                    onClick={() => {
-                      navigate('/');
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    Início
-                  </button>
-
-                  <button
-                    type="button"
-                    style={{
-                      width: '100%',
-                      padding: `${SPACING.MD} ${SPACING.LG}`,
-                      fontSize: '0.875rem',
-                      color: '#B91C1C',
-                      border: 'none',
-                      cursor: 'pointer',
-                      backgroundColor: 'transparent',
-                      textAlign: 'left',
-                      fontWeight: 500,
-                    }}
-                    onClick={() => {
-                      logout();
-                      navigate('/login');
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    Sair
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  style={{
-                    width: '100%',
-                    padding: `${SPACING.MD} ${SPACING.LG}`,
-                    fontSize: '0.875rem',
-                    color: BORDEAUX,
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: 'transparent',
-                    textAlign: 'left',
-                    fontWeight: 500,
-                  }}
-                  onClick={() => {
-                    navigate('/login');
-                    setDropdownOpen(false);
-                  }}
-                >
-                  Login
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
-
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <aside
-          style={{
-            width: '20%',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            paddingTop: SPACING.LG,
-            paddingBottom: SPACING.XXL,
-            backgroundColor: BORDEAUX,
-            overflowY: 'auto',
-          }}
-        >
-          <p
-            style={{
-              paddingLeft: SPACING.LG,
-              paddingRight: SPACING.LG,
-              paddingBottom: SPACING.SM,
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: 'rgba(255,255,255,0.45)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-            }}
-          >
-            Menu
-          </p>
-
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingLeft: SPACING.MD, paddingRight: SPACING.MD }}>
-            {menuItems.map((item) => {
-              const isActive = activeNav === item.label;
-
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => setActiveNav(item.label)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: SPACING.MD,
-                    padding: `${SPACING.MD} ${SPACING.MD}`,
-                    borderRadius: '0.5rem',
-                    fontSize: '0.875rem',
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
-                    color: isActive ? HIGHLIGHT : CREAM,
-                    fontWeight: isActive ? 600 : 400,
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    borderLeft: isActive ? `3px solid ${HIGHLIGHT}` : '3px solid transparent',
-                    textAlign: 'left',
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: SPACING.MD }}>
-                    {iconMap[item.icon] || iconMap.wrench}
-                    {item.label}
-                  </span>
-                  <span style={{ opacity: isActive ? 1 : 0.4 }}>›</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          <div
-            style={{
-              marginLeft: SPACING.LG,
-              marginRight: SPACING.LG,
-              marginTop: SPACING.LG,
-              marginBottom: SPACING.LG,
-              borderTop: '1px solid rgba(255,255,255,0.12)',
-            }}
-          />
-
-          <div
-            style={{
-              marginLeft: SPACING.MD,
-              marginRight: SPACING.MD,
-              borderRadius: '0.75rem',
-              padding: SPACING.MD,
-              backgroundColor: 'rgba(0,0,0,0.2)',
-            }}
-          >
-            <p style={{ fontSize: '0.75rem', marginBottom: '0.25rem', color: HIGHLIGHT, fontWeight: 700 }}>
-              Cadastro Rápido
-            </p>
-
-            <p style={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'rgba(255,255,255,0.65)' }}>
-              Adicione novos itens ao catálogo de peças vintage.
-            </p>
-
-            <button
-              type="button"
-              style={{
-                marginTop: SPACING.MD,
-                width: '100%',
-                padding: '0.375rem 0',
-                borderRadius: '0.5rem',
-                fontSize: '0.75rem',
-                backgroundColor: HIGHLIGHT,
-                color: BORDEAUX,
-                fontWeight: 700,
-                border: 'none',
-                cursor: 'pointer',
-              }}
-              onClick={() => navigate('/')}
-            >
-              Home
-            </button>
-          </div>
-        </aside>
-
-        <main
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            backgroundColor: CREAM,
-            padding: SPACING.XXL,
-          }}
-        >
-          <h1
-            style={{
-              color: BORDEAUX,
-              fontFamily: "'Georgia', serif",
-              fontSize: '1.8rem',
-              fontWeight: 700,
-              marginBottom: SPACING.SM,
-            }}
-          >
-            Cadastrar Peça
-          </h1>
-
-          <p style={{ color: '#9B7B6A', marginBottom: SPACING.XXL }}>
-            Adicione novos itens ao catálogo de peças vintage
-          </p>
-
-          {message.text && (
-            <div
-              style={{
-                padding: SPACING.MD,
-                marginBottom: SPACING.LG,
-                borderRadius: '0.625rem',
-                backgroundColor: message.type === 'success' ? '#D1FAE5' : '#FEE2E2',
-                color: message.type === 'success' ? '#065F46' : '#7F1D1D',
-                border: `2px solid ${message.type === 'success' ? '#6EE7B7' : '#FCA5A5'}`,
-                fontSize: '0.95rem',
-              }}
-            >
-              {message.text}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate style={{ maxWidth: '800px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: SPACING.LG, marginBottom: SPACING.XL }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Nome da Peça *
-                </label>
+            <div className="form-grid-2">
+              <FormGroup label="Nome da peça" required error={errors.nome_peca}>
                 <input
                   type="text"
                   name="nome_peca"
                   value={formData.nome_peca}
                   onChange={handleInputChange}
-                  style={getInputStyle('nome_peca')}
+                  style={getFieldStyle(errors.nome_peca)}
                 />
-                <FieldError name="nome_peca" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  SKU *
-                </label>
+              <FormGroup label="SKU" required error={errors.sku}>
                 <input
                   type="text"
                   name="sku"
                   placeholder="Ex: OPALA-FRISO-001"
                   value={formData.sku}
                   onChange={handleInputChange}
-                  style={getInputStyle('sku')}
+                  style={getFieldStyle(errors.sku)}
                 />
-                <FieldError name="sku" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Número OEM
-                </label>
+              <FormGroup label="Número OEM" required error={errors.oem_number}>
                 <input
                   type="text"
                   name="oem_number"
                   placeholder="Ex: GM-12345"
                   value={formData.oem_number}
                   onChange={handleInputChange}
-                  style={getInputStyle('oem_number')}
+                  style={getFieldStyle(errors.oem_number)}
                 />
-                <FieldError name="oem_number" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Número de Série
-                </label>
+              <FormGroup label="Número de série" required error={errors.num_serie}>
                 <input
                   type="text"
                   name="num_serie"
                   placeholder="Ex: SN-98765"
                   value={formData.num_serie}
                   onChange={handleInputChange}
-                  style={getInputStyle('num_serie')}
+                  style={getFieldStyle(errors.num_serie)}
                 />
-                <FieldError name="num_serie" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Categoria *
-                </label>
+              <FormGroup label="Categoria" required error={errors.categoria_id}>
                 <select
                   name="categoria_id"
                   value={formData.categoria_id}
                   onChange={handleInputChange}
                   disabled={loadingOptions}
-                  style={getInputStyle('categoria_id')}
+                  style={getFieldStyle(errors.categoria_id)}
                 >
-                  <option value="">{loadingOptions ? 'Carregando categorias...' : 'Selecione uma categoria'}</option>
+                  <option value="">
+                    {loadingOptions ? 'Carregando categorias...' : 'Selecione uma categoria'}
+                  </option>
                   {categorias.map((categoria) => (
-                    <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+                    <option key={categoria.id} value={categoria.id}>
+                      {categoria.nome}
+                    </option>
                   ))}
                 </select>
-                <FieldError name="categoria_id" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Material *
-                </label>
+              <FormGroup label="Material" required error={errors.material_id}>
                 <select
                   name="material_id"
                   value={formData.material_id}
                   onChange={handleInputChange}
                   disabled={loadingOptions}
-                  style={getInputStyle('material_id')}
+                  style={getFieldStyle(errors.material_id)}
                 >
-                  <option value="">{loadingOptions ? 'Carregando materiais...' : 'Selecione um material'}</option>
+                  <option value="">
+                    {loadingOptions ? 'Carregando materiais...' : 'Selecione um material'}
+                  </option>
                   {materiais.map((material) => (
-                    <option key={material.id} value={material.id}>{material.nome}</option>
+                    <option key={material.id} value={material.id}>
+                      {material.nome}
+                    </option>
                   ))}
                 </select>
-                <FieldError name="material_id" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Condição *
-                </label>
+              <FormGroup label="Condição" required>
                 <select
                   name="condicao"
                   value={formData.condicao}
                   onChange={handleInputChange}
-                  style={inputStyle}
+                  style={fieldBaseStyle}
                 >
-                  <option>NOS</option>
-                  <option>EXCELENTE</option>
-                  <option>BOM</option>
-                  <option>ACEITÁVEL</option>
+                  <option value="NOS">NOS</option>
+                  <option value="EXCELENTE">EXCELENTE</option>
+                  <option value="BOM">BOM</option>
+                  <option value="ACEITÁVEL">ACEITÁVEL</option>
                 </select>
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Preço *
-                </label>
+              <FormGroup label="Preço" required error={errors.preco}>
                 <input
                   type="text"
                   name="preco"
                   placeholder="Ex: 3490.00"
                   value={formData.preco}
                   onChange={handleInputChange}
-                  style={getInputStyle('preco')}
+                  style={getFieldStyle(errors.preco)}
                 />
-                <FieldError name="preco" />
-              </div>
+              </FormGroup>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Estoque Atual *
-                </label>
+              <FormGroup label="Estoque atual" required error={errors.estoque_atual}>
                 <input
                   type="text"
                   name="estoque_atual"
                   placeholder="Ex: 3"
                   value={formData.estoque_atual}
                   onChange={handleInputChange}
-                  style={getInputStyle('estoque_atual')}
+                  style={getFieldStyle(errors.estoque_atual)}
                 />
-                <FieldError name="estoque_atual" />
-              </div>
+              </FormGroup>
+            </div>
+          </section>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                  Imagem da Peça
-                </label>
-
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/png, image/jpeg, image/webp"
-                  onChange={handleImageChange}
-                  style={{
-                    ...inputStyle,
-                    backgroundColor: '#fff',
-                    cursor: 'pointer',
-                  }}
-                />
-
-                <p style={{ marginTop: '6px', fontSize: '0.8rem', color: '#9B7B6A' }}>
-                  Formatos aceitos: JPG, PNG ou WEBP. Tamanho máximo: 2MB.
-                </p>
-
-                {imagemPreview && (
-                  <div
-                    style={{
-                      marginTop: SPACING.MD,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: SPACING.MD,
-                      padding: SPACING.MD,
-                      backgroundColor: '#fff',
-                      borderRadius: '0.75rem',
-                      border: '1px solid #E5D6C0',
-                    }}
-                  >
-                    <img
-                      src={imagemPreview}
-                      alt="Prévia da peça"
-                      style={{
-                        width: 140,
-                        height: 105,
-                        objectFit: 'cover',
-                        borderRadius: '0.5rem',
-                        border: `2px solid ${BORDEAUX}22`,
-                        backgroundColor: '#F8F1E3',
-                      }}
-                    />
-
-                    <div>
-                      <p style={{ margin: 0, color: BORDEAUX, fontWeight: 700 }}>
-                        Prévia da imagem
-                      </p>
-
-                      <p style={{ margin: '4px 0 0', color: '#9B7B6A', fontSize: '0.82rem' }}>
-                        Essa imagem será salva junto com a peça.
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={removerImagem}
-                        style={{
-                          marginTop: SPACING.SM,
-                          padding: '0.4rem 0.75rem',
-                          borderRadius: '0.5rem',
-                          border: 'none',
-                          backgroundColor: '#FEE2E2',
-                          color: '#991B1B',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Remover imagem
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+          <section
+            style={{
+              ...CARD_STYLE,
+              padding: SPACING.XL,
+              marginBottom: SPACING.LG,
+            }}
+          >
+            <div style={{ marginBottom: SPACING.LG }}>
+              <h2
+                style={{
+                  margin: 0,
+                  color: COLORS.BORDEAUX,
+                  fontSize: '1.2rem',
+                  fontFamily: 'Georgia, serif',
+                }}
+              >
+                Imagem e especificações
+              </h2>
+              <p
+                style={{
+                  margin: `${SPACING.XS} 0 0`,
+                  color: COLORS.MUTED_TEXT,
+                  fontSize: '0.9rem',
+                }}
+              >
+                Foto, dimensões, peso e informações técnicas da peça.
+              </p>
             </div>
 
-            <div style={{ marginBottom: SPACING.XL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                Dimensões (mm)
-              </label>
+            <FormGroup label="Imagem da peça">
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                onChange={handleImageChange}
+                style={{
+                  ...fieldBaseStyle,
+                  cursor: 'pointer',
+                }}
+              />
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: SPACING.MD }}>
+              <p
+                style={{
+                  margin: `${SPACING.SM} 0 0`,
+                  fontSize: '0.82rem',
+                  color: COLORS.MUTED_TEXT,
+                }}
+              >
+                Formatos aceitos: JPG, PNG ou WEBP. Tamanho máximo: 2MB.
+              </p>
+
+              {imagemPreview && (
+                <div
+                  style={{
+                    marginTop: SPACING.MD,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: SPACING.MD,
+                    padding: SPACING.MD,
+                    backgroundColor: '#FAF4E8',
+                    borderRadius: BORDER_RADIUS.LG,
+                    border: `1px solid ${COLORS.BORDER}`,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <img
+                    src={imagemPreview}
+                    alt="Prévia da peça"
+                    style={{
+                      width: 150,
+                      height: 110,
+                      objectFit: 'cover',
+                      borderRadius: BORDER_RADIUS.MD,
+                      border: `2px solid ${COLORS.BORDEAUX}22`,
+                      backgroundColor: COLORS.CREAM,
+                    }}
+                  />
+
+                  <div style={{ flex: 1, minWidth: 220 }}>
+                    <p style={{ margin: 0, color: COLORS.BORDEAUX, fontWeight: 800 }}>
+                      Prévia da imagem
+                    </p>
+                    <p
+                      style={{
+                        margin: `${SPACING.XS} 0 0`,
+                        color: COLORS.MUTED_TEXT,
+                        fontSize: '0.86rem',
+                      }}
+                    >
+                      Essa imagem será salva junto com a peça.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={removerImagem}
+                      style={{
+                        marginTop: SPACING.SM,
+                        padding: '0.45rem 0.85rem',
+                        borderRadius: BORDER_RADIUS.MD,
+                        border: 'none',
+                        backgroundColor: COLORS.ERROR,
+                        color: COLORS.ERROR_DARK,
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                      }}
+                    >
+                      Remover imagem
+                    </button>
+                  </div>
+                </div>
+              )}
+            </FormGroup>
+
+            <div style={{ height: SPACING.LG }} />
+
+            <FormGroup label="Dimensões em milímetros" required>
+              <div className="form-grid-3">
                 <div>
                   <input
                     type="number"
@@ -1134,9 +865,9 @@ export default function CadastroPecas() {
                     step="1"
                     value={formData.comprimento_mm}
                     onChange={handleInputChange}
-                    style={getInputStyle('comprimento_mm')}
+                    style={getFieldStyle(errors.comprimento_mm)}
                   />
-                  <FieldError name="comprimento_mm" />
+                  <FieldError message={errors.comprimento_mm} />
                 </div>
 
                 <div>
@@ -1148,9 +879,9 @@ export default function CadastroPecas() {
                     step="1"
                     value={formData.largura_mm}
                     onChange={handleInputChange}
-                    style={getInputStyle('largura_mm')}
+                    style={getFieldStyle(errors.largura_mm)}
                   />
-                  <FieldError name="largura_mm" />
+                  <FieldError message={errors.largura_mm} />
                 </div>
 
                 <div>
@@ -1162,17 +893,16 @@ export default function CadastroPecas() {
                     step="1"
                     value={formData.altura_mm}
                     onChange={handleInputChange}
-                    style={getInputStyle('altura_mm')}
+                    style={getFieldStyle(errors.altura_mm)}
                   />
-                  <FieldError name="altura_mm" />
+                  <FieldError message={errors.altura_mm} />
                 </div>
               </div>
-            </div>
+            </FormGroup>
 
-            <div style={{ marginBottom: SPACING.XL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                Peso (gramas)
-              </label>
+            <div style={{ height: SPACING.LG }} />
+
+            <FormGroup label="Peso em gramas" required error={errors.peso_gramas}>
               <input
                 type="number"
                 name="peso_gramas"
@@ -1181,58 +911,100 @@ export default function CadastroPecas() {
                 step="1"
                 value={formData.peso_gramas}
                 onChange={handleInputChange}
-                style={getInputStyle('peso_gramas')}
+                style={getFieldStyle(errors.peso_gramas)}
               />
-              <FieldError name="peso_gramas" />
+            </FormGroup>
+          </section>
+
+          <section
+            style={{
+              ...CARD_STYLE,
+              padding: SPACING.XL,
+              marginBottom: SPACING.LG,
+            }}
+          >
+            <div style={{ marginBottom: SPACING.LG }}>
+              <h2
+                style={{
+                  margin: 0,
+                  color: COLORS.BORDEAUX,
+                  fontSize: '1.2rem',
+                  fontFamily: 'Georgia, serif',
+                }}
+              >
+                Descrição técnica
+              </h2>
+              <p
+                style={{
+                  margin: `${SPACING.XS} 0 0`,
+                  color: COLORS.MUTED_TEXT,
+                  fontSize: '0.9rem',
+                }}
+              >
+                Detalhes que ajudam o comprador a validar a autenticidade da peça.
+              </p>
             </div>
 
-            <div style={{ marginBottom: SPACING.XL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                Detalhes de Gravação
-              </label>
-              <textarea
-                name="detalhes_gravacao"
-                value={formData.detalhes_gravacao}
-                onChange={handleInputChange}
-                style={getTextAreaStyle('detalhes_gravacao')}
-              />
-              <FieldError name="detalhes_gravacao" />
-            </div>
+            <div style={{ display: 'grid', gap: SPACING.LG }}>
+              <FormGroup label="Detalhes de gravação" required error={errors.detalhes_gravacao}>
+                <textarea
+                  name="detalhes_gravacao"
+                  placeholder="Ex: inscrições, códigos, numerações ou marcas de fabricação presentes na peça."
+                  value={formData.detalhes_gravacao}
+                  onChange={handleInputChange}
+                  style={getFieldStyle(errors.detalhes_gravacao, textareaBaseStyle)}
+                />
+              </FormGroup>
 
-            <div style={{ marginBottom: SPACING.XXL }}>
-              <label style={{ display: 'block', marginBottom: SPACING.SM, fontWeight: 600, color: BORDEAUX }}>
-                Histórico de Procedência
-              </label>
-              <textarea
-                name="historico_proveniencia"
-                value={formData.historico_proveniencia}
-                onChange={handleInputChange}
-                style={getTextAreaStyle('historico_proveniencia')}
-              />
-              <FieldError name="historico_proveniencia" />
+              <FormGroup label="Histórico de procedência" required error={errors.historico_proveniencia}>
+                <textarea
+                  name="historico_proveniencia"
+                  placeholder="Ex: origem da peça, veículo de onde foi retirada, histórico de armazenamento ou restauração."
+                  value={formData.historico_proveniencia}
+                  onChange={handleInputChange}
+                  style={getFieldStyle(errors.historico_proveniencia, textareaBaseStyle)}
+                />
+              </FormGroup>
             </div>
+          </section>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: SPACING.MD,
+              flexWrap: 'wrap',
+              backgroundColor: '#fff',
+              borderRadius: BORDER_RADIUS.LG,
+              border: `1px solid ${COLORS.BORDER}`,
+              boxShadow: SHADOWS.SM,
+              padding: SPACING.LG,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => navigate('/buscaPecas')}
+              style={BUTTON_SECONDARY_STYLE}
+            >
+              Voltar ao catálogo
+            </button>
 
             <button
               type="submit"
               disabled={loading || loadingOptions}
               style={{
+                ...BUTTON_PRIMARY_STYLE,
                 padding: `${SPACING.MD} ${SPACING.XXL}`,
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                backgroundColor: BORDEAUX,
-                color: CREAM,
-                fontWeight: 700,
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1,
-                transition: 'all 0.2s',
+                opacity: loading || loadingOptions ? 0.7 : 1,
+                cursor: loading || loadingOptions ? 'not-allowed' : 'pointer',
               }}
             >
               {loading ? 'Cadastrando...' : loadingOptions ? 'Carregando opções...' : '✓ Cadastrar Peça'}
             </button>
-          </form>
-        </main>
-      </div>
+          </div>
+        </form>
+      </main>
     </div>
   );
 }
