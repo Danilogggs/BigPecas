@@ -33,7 +33,15 @@ const SUPABASE_ERROR_MESSAGES = {
   },
   '42P01': {
     statusCode: 503,
-    message: 'A tabela de usuários do Supabase ainda não foi configurada.',
+    message: 'Uma tabela necessária do Supabase ainda não foi configurada.',
+  },
+  '22P02': {
+    statusCode: 400,
+    message: 'Um ou mais dados informados são inválidos.',
+  },
+  '42703': {
+    statusCode: 503,
+    message: 'Uma coluna necessária do Supabase ainda não foi configurada.',
   },
 };
 
@@ -89,10 +97,10 @@ function resolveFriendlyError(error) {
     };
   }
 
-  if (rawMessage.includes('service_role') || rawMessage.includes('api key')) {
+  if (rawMessage.includes('service_role') || rawMessage.includes('api key') || rawMessage.includes('supabase_url')) {
     return {
       statusCode: 503,
-      message: 'A autenticação do Supabase ainda não foi configurada corretamente no servidor.',
+      message: 'A conexão com o Supabase ainda não foi configurada corretamente no servidor.',
     };
   }
 

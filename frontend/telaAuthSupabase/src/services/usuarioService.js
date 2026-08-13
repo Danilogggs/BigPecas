@@ -4,8 +4,7 @@ import {
   parseUnexpectedError,
 } from '../utils/friendlyErrors';
 import { getSupabaseClient } from './supabase';
-
-const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { AUTH_API_URL } from './apiConfig';
 
 async function getAuthToken() {
   const supabase = getSupabaseClient();

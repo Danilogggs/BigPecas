@@ -113,7 +113,7 @@ export default function Header() {
                   { label: 'Lista de Desejos',   path: '/wish' },
                   { label: 'Carrinho',           path: '/carrinho' },
                   { label: 'Chats',              path: '/chats' },
-                  { label: 'Meus Pedidos',       path: '/pedidos' },
+                  { label: 'Compras e vendas',   path: '/pedidos' },
                 ].map(({ label, path }) => (
                   <button
                     key={path}

@@ -7,7 +7,7 @@ const INITIAL_FORM = {
   email: '',
   gender: '',
   cep: '',
-  tipo_usuario: '',
+  tipo_usuario: 'ambos',
   nome_loja: '',
   descricao_loja: '',
   telefone: '',
@@ -29,8 +29,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  const precisaDadosLoja = form.tipo_usuario === 'vendedor' || form.tipo_usuario === 'ambos';
-
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -41,7 +39,7 @@ export default function ProfilePage() {
           email: perfil?.email || '',
           gender: perfil?.gender || '',
           cep: perfil?.cep || '',
-          tipo_usuario: perfil?.tipo_usuario || '',
+          tipo_usuario: 'ambos',
           nome_loja: perfil?.nome_loja || '',
           descricao_loja: perfil?.descricao_loja || '',
           telefone: perfil?.telefone || '',
@@ -131,10 +129,6 @@ export default function ProfilePage() {
       newErrors.full_name = 'Digite nome e sobrenome usando apenas letras.';
     }
 
-    if (!form.tipo_usuario.trim()) {
-      newErrors.tipo_usuario = 'Selecione o tipo de usuário.';
-    }
-
     if (!form.cep.trim()) {
       newErrors.cep = 'Informe seu CEP.';
     } else if (!REGEX.cep.test(form.cep.trim())) {
@@ -147,13 +141,15 @@ export default function ProfilePage() {
       newErrors.telefone = 'Digite um telefone válido com DDD. Ex: (41) 99999-9999.';
     }
 
-    if (precisaDadosLoja && !form.nome_loja.trim()) {
+    const informouDadosLoja = Boolean(form.nome_loja.trim() || form.descricao_loja.trim());
+
+    if (informouDadosLoja && !form.nome_loja.trim()) {
       newErrors.nome_loja = 'Informe o nome da loja.';
-    } else if (precisaDadosLoja && !REGEX.loja.test(form.nome_loja.trim())) {
+    } else if (form.nome_loja.trim() && !REGEX.loja.test(form.nome_loja.trim())) {
       newErrors.nome_loja = 'O nome da loja deve ter pelo menos 3 caracteres válidos.';
     }
 
-    if (precisaDadosLoja && !form.descricao_loja.trim()) {
+    if (informouDadosLoja && !form.descricao_loja.trim()) {
       newErrors.descricao_loja = 'Informe a descrição da loja.';
     }
 
@@ -181,7 +177,7 @@ export default function ProfilePage() {
         full_name: form.full_name.trim(),
         gender: form.gender.trim(),
         cep: form.cep.trim(),
-        tipo_usuario: form.tipo_usuario.trim(),
+        tipo_usuario: 'ambos',
         nome_loja: form.nome_loja.trim(),
         descricao_loja: form.descricao_loja.trim(),
         telefone: form.telefone.trim(),
@@ -192,7 +188,7 @@ export default function ProfilePage() {
         email: perfilAtualizado?.email ?? form.email,
         gender: perfilAtualizado?.gender ?? form.gender,
         cep: perfilAtualizado?.cep ?? form.cep,
-        tipo_usuario: perfilAtualizado?.tipo_usuario ?? form.tipo_usuario,
+        tipo_usuario: 'ambos',
         nome_loja: perfilAtualizado?.nome_loja ?? form.nome_loja,
         descricao_loja: perfilAtualizado?.descricao_loja ?? form.descricao_loja,
         telefone: perfilAtualizado?.telefone ?? form.telefone,
@@ -318,38 +314,20 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>Gênero</label>
-              <select
-                name="gender"
-                value={form.gender}
-                onChange={handleChange}
-                style={getInputStyle('gender')}
-              >
-                <option value="">Prefiro não informar</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Feminino">Feminino</option>
-                <option value="Não-binário">Não-binário</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>Tipo de usuário *</label>
-              <select
-                name="tipo_usuario"
-                value={form.tipo_usuario}
-                onChange={handleChange}
-                style={getInputStyle('tipo_usuario')}
-              >
-                <option value="">Selecione</option>
-                <option value="comprador">Comprador</option>
-                <option value="vendedor">Vendedor</option>
-                <option value="ambos">Comprador e vendedor</option>
-              </select>
-              <FieldError name="tipo_usuario" />
-            </div>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Gênero</label>
+            <select
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
+              style={getInputStyle('gender')}
+            >
+              <option value="">Prefiro não informar</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Não-binário">Não-binário</option>
+              <option value="Outro">Outro</option>
+            </select>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
@@ -382,8 +360,21 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          <div
+            style={{
+              margin: '8px 0 16px',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              backgroundColor: '#fff8e8',
+              color: '#6b4d35',
+              lineHeight: 1.5,
+            }}
+          >
+            Toda conta pode comprar e vender. Os dados abaixo só se tornam obrigatórios ao anunciar a primeira peça.
+          </div>
+
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Nome da loja {precisaDadosLoja ? '*' : ''}</label>
+            <label style={labelStyle}>Nome da loja</label>
             <input
               type="text"
               name="nome_loja"
@@ -395,7 +386,7 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Descrição da loja {precisaDadosLoja ? '*' : ''}</label>
+            <label style={labelStyle}>Descrição da loja</label>
             <textarea
               name="descricao_loja"
               value={form.descricao_loja}

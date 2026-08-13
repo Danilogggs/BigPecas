@@ -1,7 +1,6 @@
 import { getSupabaseClient } from './supabase';
+import { API_BASE_URL } from './apiConfig';
 import { createFriendlyError, parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
-
-const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
 
 // CEP de origem fixo do vendedor/armazém (pode vir do perfil do vendedor futuramente)
 const CEP_ORIGEM_PADRAO = '01310100'; // São Paulo - SP

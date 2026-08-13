@@ -1,11 +1,10 @@
 import { getSupabaseClient } from './supabase';
+import { API_BASE_URL } from './apiConfig';
 import {
   createFriendlyError,
   parseErrorResponse,
   parseUnexpectedError,
 } from '../utils/friendlyErrors';
-
-const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
 
 async function getAuthHeaders() {
   const supabase = getSupabaseClient();
@@ -38,10 +37,32 @@ export const listarPedidos = async () => {
   }
 };
 
-export const buscarPedidoPorId = async (id) => {
+export const listarHistoricoPedidos = async () => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/pedidos/${id}`, { headers });
+    const response = await fetch(`${API_BASE_URL}/pedidos/historico`, { headers });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(
+        response,
+        'Não foi possível carregar o histórico de compras e vendas.',
+      );
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw createFriendlyError(
+      parseUnexpectedError(error, 'Não foi possível carregar o histórico de compras e vendas.'),
+    );
+  }
+};
+
+export const buscarPedidoPorId = async (id, visao = 'compra') => {
+  try {
+    const headers = await getAuthHeaders();
+    const query = visao === 'venda' ? '?visao=venda' : '';
+    const response = await fetch(`${API_BASE_URL}/pedidos/${id}${query}`, { headers });
 
     if (!response.ok) {
       const message = await parseErrorResponse(response, 'Pedido não encontrado.');

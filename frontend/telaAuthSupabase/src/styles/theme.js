@@ -95,7 +95,7 @@ export const INPUT_STYLE = {
 // Label base
 export const LABEL_STYLE = {
   display: 'block',
-  marginBottom: SPACING.SM / 2,
+  marginBottom: SPACING.XS,
   fontSize: TYPOGRAPHY.LABEL.fontSize,
   fontWeight: TYPOGRAPHY.LABEL.fontWeight,
   color: COLORS.MUTED_TEXT,

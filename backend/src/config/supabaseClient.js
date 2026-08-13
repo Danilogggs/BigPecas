@@ -5,11 +5,11 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl) {
-  throw new Error('A variável SUPABASE_URL não foi configurada no microserviço de autenticação.');
+  throw new Error('A variavel SUPABASE_URL nao foi configurada no backend.');
 }
 
 if (!supabaseServiceRoleKey) {
-  throw new Error('A variável SUPABASE_SERVICE_ROLE_KEY não foi configurada no microserviço de autenticação.');
+  throw new Error('A variavel SUPABASE_SERVICE_ROLE_KEY nao foi configurada no backend.');
 }
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {

@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getSupabaseClient, hasSupabaseConfig } from '../services/supabase';
+import { AUTH_API_URL } from '../services/apiConfig';
 import { createFriendlyError, parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
 
 const AuthContext = createContext(null);
-const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

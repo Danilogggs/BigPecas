@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/db');
+const { supabaseAdmin: supabase } = require('../config/supabaseClient');
 const AppError = require('../utils/AppError');
 
 const PECAS_TABLE = process.env.SUPABASE_PECAS_TABLE || 'pecas';
