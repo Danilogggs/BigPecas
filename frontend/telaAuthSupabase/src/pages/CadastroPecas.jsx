@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { cadastrarPeca, listarCategorias, listarMateriais } from '../services/pecasService';
+import { buscarPerfilUsuario, salvarPerfilUsuario } from '../services/usuarioService';
 import {
   BORDER_RADIUS,
   BUTTON_PRIMARY_STYLE,
@@ -43,6 +44,7 @@ const REGEX = {
   codigoOpcional: /^[A-Z0-9-]{2,50}$/,
   numeroInteiro: /^\d+$/,
   preco: /^\d+([.,]\d{1,2})?$/,
+  loja: /^[A-Za-zÀ-ÿ0-9\s.'-]{3,150}$/,
 };
 
 const fieldBaseStyle = {
@@ -199,13 +201,48 @@ export default function CadastroPecas() {
 
   const [loading, setLoading] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingStore, setSavingStore] = useState(false);
   const [categorias, setCategorias] = useState([]);
   const [materiais, setMateriais] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [profileError, setProfileError] = useState('');
+  const [storeForm, setStoreForm] = useState({ nome_loja: '', descricao_loja: '' });
+  const [storeErrors, setStoreErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [imagemPreview, setImagemPreview] = useState('');
   const [modal, setModal] = useState({ open: false, title: '', text: '' });
+
+  const storeConfigured = Boolean(
+    profile?.nome_loja?.trim() && profile?.descricao_loja?.trim()
+  );
+
+  async function carregarPerfil() {
+    setLoadingProfile(true);
+    setProfileError('');
+
+    try {
+      const perfil = await buscarPerfilUsuario();
+
+      setProfile(perfil);
+      setStoreForm({
+        nome_loja: perfil?.nome_loja || '',
+        descricao_loja: perfil?.descricao_loja || '',
+      });
+    } catch (error) {
+      setProfileError(
+        parseUnexpectedError(error, 'Não foi possível verificar os dados da sua loja agora.')
+      );
+    } finally {
+      setLoadingProfile(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarPerfil();
+  }, []);
 
   useEffect(() => {
     async function carregarOpcoes() {
@@ -229,8 +266,81 @@ export default function CadastroPecas() {
       }
     }
 
-    carregarOpcoes();
-  }, []);
+    if (storeConfigured) {
+      carregarOpcoes();
+    }
+  }, [storeConfigured]);
+
+  function handleStoreChange(e) {
+    const { name, value } = e.target;
+
+    setStoreForm((prev) => ({ ...prev, [name]: value }));
+    setStoreErrors((prev) => ({ ...prev, [name]: '' }));
+    setMessage({ type: '', text: '' });
+  }
+
+  function validateStoreForm() {
+    const newErrors = {};
+
+    if (!storeForm.nome_loja.trim()) {
+      newErrors.nome_loja = 'Informe o nome da loja.';
+    } else if (!REGEX.loja.test(storeForm.nome_loja.trim())) {
+      newErrors.nome_loja = 'Use pelo menos 3 caracteres válidos no nome da loja.';
+    }
+
+    if (!storeForm.descricao_loja.trim()) {
+      newErrors.descricao_loja = 'Informe a descrição da loja.';
+    } else if (storeForm.descricao_loja.trim().length < 10) {
+      newErrors.descricao_loja = 'Descreva sua loja usando pelo menos 10 caracteres.';
+    }
+
+    setStoreErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  async function handleStoreSubmit(e) {
+    e.preventDefault();
+    setMessage({ type: '', text: '' });
+
+    if (!validateStoreForm()) {
+      return;
+    }
+
+    setSavingStore(true);
+
+    try {
+      const perfilAtualizado = await salvarPerfilUsuario({
+        full_name: profile?.full_name || '',
+        gender: profile?.gender || '',
+        cep: profile?.cep || '',
+        tipo_usuario: 'ambos',
+        nome_loja: storeForm.nome_loja.trim(),
+        descricao_loja: storeForm.descricao_loja.trim(),
+        telefone: profile?.telefone || '',
+      });
+
+      setProfile((currentProfile) => ({
+        ...currentProfile,
+        ...perfilAtualizado,
+        tipo_usuario: 'ambos',
+        nome_loja: perfilAtualizado?.nome_loja || storeForm.nome_loja.trim(),
+        descricao_loja:
+          perfilAtualizado?.descricao_loja || storeForm.descricao_loja.trim(),
+      }));
+      setStoreErrors({});
+      setMessage({
+        type: 'success',
+        text: 'Loja configurada com sucesso. Agora você já pode anunciar sua peça.',
+      });
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: parseUnexpectedError(error, 'Não foi possível salvar os dados da loja agora.'),
+      });
+    } finally {
+      setSavingStore(false);
+    }
+  }
 
   function handleInputChange(e) {
     const { name, value } = e.target;
@@ -354,15 +464,16 @@ export default function CadastroPecas() {
       return;
     }
 
-    if (
-      textoNormalizado.includes('apenas usuários vendedores') ||
-      textoNormalizado.includes('apenas vendedores') ||
-      textoNormalizado.includes('compradores/vendedores')
-    ) {
-      abrirModal(
-        'Acesso não permitido',
-        'Apenas usuários vendedores ou compradores/vendedores podem cadastrar peças.'
-      );
+    if (textoNormalizado.includes('configure o nome e a descrição da sua loja')) {
+      setProfile((currentProfile) => ({
+        ...currentProfile,
+        nome_loja: '',
+        descricao_loja: '',
+      }));
+      setMessage({
+        type: 'error',
+        text: 'Configure os dados da sua loja antes de cadastrar uma peça.',
+      });
       return;
     }
 
@@ -557,7 +668,9 @@ export default function CadastroPecas() {
 
               <h1 className="page-title">Cadastrar Peça</h1>
               <p className="page-subtitle">
-                Adicione novos itens ao catálogo usando o mesmo padrão visual das outras telas.
+                {storeConfigured
+                  ? `Anuncie uma peça pela loja ${profile.nome_loja}.`
+                  : 'Configure sua loja uma única vez para começar a vender.'}
               </p>
             </div>
 
@@ -589,7 +702,121 @@ export default function CadastroPecas() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate>
+        {loadingProfile && (
+          <section style={{ ...CARD_STYLE, padding: SPACING.XL, textAlign: 'center' }}>
+            <p style={{ margin: 0, color: COLORS.MUTED_TEXT, fontWeight: 700 }}>
+              Verificando os dados da sua loja...
+            </p>
+          </section>
+        )}
+
+        {!loadingProfile && profileError && (
+          <section style={{ ...CARD_STYLE, padding: SPACING.XL, textAlign: 'center' }}>
+            <h2 style={{ margin: 0, color: COLORS.BORDEAUX, fontFamily: 'Georgia, serif' }}>
+              Não foi possível verificar sua loja
+            </h2>
+            <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>{profileError}</p>
+            <button type="button" onClick={carregarPerfil} style={BUTTON_PRIMARY_STYLE}>
+              Tentar novamente
+            </button>
+          </section>
+        )}
+
+        {!loadingProfile && !profileError && !storeConfigured && (
+          <form onSubmit={handleStoreSubmit} noValidate>
+            <section style={{ ...CARD_STYLE, padding: SPACING.XL }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  padding: `${SPACING.XS} ${SPACING.MD}`,
+                  marginBottom: SPACING.MD,
+                  borderRadius: BORDER_RADIUS.FULL,
+                  backgroundColor: `${COLORS.HIGHLIGHT}22`,
+                  color: COLORS.BORDEAUX,
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                Primeira venda
+              </div>
+
+              <h2
+                style={{
+                  margin: 0,
+                  color: COLORS.BORDEAUX,
+                  fontSize: '1.45rem',
+                  fontFamily: 'Georgia, serif',
+                }}
+              >
+                Antes de anunciar, conte sobre sua loja
+              </h2>
+              <p
+                style={{
+                  margin: `${SPACING.SM} 0 ${SPACING.XL}`,
+                  color: COLORS.MUTED_TEXT,
+                  lineHeight: 1.6,
+                }}
+              >
+                Estes dados serão exibidos aos compradores e só precisam ser preenchidos uma vez.
+                Depois você poderá alterá-los no seu perfil.
+              </p>
+
+              <div style={{ display: 'grid', gap: SPACING.LG }}>
+                <FormGroup label="Nome da loja" required error={storeErrors.nome_loja}>
+                  <input
+                    type="text"
+                    name="nome_loja"
+                    placeholder="Ex: Auto Peças Garabetti"
+                    value={storeForm.nome_loja}
+                    onChange={handleStoreChange}
+                    maxLength={150}
+                    style={getFieldStyle(storeErrors.nome_loja)}
+                  />
+                </FormGroup>
+
+                <FormGroup
+                  label="Descrição da loja"
+                  required
+                  error={storeErrors.descricao_loja}
+                >
+                  <textarea
+                    name="descricao_loja"
+                    placeholder="Ex: Loja especializada em peças antigas e difíceis de encontrar"
+                    value={storeForm.descricao_loja}
+                    onChange={handleStoreChange}
+                    maxLength={500}
+                    style={getFieldStyle(storeErrors.descricao_loja, textareaBaseStyle)}
+                  />
+                </FormGroup>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginTop: SPACING.XL,
+                }}
+              >
+                <button
+                  type="submit"
+                  disabled={savingStore}
+                  style={{
+                    ...BUTTON_PRIMARY_STYLE,
+                    opacity: savingStore ? 0.7 : 1,
+                    cursor: savingStore ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {savingStore ? 'Salvando loja...' : 'Salvar e continuar'}
+                </button>
+              </div>
+            </section>
+          </form>
+        )}
+
+        {!loadingProfile && !profileError && storeConfigured && (
+          <form onSubmit={handleSubmit} noValidate>
           <section
             style={{
               ...CARD_STYLE,
@@ -1003,7 +1230,8 @@ export default function CadastroPecas() {
               {loading ? 'Cadastrando...' : loadingOptions ? 'Carregando opções...' : '✓ Cadastrar Peça'}
             </button>
           </div>
-        </form>
+          </form>
+        )}
       </main>
     </div>
   );

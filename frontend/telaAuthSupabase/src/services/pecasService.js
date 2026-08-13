@@ -5,8 +5,7 @@ import {
   parseUnexpectedError,
 } from '../utils/friendlyErrors';
 import { getSupabaseClient } from './supabase';
-
-const API_BASE_URL = import.meta.env.VITE_PECAS_API_URL || 'http://localhost:3002/api';
+import { API_BASE_URL } from './apiConfig';
 
 async function getAuthHeaders() {
   const supabase = getSupabaseClient();

@@ -1,870 +1,487 @@
-import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import { useOrders, ORDER_STATUS, STATUS_META } from '../contexts/OrderContext';
+import './PedidosPage.css';
 
-const BORDEAUX = '#152218';
-const CREAM = '#EDE4CC';
-const HIGHLIGHT = '#C9A84C';
-const DARK = '#1A2820';
-const MUTED = '#6B7D6E';
-const BORDER = '#CFC5A5';
+const formatBRL = (value) =>
+  Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const formatBRL = (v) =>
-  Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-const formatDate = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleString('pt-BR', {
+function formatDate(value) {
+  if (!value) return 'Data não informada';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Data não informada';
+  return date.toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
-};
+}
+
+function getStatusMeta(status) {
+  return STATUS_META[status] || {
+    label: 'Status não informado',
+    color: '#4B5563',
+    bg: '#F3F4F6',
+    border: '#D1D5DB',
+    icone: '•',
+    descricao: 'Não há informações adicionais sobre este status.',
+    ordem: 99,
+  };
+}
+
+function getItemName(item) {
+  return item?.nome || item?.nome_peca || 'Peça';
+}
+
+function getOrderDate(order) {
+  return order?.criadoEm || order?.criado_em;
+}
+
+function getOrderValue(order) {
+  return Number(order?.valorTransacao ?? order?.valor_transacao ?? order?.valor_venda ?? order?.total ?? 0);
+}
 
 export default function PedidosPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { orders, loadingOrders, ordersError, buscarPedido, atualizarStatusPedido, carregarPedidos } = useOrders();
+  const [searchParams] = useSearchParams();
+  const {
+    compras,
+    vendas,
+    perfilHistorico,
+    loadingOrders,
+    historicoCarregado,
+    ordersError,
+    buscarPedido,
+    atualizarStatusPedido,
+    carregarPedidos,
+  } = useOrders();
   const [filtroStatus, setFiltroStatus] = useState('todos');
 
-  const pedidoSelecionado = id ? buscarPedido(id) : null;
+  const visao = searchParams.get('visao') === 'vendas' ? 'venda' : 'compra';
+  const podeVender = Boolean(perfilHistorico?.pode_vender || vendas.length > 0);
+  const registros = visao === 'venda' ? vendas : compras;
+  const pedidoSelecionado = id ? buscarPedido(id, visao) : null;
 
-  const pedidosFiltrados = useMemo(() => {
-    if (filtroStatus === 'todos') return orders;
-    return orders.filter((p) => p.status === filtroStatus);
-  }, [orders, filtroStatus]);
+  useEffect(() => {
+    setFiltroStatus('todos');
+  }, [visao]);
+
+  useEffect(() => {
+    if (historicoCarregado && !loadingOrders && visao === 'venda' && !podeVender) {
+      navigate(id ? `/pedidos/${id}` : '/pedidos', { replace: true });
+    }
+  }, [historicoCarregado, id, loadingOrders, navigate, podeVender, visao]);
+
+  const registrosFiltrados = useMemo(() => {
+    if (filtroStatus === 'todos') return registros;
+    return registros.filter((pedido) => pedido.status === filtroStatus);
+  }, [filtroStatus, registros]);
+
+  const resumo = useMemo(() => ({
+    quantidade: registros.length,
+    valor: registros.reduce((total, pedido) => total + getOrderValue(pedido), 0),
+    concluidos: registros.filter((pedido) => pedido.status === ORDER_STATUS.ENTREGUE).length,
+  }), [registros]);
+
+  if (id && historicoCarregado && !loadingOrders && !pedidoSelecionado) {
+    return (
+      <PageShell>
+        <EmptyState
+          title="Registro não encontrado"
+          description="Este pedido não existe ou não pertence ao histórico selecionado."
+          actionLabel="Voltar ao histórico"
+          onAction={() => navigate(visao === 'venda' ? '/pedidos?visao=vendas' : '/pedidos')}
+        />
+      </PageShell>
+    );
+  }
 
   if (pedidoSelecionado) {
     return (
-      <DetalhePedido
-        pedido={pedidoSelecionado}
-        navigate={navigate}
-        atualizarStatus={atualizarStatusPedido}
+      <OrderDetail
+        order={pedidoSelecionado}
+        view={visao}
+        onBack={() => navigate(visao === 'venda' ? '/pedidos?visao=vendas' : '/pedidos')}
+        onStatusChange={atualizarStatusPedido}
+        onExplore={() => navigate('/buscaPecas')}
       />
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
-      <Header />
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: '0 auto',
-          padding: '2rem 1.5rem 4rem',
-        }}
-      >
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ fontSize: '0.8rem', color: MUTED, marginBottom: 6 }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-              Início
-            </span>{' '}
-            › <span style={{ color: BORDEAUX, fontWeight: 600 }}>Meus Pedidos</span>
+    <PageShell>
+      <div className="history-heading">
+        <div>
+          <div className="history-breadcrumb">
+            <button type="button" onClick={() => navigate('/')}>Início</button>
+            <span>›</span>
+            <span>Histórico</span>
           </div>
-          <h1
-            style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              color: BORDEAUX,
-              margin: 0,
-              fontFamily: "'Playfair Display', Georgia, serif",
-            }}
-          >
-            Meus Pedidos
-          </h1>
-          <p style={{ color: MUTED, margin: '6px 0 0' }}>
-            Acompanhe o status das suas compras de peças.
+          <h1>Histórico de compras e vendas</h1>
+          <p>Consulte produtos, valores, datas e o andamento de cada negociação.</p>
+        </div>
+        <button type="button" className="history-refresh" onClick={carregarPedidos} disabled={loadingOrders}>
+          {loadingOrders ? 'Atualizando...' : 'Atualizar histórico'}
+        </button>
+      </div>
+
+      <div className="history-tabs" role="tablist" aria-label="Tipo de histórico">
+        <TabButton
+          active={visao === 'compra'}
+          label="Minhas compras"
+          count={compras.length}
+          onClick={() => navigate('/pedidos')}
+        />
+        {podeVender && (
+          <TabButton
+            active={visao === 'venda'}
+            label="Minhas vendas"
+            count={vendas.length}
+            onClick={() => navigate('/pedidos?visao=vendas')}
+          />
+        )}
+      </div>
+
+      <div className="history-summary">
+        <SummaryCard label={visao === 'venda' ? 'Vendas realizadas' : 'Compras realizadas'} value={resumo.quantidade} />
+        <SummaryCard label={visao === 'venda' ? 'Valor vendido' : 'Valor comprado'} value={formatBRL(resumo.valor)} />
+        <SummaryCard label="Pedidos entregues" value={resumo.concluidos} />
+      </div>
+
+      <div className="history-section-heading">
+        <div>
+          <h2>{visao === 'venda' ? 'Vendas realizadas' : 'Compras anteriores'}</h2>
+          <p>
+            {visao === 'venda'
+              ? 'Acompanhe as peças vendidas e atualize o andamento dos pedidos.'
+              : 'Acompanhe suas compras anteriores e o status de entrega.'}
           </p>
         </div>
-
-        {/* Filtros */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            marginBottom: '1.5rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <ChipFiltro
-            label="Todos"
-            ativo={filtroStatus === 'todos'}
-            count={orders.length}
-            onClick={() => setFiltroStatus('todos')}
-          />
-          {Object.entries(STATUS_META)
-            .filter(([k]) => k !== ORDER_STATUS.CANCELADO)
-            .sort(([, a], [, b]) => a.ordem - b.ordem)
-            .map(([key, meta]) => (
-              <ChipFiltro
-                key={key}
-                label={meta.label}
-                icone={meta.icone}
-                ativo={filtroStatus === key}
-                count={orders.filter((p) => p.status === key).length}
-                onClick={() => setFiltroStatus(key)}
-                cor={meta.color}
-                bg={meta.bg}
-              />
-            ))}
-        </div>
-
-        {loadingOrders && (
-          <div style={{ color: MUTED, fontWeight: 600, padding: '1rem 0' }}>
-            Carregando pedidos...
-          </div>
-        )}
-
-        {ordersError && !loadingOrders && (
-          <div
-            style={{
-              padding: '12px 16px',
-              backgroundColor: '#FEE2E2',
-              color: '#7F1D1D',
-              border: '1px solid #FCA5A5',
-              borderRadius: 10,
-              marginBottom: '1rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <span>{ordersError}</span>
-            <button
-              onClick={carregarPedidos}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#7F1D1D',
-                cursor: 'pointer',
-                fontWeight: 700,
-                textDecoration: 'underline',
-                fontSize: '0.85rem',
-              }}
-            >
-              Tentar novamente
-            </button>
-          </div>
-        )}
-
-        {!loadingOrders && !ordersError && pedidosFiltrados.length === 0 ? (
-          <EmptyState navigate={navigate} todos={orders.length === 0} />
-        ) : !loadingOrders && !ordersError ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {pedidosFiltrados.map((pedido) => (
-              <PedidoCard
-                key={pedido.id}
-                pedido={pedido}
-                onClick={() => navigate(`/pedidos/${pedido.id}`)}
-              />
-            ))}
-          </div>
-        ) : null}
       </div>
+
+      <StatusFilters
+        orders={registros}
+        selected={filtroStatus}
+        onChange={setFiltroStatus}
+      />
+
+      {(!historicoCarregado || loadingOrders) && <LoadingState />}
+
+      {ordersError && historicoCarregado && !loadingOrders && (
+        <div className="history-error" role="alert">
+          <span>{ordersError}</span>
+          <button type="button" onClick={carregarPedidos}>Tentar novamente</button>
+        </div>
+      )}
+
+      {historicoCarregado && !loadingOrders && !ordersError && registrosFiltrados.length === 0 && (
+        <EmptyState
+          title={filtroStatus !== 'todos'
+            ? 'Nenhum registro com este status'
+            : visao === 'venda'
+              ? 'Nenhuma venda realizada ainda'
+              : 'Você ainda não fez nenhuma compra'}
+          description={filtroStatus !== 'todos'
+            ? 'Selecione outro status para consultar o histórico.'
+            : visao === 'venda'
+              ? 'As vendas aparecerão aqui quando clientes comprarem suas peças.'
+              : 'Explore o catálogo para realizar sua primeira compra.'}
+          actionLabel={visao === 'compra' && filtroStatus === 'todos' ? 'Explorar peças' : ''}
+          onAction={() => navigate('/buscaPecas')}
+        />
+      )}
+
+      {historicoCarregado && !loadingOrders && !ordersError && registrosFiltrados.length > 0 && (
+        <div className="history-list">
+          {registrosFiltrados.map((pedido) => (
+            <OrderCard
+              key={pedido.id}
+              order={pedido}
+              view={visao}
+              onClick={() => navigate(
+                visao === 'venda'
+                  ? `/pedidos/${pedido.id}?visao=vendas`
+                  : `/pedidos/${pedido.id}`,
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </PageShell>
+  );
+}
+
+function PageShell({ children }) {
+  return (
+    <div className="history-page">
+      <Header />
+      <main className="history-container">{children}</main>
     </div>
   );
 }
 
-function ChipFiltro({ label, icone, ativo, count, onClick, cor, bg }) {
+function TabButton({ active, label, count, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: '8px 14px',
-        borderRadius: 999,
-        border: `1.5px solid ${ativo ? BORDEAUX : BORDER}`,
-        backgroundColor: ativo ? BORDEAUX : '#fff',
-        color: ativo ? CREAM : DARK,
-        cursor: 'pointer',
-        fontSize: '0.85rem',
-        fontWeight: 600,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        transition: 'all 0.18s',
-      }}
-    >
-      {icone && <span>{icone}</span>}
-      {label}
-      <span
-        style={{
-          backgroundColor: ativo ? 'rgba(255,255,255,0.2)' : bg || `${BORDEAUX}15`,
-          color: ativo ? CREAM : cor || BORDEAUX,
-          borderRadius: 999,
-          padding: '2px 8px',
-          fontSize: '0.75rem',
-          fontWeight: 700,
-        }}
-      >
-        {count}
-      </span>
+    <button type="button" role="tab" aria-selected={active} className={active ? 'active' : ''} onClick={onClick}>
+      <span>{label}</span>
+      <strong>{count}</strong>
     </button>
   );
 }
 
-function PedidoCard({ pedido, onClick }) {
-  const meta = STATUS_META[pedido.status];
-
+function SummaryCard({ label, value }) {
   return (
-    <div
-      onClick={onClick}
-      style={{
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        padding: '1.25rem 1.5rem',
-        border: `1px solid ${BORDER}`,
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        display: 'grid',
-        gridTemplateColumns: '1fr auto',
-        gap: '1rem',
-        alignItems: 'center',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = HIGHLIGHT;
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 6px 18px rgba(123,29,46,0.10)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = BORDER;
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'none';
-      }}
-    >
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <span
-            style={{
-              padding: '4px 10px',
-              borderRadius: 999,
-              backgroundColor: meta.bg,
-              color: meta.color,
-              border: `1px solid ${meta.border}`,
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <span>{meta.icone}</span>
-            {meta.label}
-          </span>
-          <span style={{ fontSize: '0.78rem', color: MUTED }}>
-            Pedido #{pedido.id}
-          </span>
-        </div>
-
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: DARK,
-            fontWeight: 600,
-            marginBottom: 4,
-          }}
-        >
-          {pedido.itens.length} {pedido.itens.length === 1 ? 'item' : 'itens'} —{' '}
-          {pedido.itens
-            .slice(0, 2)
-            .map((it) => it.nome)
-            .join(', ')}
-          {pedido.itens.length > 2 && `, +${pedido.itens.length - 2}`}
-        </div>
-
-        <div style={{ fontSize: '0.82rem', color: MUTED }}>
-          Realizado em {formatDate(pedido.criadoEm)} • Rastreio:{' '}
-          <strong style={{ color: DARK }}>{pedido.codigoRastreio}</strong>
-        </div>
-      </div>
-
-      <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '0.78rem', color: MUTED }}>Total</div>
-        <div
-          style={{
-            fontSize: '1.3rem',
-            fontWeight: 700,
-            color: BORDEAUX,
-          }}
-        >
-          {formatBRL(pedido.total)}
-        </div>
-        <div style={{ fontSize: '0.78rem', color: MUTED, marginTop: 4 }}>
-          {pedido.forma_pagamento?.nome || '—'}
-        </div>
-      </div>
+    <div className="summary-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
     </div>
   );
 }
 
-function EmptyState({ navigate, todos }) {
+function StatusFilters({ orders, selected, onChange }) {
   return (
-    <div
-      style={{
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: '4rem 2rem',
-        textAlign: 'center',
-        border: `1px solid ${BORDER}`,
-      }}
-    >
-      <div
-        style={{
-          width: 96,
-          height: 96,
-          borderRadius: '50%',
-          backgroundColor: CREAM,
-          margin: '0 auto 1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '2.5rem',
-        }}
-      >
-        📋
-      </div>
-      <h2
-        style={{
-          color: BORDEAUX,
-          fontSize: '1.4rem',
-          margin: '0 0 8px',
-          fontFamily: "'Playfair Display', Georgia, serif",
-        }}
-      >
-        {todos ? 'Você ainda não fez nenhum pedido' : 'Nenhum pedido neste status'}
-      </h2>
-      <p style={{ color: MUTED, marginBottom: '1.5rem' }}>
-        {todos
-          ? 'Explore o catálogo e faça sua primeira compra.'
-          : 'Tente outro filtro ou explore o catálogo.'}
-      </p>
-      <button
-        onClick={() => navigate('/buscaPecas')}
-        style={{
-          backgroundColor: BORDEAUX,
-          color: CREAM,
-          padding: '12px 28px',
-          borderRadius: 10,
-          border: 'none',
-          fontSize: '1rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        Explorar Peças
-      </button>
+    <div className="status-filters" aria-label="Filtrar por status">
+      <FilterButton
+        label="Todos"
+        count={orders.length}
+        active={selected === 'todos'}
+        onClick={() => onChange('todos')}
+      />
+      {Object.entries(STATUS_META)
+        .sort(([, first], [, second]) => first.ordem - second.ordem)
+        .map(([status, meta]) => (
+          <FilterButton
+            key={status}
+            label={meta.label}
+            count={orders.filter((order) => order.status === status).length}
+            active={selected === status}
+            onClick={() => onChange(status)}
+          />
+        ))}
     </div>
   );
 }
 
-function DetalhePedido({ pedido, navigate, atualizarStatus }) {
-  const [atualizando, setAtualizando] = useState(false);
-  const [erroStatus, setErroStatus] = useState('');
+function FilterButton({ label, count, active, onClick }) {
+  return (
+    <button type="button" className={active ? 'active' : ''} onClick={onClick}>
+      {label} <span>{count}</span>
+    </button>
+  );
+}
 
-  const meta = STATUS_META[pedido.status];
-  const statusOrder = [
-    ORDER_STATUS.AGUARDANDO_PAGAMENTO,
-    ORDER_STATUS.PAGO,
-    ORDER_STATUS.ENVIADO,
-    ORDER_STATUS.ENTREGUE,
-  ];
-  const stepAtual = statusOrder.indexOf(pedido.status);
+function StatusBadge({ status }) {
+  const meta = getStatusMeta(status);
+  return (
+    <span
+      className="status-badge"
+      style={{ color: meta.color, backgroundColor: meta.bg, borderColor: meta.border }}
+    >
+      <span>{meta.icone}</span> {meta.label}
+    </span>
+  );
+}
 
-  const proximoStatus =
-    stepAtual >= 0 && stepAtual < statusOrder.length - 1
-      ? statusOrder[stepAtual + 1]
-      : null;
+function OrderCard({ order, view, onClick }) {
+  const names = order.itens.map(getItemName);
+  const counterpart = view === 'venda'
+    ? `Cliente: ${order.comprador?.nome || 'Cliente BigPeças'}`
+    : `Vendedor: ${[...new Set(order.itens.map((item) => item.fornecedor_nome).filter(Boolean))].join(', ') || 'BigPeças'}`;
 
-  const handleAvancarStatus = async () => {
-    if (!proximoStatus || atualizando) return;
-    setAtualizando(true);
-    setErroStatus('');
+  return (
+    <button type="button" className="order-card" onClick={onClick}>
+      <div className="order-card-main">
+        <div className="order-card-topline">
+          <StatusBadge status={order.status} />
+          <span>{view === 'venda' ? 'Venda' : 'Pedido'} #{order.id}</span>
+        </div>
+        <h3>{names.slice(0, 2).join(', ')}{names.length > 2 ? ` e mais ${names.length - 2}` : ''}</h3>
+        <div className="order-card-meta">
+          <span>{order.itens.length} {order.itens.length === 1 ? 'produto' : 'produtos'}</span>
+          <span>{counterpart}</span>
+          <span>{formatDate(getOrderDate(order))}</span>
+        </div>
+      </div>
+      <div className="order-card-value">
+        <span>{view === 'venda' ? 'Valor da venda' : 'Valor do pedido'}</span>
+        <strong>{formatBRL(getOrderValue(order))}</strong>
+        <small>Ver detalhes →</small>
+      </div>
+    </button>
+  );
+}
+
+function LoadingState() {
+  return (
+    <div className="history-loading" role="status">
+      <span className="history-spinner" />
+      <p>Carregando histórico...</p>
+    </div>
+  );
+}
+
+function EmptyState({ title, description, actionLabel, onAction }) {
+  return (
+    <div className="history-empty">
+      <div className="history-empty-icon">↺</div>
+      <h2>{title}</h2>
+      <p>{description}</p>
+      {actionLabel && <button type="button" onClick={onAction}>{actionLabel}</button>}
+    </div>
+  );
+}
+
+function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
+  const [updating, setUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState('');
+  const meta = getStatusMeta(order.status);
+  const isSale = view === 'venda';
+  const nextStatus = {
+    [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: ORDER_STATUS.PAGO,
+    [ORDER_STATUS.PAGO]: ORDER_STATUS.ENVIADO,
+    [ORDER_STATUS.ENVIADO]: ORDER_STATUS.ENTREGUE,
+  }[order.status];
+  const nextLabel = {
+    [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: 'Confirmar pagamento',
+    [ORDER_STATUS.PAGO]: 'Marcar como enviado',
+    [ORDER_STATUS.ENVIADO]: 'Marcar como entregue',
+  }[order.status];
+
+  async function updateStatus() {
+    if (!nextStatus || updating) return;
+    setUpdating(true);
+    setUpdateError('');
     try {
-      await atualizarStatus(pedido.id, proximoStatus);
+      await onStatusChange(order.id, nextStatus);
     } catch (error) {
-      setErroStatus(error?.message || 'Não foi possível atualizar o status.');
+      setUpdateError(error?.message || 'Não foi possível atualizar o status deste pedido.');
     } finally {
-      setAtualizando(false);
+      setUpdating(false);
     }
-  };
+  }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
-      <style>{`
-        @media (max-width: 980px) {
-          .detalhe-grid { grid-template-columns: 1fr !important; }
-          .timeline { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .timeline .step-line { display: none !important; }
-        }
-      `}</style>
-      <Header />
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: '0 auto',
-          padding: '2rem 1.5rem 4rem',
-        }}
-      >
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ fontSize: '0.8rem', color: MUTED, marginBottom: 6 }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/pedidos')}>
-              Meus Pedidos
-            </span>{' '}
-            ›{' '}
-            <span style={{ color: BORDEAUX, fontWeight: 600 }}>
-              Pedido #{pedido.id}
-            </span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 16,
-              flexWrap: 'wrap',
-            }}
-          >
-            <div>
-              <h1
-                style={{
-                  fontSize: '1.8rem',
-                  fontWeight: 700,
-                  color: BORDEAUX,
-                  margin: 0,
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                }}
-              >
-                Pedido #{pedido.id}
-              </h1>
-              <p style={{ color: MUTED, margin: '4px 0 0' }}>
-                Realizado em {formatDate(pedido.criadoEm)}
-              </p>
-            </div>
-            <span
-              style={{
-                padding: '8px 16px',
-                borderRadius: 999,
-                backgroundColor: meta.bg,
-                color: meta.color,
-                border: `1.5px solid ${meta.border}`,
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <span>{meta.icone}</span>
-              {meta.label}
-            </span>
-          </div>
+    <PageShell>
+      <button type="button" className="detail-back" onClick={onBack}>← Voltar ao histórico</button>
+
+      <div className="detail-header">
+        <div>
+          <span>{isSale ? 'Venda realizada' : 'Compra realizada'}</span>
+          <h1>{isSale ? 'Venda' : 'Pedido'} #{order.id}</h1>
+          <p>{formatDate(getOrderDate(order))}</p>
         </div>
+        <StatusBadge status={order.status} />
+      </div>
 
-        {/* Timeline status */}
-        <section
-          style={{
-            backgroundColor: '#fff',
-            borderRadius: 16,
-            padding: '1.5rem',
-            border: `1px solid ${BORDER}`,
-            marginBottom: '1.5rem',
-          }}
-        >
-          <div
-            className="timeline"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-            }}
-          >
-            {statusOrder.map((status, i) => {
-              const m = STATUS_META[status];
-              const ativo = i <= stepAtual;
-              const evento = pedido.historico.find((h) => h.status === status);
-              return (
-                <div
-                  key={status}
-                  style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 8,
-                      flex: 1,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: '50%',
-                        backgroundColor: ativo ? m.color : '#F2EAD3',
-                        color: ativo ? CREAM : MUTED,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        flexShrink: 0,
-                        transition: 'all 0.3s',
-                      }}
-                    >
-                      {ativo ? '✓' : m.icone}
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div
-                        style={{
-                          fontSize: '0.82rem',
-                          fontWeight: 700,
-                          color: ativo ? DARK : MUTED,
-                        }}
-                      >
-                        {m.label}
-                      </div>
-                      {evento && (
-                        <div
-                          style={{
-                            fontSize: '0.7rem',
-                            color: MUTED,
-                            marginTop: 2,
-                          }}
-                        >
-                          {formatDate(evento.data)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {i < statusOrder.length - 1 && (
-                    <div
-                      className="step-line"
-                      style={{
-                        flex: 1,
-                        height: 3,
-                        backgroundColor: i < stepAtual ? m.color : '#F2EAD3',
-                        margin: '-30px 4px 0',
-                        borderRadius: 2,
-                        transition: 'all 0.3s',
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      <section className="detail-status-card">
+        <div>
+          <strong>{meta.icone} {meta.label}</strong>
+          <p>{meta.descricao}</p>
+        </div>
+        {isSale && order.pode_atualizar_status && nextStatus && (
+          <button type="button" onClick={updateStatus} disabled={updating}>
+            {updating ? 'Atualizando...' : nextLabel}
+          </button>
+        )}
+      </section>
+      {updateError && <div className="history-error" role="alert">{updateError}</div>}
 
-          {erroStatus && (
-            <div style={{ marginTop: 12, padding: '10px 14px', backgroundColor: '#FEE2E2', color: '#7F1D1D', border: '1px solid #FCA5A5', borderRadius: 8, fontSize: '0.85rem' }}>
-              {erroStatus}
-            </div>
-          )}
-
-          {proximoStatus && (
-            <div
-              style={{
-                marginTop: '1.5rem',
-                padding: '1rem 1.25rem',
-                backgroundColor: `${HIGHLIGHT}22`,
-                border: `1px solid ${HIGHLIGHT}`,
-                borderRadius: 10,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 12,
-                flexWrap: 'wrap',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, color: DARK }}>
-                  Simulação de Status (Demo)
-                </div>
-                <div style={{ fontSize: '0.85rem', color: MUTED, marginTop: 2 }}>
-                  Avance o status para visualizar o fluxo do pedido.
-                </div>
-              </div>
-              <button
-                onClick={handleAvancarStatus}
-                disabled={atualizando}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: atualizando ? MUTED : BORDEAUX,
-                  color: CREAM,
-                  border: 'none',
-                  borderRadius: 10,
-                  fontWeight: 600,
-                  cursor: atualizando ? 'not-allowed' : 'pointer',
-                  fontSize: '0.9rem',
-                }}
-              >
-                {atualizando ? 'Atualizando...' : `Marcar como ${STATUS_META[proximoStatus].label} →`}
-              </button>
-            </div>
-          )}
-        </section>
-
-        <div
-          className="detalhe-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 380px',
-            gap: '1.5rem',
-            alignItems: 'start',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            {/* Itens */}
-            <Card title={`Itens do Pedido (${pedido.itens.length})`}>
-              {pedido.itens.map((item, i) => (
-                <div
-                  key={item.id}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '64px 1fr auto',
-                    gap: 14,
-                    alignItems: 'center',
-                    padding: '12px 0',
-                    borderBottom: i < pedido.itens.length - 1 ? `1px solid ${BORDER}` : 'none',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 10,
-                      backgroundColor: '#F2EAD3',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {item.imagem ? (
-                      <img
-                        src={item.imagem}
-                        alt={item.nome}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: '1.5rem' }}>🔧</span>
-                    )}
+      <div className="detail-grid">
+        <div className="detail-column">
+          <DetailCard title={isSale ? `Produtos vendidos (${order.itens.length})` : `Produtos comprados (${order.itens.length})`}>
+            <div className="detail-items">
+              {order.itens.map((item) => (
+                <div className="detail-item" key={`${order.id}-${item.id}`}>
+                  <div className="detail-item-image">
+                    {item.imagem ? <img src={item.imagem} alt={getItemName(item)} /> : <span>⚙</span>}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600, color: DARK, fontSize: '0.95rem' }}>
-                      {item.nome}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: MUTED, marginTop: 2 }}>
-                      Quantidade: {item.quantidade} × {formatBRL(item.preco)}
-                    </div>
+                    <strong>{getItemName(item)}</strong>
+                    <span>Quantidade: {item.quantidade} × {formatBRL(item.preco)}</span>
+                    {!isSale && item.fornecedor_nome && <small>Vendido por {item.fornecedor_nome}</small>}
                   </div>
-                  <div style={{ fontWeight: 700, color: BORDEAUX, fontSize: '1rem' }}>
-                    {formatBRL(Number(item.preco) * item.quantidade)}
-                  </div>
+                  <b>{formatBRL(Number(item.preco || 0) * Number(item.quantidade || 1))}</b>
                 </div>
               ))}
-            </Card>
-
-            {/* Entrega */}
-            <Card title="Endereço de Entrega">
-              <div style={{ color: DARK, fontWeight: 600, marginBottom: 6 }}>
-                {pedido.endereco?.nome}
-              </div>
-              <div style={{ color: MUTED, fontSize: '0.9rem', lineHeight: 1.6 }}>
-                {pedido.endereco?.logradouro}, {pedido.endereco?.numero}
-                {pedido.endereco?.complemento && ` - ${pedido.endereco.complemento}`}
-                <br />
-                {pedido.endereco?.bairro} - {pedido.endereco?.cidade}/
-                {pedido.endereco?.uf}
-                <br />
-                CEP {pedido.endereco?.cep} • {pedido.endereco?.telefone}
-              </div>
-              <div
-                style={{
-                  marginTop: '1rem',
-                  paddingTop: '1rem',
-                  borderTop: `1px dashed ${BORDER}`,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontWeight: 600, color: DARK }}>
-                      {pedido.frete?.transportadora} — {pedido.frete?.tipo}
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: MUTED }}>
-                      {pedido.frete?.prazo_texto}
-                    </div>
-                  </div>
-                  <div style={{ color: BORDEAUX, fontWeight: 700 }}>
-                    {formatBRL(pedido.valorFrete)}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    marginTop: 10,
-                    fontSize: '0.85rem',
-                    color: MUTED,
-                  }}
-                >
-                  Código de rastreio:{' '}
-                  <strong style={{ color: DARK }}>{pedido.codigoRastreio}</strong>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Resumo */}
-          <Card title="Resumo Financeiro">
-            <Linha label="Subtotal" valor={formatBRL(pedido.subtotal)} />
-            {pedido.cupom && (
-              <Linha
-                label={`Cupom ${pedido.cupom.codigo}`}
-                valor={`- ${formatBRL(pedido.desconto)}`}
-                cor="#065F46"
-              />
-            )}
-            <Linha
-              label="Frete"
-              valor={
-                pedido.valorFrete === 0
-                  ? 'Grátis'
-                  : formatBRL(pedido.valorFrete)
-              }
-            />
-            <div
-              style={{
-                marginTop: 14,
-                paddingTop: 14,
-                borderTop: `1.5px dashed ${BORDER}`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: MUTED,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  fontWeight: 700,
-                }}
-              >
-                Total Pago
-              </div>
-              <div
-                style={{
-                  fontSize: '1.55rem',
-                  fontWeight: 800,
-                  color: BORDEAUX,
-                  lineHeight: 1,
-                }}
-              >
-                {formatBRL(pedido.total)}
-              </div>
             </div>
-            <div
-              style={{
-                marginTop: 14,
-                padding: 12,
-                backgroundColor: '#FAFAFA',
-                border: `1px solid ${BORDER}`,
-                borderRadius: 10,
-              }}
-            >
-              <div style={{ fontSize: '0.78rem', color: MUTED, marginBottom: 4 }}>
-                Forma de pagamento
-              </div>
-              <div style={{ fontWeight: 700, color: DARK }}>
-                {pedido.forma_pagamento?.icone} {pedido.forma_pagamento?.nome}
-              </div>
-            </div>
+          </DetailCard>
 
-            <button
-              onClick={() => navigate('/buscaPecas')}
-              style={{
-                width: '100%',
-                marginTop: 14,
-                padding: '12px',
-                backgroundColor: BORDEAUX,
-                color: CREAM,
-                border: 'none',
-                borderRadius: 10,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-              }}
-            >
-              Comprar Novamente
-            </button>
-            <button
-              onClick={() => navigate('/pedidos')}
-              style={{
-                width: '100%',
-                marginTop: 8,
-                padding: '12px',
-                backgroundColor: 'transparent',
-                color: BORDEAUX,
-                border: `2px solid ${BORDEAUX}`,
-                borderRadius: 10,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-              }}
-            >
-              Voltar aos Pedidos
-            </button>
-          </Card>
+          <DetailCard title="Andamento">
+            <div className="detail-timeline">
+              {(order.historico.length ? order.historico : [{ status: order.status, data: getOrderDate(order) }]).map((event, index) => {
+                const eventMeta = getStatusMeta(event.status);
+                return (
+                  <div key={`${event.status}-${event.data}-${index}`}>
+                    <span style={{ backgroundColor: eventMeta.color }}>{eventMeta.icone}</span>
+                    <div><strong>{eventMeta.label}</strong><small>{formatDate(event.data)}</small></div>
+                  </div>
+                );
+              })}
+            </div>
+          </DetailCard>
+
+          {order.endereco && (
+            <DetailCard title="Entrega">
+              {isSale && <p className="detail-counterpart"><strong>Cliente:</strong> {order.comprador?.nome || 'Cliente BigPeças'}</p>}
+              <address>
+                {order.endereco.nome && <strong>{order.endereco.nome}<br /></strong>}
+                {order.endereco.logradouro}{order.endereco.numero ? `, ${order.endereco.numero}` : ''}
+                {order.endereco.complemento ? ` - ${order.endereco.complemento}` : ''}<br />
+                {order.endereco.bairro}{order.endereco.cidade ? ` - ${order.endereco.cidade}` : ''}
+                {order.endereco.uf ? `/${order.endereco.uf}` : ''}<br />
+                {order.endereco.cep && <>CEP {order.endereco.cep}</>}
+              </address>
+              {order.codigoRastreio && <p className="tracking-code">Rastreio: <strong>{order.codigoRastreio}</strong></p>}
+            </DetailCard>
+          )}
         </div>
+
+        <aside className="detail-sidebar">
+          <DetailCard title={isSale ? 'Resumo da venda' : 'Resumo da compra'}>
+            {isSale ? (
+              <>
+                <ValueRow label="Produtos vendidos" value={formatBRL(getOrderValue(order))} />
+                <div className="detail-total"><span>Total da venda</span><strong>{formatBRL(getOrderValue(order))}</strong></div>
+                <p className="detail-note">O valor considera somente as suas peças neste pedido.</p>
+              </>
+            ) : (
+              <>
+                <ValueRow label="Subtotal" value={formatBRL(order.subtotal)} />
+                {Number(order.desconto || 0) > 0 && <ValueRow label="Desconto" value={`- ${formatBRL(order.desconto)}`} />}
+                <ValueRow label="Frete" value={Number(order.valorFrete) === 0 ? 'Grátis' : formatBRL(order.valorFrete)} />
+                <div className="detail-total"><span>Total do pedido</span><strong>{formatBRL(order.total)}</strong></div>
+                {order.forma_pagamento?.nome && <p className="detail-payment">Pagamento: <strong>{order.forma_pagamento.nome}</strong></p>}
+              </>
+            )}
+          </DetailCard>
+
+          {!isSale && (
+            <button type="button" className="detail-primary-action" onClick={onExplore}>
+              Comprar novamente
+            </button>
+          )}
+          <button type="button" className="detail-secondary-action" onClick={onBack}>
+            Voltar ao histórico
+          </button>
+        </aside>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
-function Card({ title, children }) {
+function DetailCard({ title, children }) {
   return (
-    <section
-      style={{
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: '1.5rem',
-        border: `1px solid ${BORDER}`,
-      }}
-    >
-      {title && (
-        <h2
-          style={{
-            margin: '0 0 1rem',
-            fontSize: '1.1rem',
-            fontWeight: 700,
-            color: BORDEAUX,
-          }}
-        >
-          {title}
-        </h2>
-      )}
+    <section className="detail-card">
+      <h2>{title}</h2>
       {children}
     </section>
   );
 }
 
-function Linha({ label, valor, cor = DARK }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '0.92rem',
-        marginBottom: 8,
-      }}
-    >
-      <span style={{ color: MUTED }}>{label}</span>
-      <span style={{ color: cor, fontWeight: 600 }}>{valor}</span>
-    </div>
-  );
+function ValueRow({ label, value }) {
+  return <div className="value-row"><span>{label}</span><strong>{value}</strong></div>;
 }

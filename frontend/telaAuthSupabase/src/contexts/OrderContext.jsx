@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  listarPedidos,
+  listarHistoricoPedidos,
   buscarPedidoPorId,
   criarPedidoAPI,
   atualizarStatusPedidoAPI,
@@ -19,12 +19,12 @@ export const ORDER_STATUS = {
 
 export const STATUS_META = {
   [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: {
-    label: 'Aguardando Pagamento',
-    color: '#B45309',
+    label: 'Aguardando pagamento',
+    color: '#92400E',
     bg: '#FEF3C7',
     border: '#FCD34D',
     icone: '⏳',
-    descricao: 'Pedido criado. Conclua o pagamento para iniciar a separação.',
+    descricao: 'Pedido criado e aguardando a confirmação do pagamento.',
     ordem: 1,
   },
   [ORDER_STATUS.PAGO]: {
@@ -50,43 +50,69 @@ export const STATUS_META = {
     color: '#065F46',
     bg: '#D1FAE5',
     border: '#6EE7B7',
-    icone: '✅',
+    icone: '✓',
     descricao: 'Pedido entregue ao destinatário.',
     ordem: 4,
   },
   [ORDER_STATUS.CANCELADO]: {
     label: 'Cancelado',
-    color: '#7F1D1D',
+    color: '#991B1B',
     bg: '#FEE2E2',
     border: '#FCA5A5',
-    icone: '✕',
+    icone: '×',
     descricao: 'Pedido cancelado.',
-    ordem: 0,
+    ordem: 5,
   },
 };
 
+function normalizeOrder(order, visaoPadrao = 'compra') {
+  if (!order) return null;
+  return {
+    ...order,
+    visao: order.visao || visaoPadrao,
+    itens: Array.isArray(order.itens) ? order.itens : [],
+    historico: Array.isArray(order.historico) ? order.historico : [],
+    criadoEm: order.criadoEm || order.criado_em,
+    codigoRastreio: order.codigoRastreio || order.codigo_rastreio,
+    valorFrete: Number(order.valorFrete ?? order.valor_frete ?? 0),
+    valorTransacao: Number(order.valor_transacao ?? order.valor_venda ?? order.total ?? 0),
+  };
+}
+
 export const OrderProvider = ({ children }) => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
+  const [compras, setCompras] = useState([]);
+  const [vendas, setVendas] = useState([]);
+  const [perfilHistorico, setPerfilHistorico] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [historicoCarregado, setHistoricoCarregado] = useState(false);
   const [ordersError, setOrdersError] = useState('');
 
   const carregarPedidos = useCallback(async () => {
     if (!user) {
-      setOrders([]);
+      setCompras([]);
+      setVendas([]);
+      setPerfilHistorico(null);
+      setHistoricoCarregado(false);
       return;
     }
 
     setLoadingOrders(true);
+    setHistoricoCarregado(false);
     setOrdersError('');
 
     try {
-      const data = await listarPedidos();
-      setOrders(Array.isArray(data) ? data : []);
+      const data = await listarHistoricoPedidos();
+      setCompras((data?.compras || []).map((pedido) => normalizeOrder(pedido, 'compra')));
+      setVendas((data?.vendas || []).map((pedido) => normalizeOrder(pedido, 'venda')));
+      setPerfilHistorico(data?.perfil || null);
     } catch (error) {
-      setOrdersError(error?.message || 'Não foi possível carregar seus pedidos.');
+      setCompras([]);
+      setVendas([]);
+      setOrdersError(error?.message || 'Não foi possível carregar o histórico de compras e vendas.');
     } finally {
       setLoadingOrders(false);
+      setHistoricoCarregado(true);
     }
   }, [user]);
 
@@ -95,60 +121,77 @@ export const OrderProvider = ({ children }) => {
   }, [carregarPedidos]);
 
   const criarPedido = async ({ itens, frete, cupom, endereco, formaPagamento }) => {
-    const pedido = await criarPedidoAPI({
+    const pedido = normalizeOrder(await criarPedidoAPI({
       itens,
       frete,
       cupom,
       endereco,
       forma_pagamento: formaPagamento,
-    });
+    }));
 
-    setOrders((prev) => [pedido, ...prev]);
+    setCompras((prev) => [pedido, ...prev]);
     return pedido;
   };
 
   const atualizarStatusPedido = async (pedidoId, novoStatus) => {
-    const pedidoAtualizado = await atualizarStatusPedidoAPI(pedidoId, novoStatus);
-
-    setOrders((prev) =>
-      prev.map((p) => (p.id === pedidoId ? pedidoAtualizado : p)),
+    const pedidoAtualizado = normalizeOrder(
+      await atualizarStatusPedidoAPI(pedidoId, novoStatus),
+      'venda',
     );
+
+    setVendas((prev) => prev.map((pedido) =>
+      pedido.id === pedidoId ? pedidoAtualizado : pedido,
+    ));
+    setCompras((prev) => prev.map((pedido) =>
+      pedido.id === pedidoId
+        ? { ...pedido, status: pedidoAtualizado.status, historico: pedidoAtualizado.historico }
+        : pedido,
+    ));
 
     return pedidoAtualizado;
   };
 
-  const buscarPedido = (pedidoId) => orders.find((p) => p.id === pedidoId) || null;
+  const buscarPedido = (pedidoId, visao = 'compra') => {
+    const origem = visao === 'venda' ? vendas : compras;
+    return origem.find((pedido) => String(pedido.id) === String(pedidoId)) || null;
+  };
 
-  const recarregarPedido = async (pedidoId) => {
+  const recarregarPedido = async (pedidoId, visao = 'compra') => {
     try {
-      const pedido = await buscarPedidoPorId(pedidoId);
-      setOrders((prev) =>
-        prev.map((p) => (p.id === pedidoId ? pedido : p)),
-      );
+      const pedido = normalizeOrder(await buscarPedidoPorId(pedidoId, visao), visao);
+      const setter = visao === 'venda' ? setVendas : setCompras;
+      setter((prev) => {
+        const existe = prev.some((item) => String(item.id) === String(pedidoId));
+        return existe
+          ? prev.map((item) => (String(item.id) === String(pedidoId) ? pedido : item))
+          : [pedido, ...prev];
+      });
       return pedido;
     } catch {
       return null;
     }
   };
 
-  const value = {
-    orders,
+  const value = useMemo(() => ({
+    orders: compras,
+    compras,
+    vendas,
+    perfilHistorico,
     loadingOrders,
+    historicoCarregado,
     ordersError,
     criarPedido,
     atualizarStatusPedido,
     buscarPedido,
     recarregarPedido,
     carregarPedidos,
-  };
+  }), [compras, vendas, perfilHistorico, loadingOrders, historicoCarregado, ordersError, carregarPedidos]);
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
 };
 
 export const useOrders = () => {
   const context = useContext(OrderContext);
-  if (!context) {
-    throw new Error('useOrders deve ser usado dentro de OrderProvider');
-  }
+  if (!context) throw new Error('useOrders deve ser usado dentro de OrderProvider');
   return context;
 };

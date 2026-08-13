@@ -1,30 +1,15 @@
 services:
-  auth:
-    build: ./backend/microservice-authWithSupabase
+  backend:
+    build: ./backend
     ports:
       - "3001:3001"
     env_file:
-      - ./backend/microservice-authWithSupabase/.env
+      - ./backend/.env
     environment:
       - NODE_ENV=production
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/auth/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  dbpecas:
-    build: ./backend/microservice-DBpecas
-    ports:
-      - "3002:3002"
-    env_file:
-      - ./backend/microservice-DBpecas/.env
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3002/api/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -34,6 +19,5 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - auth
-      - dbpecas
+      - backend
     restart: unless-stopped

@@ -1,5 +1,5 @@
 {
-  "name": "bigpecas-backend-dbpecas",
+  "name": "bigpecas-backend",
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
@@ -15,8 +15,6 @@
     "helmet": "^8.2.0",
     "winston": "^3.19.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "description": "API unificada de autenticacao, pecas, pedidos, favoritos e frete do BigPecas",
+  "license": "ISC"
 }

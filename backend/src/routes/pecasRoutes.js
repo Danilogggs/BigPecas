@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const supabase = require('../config/db');
+const { supabaseAdmin: supabase } = require('../config/supabaseClient');
 const AppError = require('../utils/AppError');
 
 const PECAS_TABLE = process.env.SUPABASE_PECAS_TABLE || 'pecas';
@@ -199,7 +199,7 @@ function montarFornecedorPublico(fornecedor, pecasFornecedor = []) {
     descricao_loja: fornecedor.descricao_loja,
     email: fornecedor.email,
     telefone: fornecedor.telefone,
-    tipo_usuario: fornecedor.tipo_usuario,
+    tipo_usuario: 'ambos',
     email_verificado: fornecedor.email_verificado,
     total_pecas: pecasFornecedor.length,
     pecas_com_estoque: pecasComEstoque.length,
@@ -208,9 +208,11 @@ function montarFornecedorPublico(fornecedor, pecasFornecedor = []) {
 }
 
 function usuarioPodeCadastrarPeca(usuario) {
-  const tipoUsuario = normalizarTexto(usuario?.tipo_usuario);
-
-  return tipoUsuario === 'vendedor' || tipoUsuario === 'ambos';
+  return Boolean(
+    usuario?.id &&
+    processarValor(usuario.nome_loja) &&
+    processarValor(usuario.descricao_loja)
+  );
 }
 
 async function obterFornecedor(req) {
@@ -222,7 +224,7 @@ async function obterFornecedor(req) {
 
   const { data, error } = await supabase
     .from(USERS_TABLE)
-    .select('id, email, tipo_usuario, email_verificado')
+    .select('id, email, tipo_usuario, nome_loja, descricao_loja, email_verificado')
     .eq('email', emailUsuario)
     .maybeSingle();
 
@@ -244,8 +246,8 @@ function isSupabaseEmailConfirmed(user) {
 function validarPermissaoCadastroPeca(usuario, authUser) {
   if (!usuarioPodeCadastrarPeca(usuario)) {
     throw new AppError(
-      403,
-      'Apenas usuários vendedores ou compradores/vendedores podem cadastrar peças.'
+      409,
+      'Configure o nome e a descrição da sua loja antes de cadastrar uma peça.'
     );
   }
 
@@ -455,18 +457,19 @@ router.get('/fornecedores/recomendados', async (req, res, next) => {
 
     const { data: fornecedores, error: fornecedoresError } = await supabase
       .from(USERS_TABLE)
-      .select('id, full_name, email, tipo_usuario, nome_loja, descricao_loja, telefone, email_verificado')
-      .in('tipo_usuario', ['vendedor', 'ambos']);
+      .select('id, full_name, email, tipo_usuario, nome_loja, descricao_loja, telefone, email_verificado');
 
     if (fornecedoresError) {
       throw fornecedoresError;
     }
 
-    if (!fornecedores?.length) {
+    const fornecedoresComLoja = (fornecedores || []).filter(usuarioPodeCadastrarPeca);
+
+    if (!fornecedoresComLoja.length) {
       return res.json({ total: 0, fornecedores: [] });
     }
 
-    const fornecedorIds = fornecedores.map((fornecedor) => fornecedor.id);
+    const fornecedorIds = fornecedoresComLoja.map((fornecedor) => fornecedor.id);
 
     const { data: pecas, error: pecasError } = await supabase
       .from(PECAS_TABLE)
@@ -477,7 +480,7 @@ router.get('/fornecedores/recomendados', async (req, res, next) => {
       throw pecasError;
     }
 
-    const ranking = fornecedores
+    const ranking = fornecedoresComLoja
       .map((fornecedor) => {
         const pecasFornecedor = (pecas || []).filter(
           (peca) => String(peca.fornecedor_id) === String(fornecedor.id)

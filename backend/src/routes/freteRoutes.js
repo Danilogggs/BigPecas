@@ -26,7 +26,7 @@ const melhorEnvioHeaders = () => ({
 
 function persistTokensToEnv(accessToken, refreshToken) {
   try {
-    const envPath = path.resolve(__dirname, '../../../.env');
+    const envPath = path.resolve(__dirname, '../../.env');
     if (!fs.existsSync(envPath)) return;
 
     let content = fs.readFileSync(envPath, 'utf8');

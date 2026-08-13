@@ -24,7 +24,7 @@ function sanitizeUserBody(body = {}) {
   const email = normalizeEmail(body.email);
   const gender = normalizeString(body.gender || body.genero);
   const cep = normalizeString(body.cep);
-  const tipo_usuario = normalizeString(body.tipo_usuario);
+  const tipo_usuario = 'ambos';
   const nome_loja = normalizeString(body.nome_loja);
   const descricao_loja = normalizeString(body.descricao_loja);
   const telefone = normalizeString(body.telefone);
@@ -64,6 +64,10 @@ function isUuid(value) {
 
 function isSupabaseEmailConfirmed(user) {
   return Boolean(user?.email_confirmed_at || user?.confirmed_at);
+}
+
+function normalizeProfileRole(profile) {
+  return profile ? { ...profile, tipo_usuario: 'ambos' } : profile;
 }
 
 function buildUserMetadata(userBody) {
@@ -111,7 +115,7 @@ function buildFallbackProfileFromAuthUser(user) {
     email: user?.email || '',
     gender: metadata.gender || '',
     cep: metadata.cep || '',
-    tipo_usuario: metadata.tipo_usuario || '',
+    tipo_usuario: 'ambos',
     nome_loja: metadata.nome_loja || '',
     descricao_loja: metadata.descricao_loja || '',
     telefone: metadata.telefone || '',
@@ -130,7 +134,7 @@ async function findUserProfileByEmail(email) {
     throw error;
   }
 
-  return data;
+  return normalizeProfileRole(data);
 }
 
 async function syncProfileEmailVerification(profile, authUser) {
@@ -152,8 +156,9 @@ async function syncProfileEmailVerification(profile, authUser) {
     throw error;
   }
 
-  return data || {
+  return normalizeProfileRole(data) || {
     ...profile,
+    tipo_usuario: 'ambos',
     email_verificado: true,
   };
 }
@@ -169,7 +174,7 @@ async function findUserProfileById(id) {
     throw error;
   }
 
-  return data;
+  return normalizeProfileRole(data);
 }
 
 async function saveUserProfile(userBody, options = {}) {

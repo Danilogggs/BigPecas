@@ -12,29 +12,8 @@ const INITIAL_FORM = {
   confirmPassword: '',
   gender: '',
   cep: '',
-  tipo_usuario: '',
-  nome_loja: '',
-  descricao_loja: '',
   telefone: '',
 };
-
-const USER_TYPES = [
-  {
-    value: 'comprador',
-    title: 'Comprador',
-    description: 'Quero comprar peças no marketplace.',
-  },
-  {
-    value: 'vendedor',
-    title: 'Vendedor',
-    description: 'Quero cadastrar minha loja e vender peças.',
-  },
-  {
-    value: 'ambos',
-    title: 'Comprador e vendedor',
-    description: 'Quero comprar e também vender peças.',
-  },
-];
 
 const GENDER_OPTIONS = [
   { value: '', label: 'Prefiro não informar' },
@@ -50,7 +29,6 @@ const REGEX = {
   senha: /^(?=.*[A-Za-z])(?=.*\d).{8,}$/,
   cep: /^\d{5}-\d{3}$/,
   telefone: /^\(\d{2}\)\s\d{4,5}-\d{4}$/,
-  loja: /^[A-Za-zÀ-ÿ0-9\s.'-]{3,150}$/,
 };
 
 export default function CadastroUsuario() {
@@ -61,8 +39,6 @@ export default function CadastroUsuario() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
-
-  const precisaDadosLoja = form.tipo_usuario === 'vendedor' || form.tipo_usuario === 'ambos';
 
   function clearFieldError(fieldName) {
     setErrors((prev) => ({
@@ -87,17 +63,6 @@ export default function CadastroUsuario() {
       ...prev,
       gender: value,
     }));
-  }
-
-  function handleTipoUsuarioChange(tipo) {
-    setForm((prev) => ({
-      ...prev,
-      tipo_usuario: tipo,
-      nome_loja: tipo === 'comprador' ? '' : prev.nome_loja,
-      descricao_loja: tipo === 'comprador' ? '' : prev.descricao_loja,
-    }));
-
-    clearFieldError('tipo_usuario');
   }
 
   function formatCep(value) {
@@ -155,10 +120,6 @@ export default function CadastroUsuario() {
       newErrors.full_name = 'Digite nome e sobrenome usando apenas letras.';
     }
 
-    if (!form.tipo_usuario.trim()) {
-      newErrors.tipo_usuario = 'Selecione o tipo de usuário.';
-    }
-
     if (!form.telefone.trim()) {
       newErrors.telefone = 'Informe seu telefone.';
     } else if (!REGEX.telefone.test(form.telefone.trim())) {
@@ -169,16 +130,6 @@ export default function CadastroUsuario() {
       newErrors.cep = 'Informe seu CEP.';
     } else if (!REGEX.cep.test(form.cep.trim())) {
       newErrors.cep = 'Digite um CEP válido no formato 00000-000.';
-    }
-
-    if (precisaDadosLoja && !form.nome_loja.trim()) {
-      newErrors.nome_loja = 'Informe o nome da loja.';
-    } else if (precisaDadosLoja && !REGEX.loja.test(form.nome_loja.trim())) {
-      newErrors.nome_loja = 'O nome da loja deve ter pelo menos 3 caracteres válidos.';
-    }
-
-    if (precisaDadosLoja && !form.descricao_loja.trim()) {
-      newErrors.descricao_loja = 'Informe a descrição da loja.';
     }
 
     if (!form.email.trim()) {
@@ -222,9 +173,9 @@ export default function CadastroUsuario() {
         password: form.password,
         gender: form.gender.trim(),
         cep: form.cep.trim(),
-        tipo_usuario: form.tipo_usuario.trim(),
-        nome_loja: precisaDadosLoja ? form.nome_loja.trim() : '',
-        descricao_loja: precisaDadosLoja ? form.descricao_loja.trim() : '',
+        tipo_usuario: 'ambos',
+        nome_loja: '',
+        descricao_loja: '',
         telefone: form.telefone.trim(),
       });
 
@@ -400,108 +351,6 @@ export default function CadastroUsuario() {
               {errors.cep && <div style={fieldErrorStyle}>{errors.cep}</div>}
             </Field>
           </div>
-
-          <hr style={dividerStyle} />
-
-          <div style={{ marginBottom: SPACING.MD }}>
-            <div
-              style={{
-                fontSize: '0.95rem',
-                fontWeight: 700,
-                color: COLORS.DARK_TEXT,
-                marginBottom: SPACING.SM,
-              }}
-            >
-              Tipo de usuário <span style={{ color: COLORS.BORDEAUX }}>*</span>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-                gap: SPACING.MD,
-              }}
-            >
-              {USER_TYPES.map((type) => {
-                const selected = form.tipo_usuario === type.value;
-
-                return (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => handleTipoUsuarioChange(type.value)}
-                    style={{
-                      textAlign: 'left',
-                      padding: SPACING.LG,
-                      borderRadius: BORDER_RADIUS.MD,
-                      border: selected ? `2px solid ${COLORS.BORDEAUX}` : `1px solid ${COLORS.BORDEAUX}22`,
-                      backgroundColor: selected ? `${COLORS.BORDEAUX}10` : '#fff',
-                      color: COLORS.DARK_TEXT,
-                      cursor: 'pointer',
-                      boxShadow: selected ? `0 8px 18px ${COLORS.BORDEAUX}18` : '0 3px 10px rgba(0, 0, 0, 0.04)',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: SPACING.SM, marginBottom: SPACING.SM }}>
-                      <span
-                        style={{
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          border: selected ? `5px solid ${COLORS.BORDEAUX}` : `2px solid ${COLORS.BORDEAUX}55`,
-                          backgroundColor: '#fff',
-                          transition: 'all 0.2s ease',
-                        }}
-                      />
-                      <strong style={{ fontSize: '0.95rem' }}>{type.title}</strong>
-                    </div>
-
-                    <p style={{ margin: 0, fontSize: '0.82rem', color: COLORS.MUTED_TEXT, lineHeight: 1.4 }}>
-                      {type.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {errors.tipo_usuario && <div style={fieldErrorStyle}>{errors.tipo_usuario}</div>}
-          </div>
-
-          {precisaDadosLoja && (
-            <>
-              <hr style={dividerStyle} />
-
-              <div style={{ marginBottom: SPACING.LG }}>
-                <Field label="Nome da loja" required>
-                  <Input
-                    type="text"
-                    name="nome_loja"
-                    placeholder="Ex: Auto Peças Garabetti"
-                    value={form.nome_loja}
-                    onChange={handleChange}
-                    maxLength={150}
-                    required={precisaDadosLoja}
-                  />
-                  {errors.nome_loja && <div style={fieldErrorStyle}>{errors.nome_loja}</div>}
-                </Field>
-              </div>
-
-              <div style={{ marginBottom: SPACING.LG }}>
-                <Field label="Descrição da loja" required>
-                  <Input
-                    type="text"
-                    name="descricao_loja"
-                    placeholder="Ex: Loja especializada em peças antigas e difíceis de encontrar"
-                    value={form.descricao_loja}
-                    onChange={handleChange}
-                    maxLength={500}
-                    required={precisaDadosLoja}
-                  />
-                  {errors.descricao_loja && <div style={fieldErrorStyle}>{errors.descricao_loja}</div>}
-                </Field>
-              </div>
-            </>
-          )}
 
           <hr style={dividerStyle} />
 
