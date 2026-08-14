@@ -8,6 +8,7 @@ const catalogRoutes = require('./routes/catalogRoutes');
 const freteRoutes = require('./routes/freteRoutes');
 const pecasRoutes = require('./routes/pecasRoutes');
 const pedidosRoutes = require('./routes/pedidosRoutes');
+const avaliacoesRoutes = require('./routes/avaliacoesRoutes');
 const wishRoutes = require('./routes/wishRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
@@ -57,6 +58,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/pecas', verifyToken, pecasRoutes);
 app.use('/api/wish', verifyToken, wishRoutes);
 app.use('/api/pedidos', verifyToken, pedidosRoutes);
+app.use('/api/avaliacoes', verifyToken, avaliacoesRoutes);
 app.use('/api/frete', verifyToken, freteLimiter, freteRoutes);
 app.use('/api', verifyToken, catalogRoutes);
 

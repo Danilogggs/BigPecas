@@ -45,7 +45,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { cartItems, getTotal, clearCart } = useCart();
-  const { criarPedido } = useOrders();
+  const { criarPedido, confirmarPagamentoPedido } = useOrders();
 
   const dadosCarrinho = location.state || {};
 
@@ -76,6 +76,8 @@ export default function CheckoutPage() {
   const [processando, setProcessando] = useState(false);
   const [erroFinal, setErroFinal] = useState('');
   const [errors, setErrors] = useState({});
+  const [pedidoPendente, setPedidoPendente] = useState(null);
+  const [pedidoConcluido, setPedidoConcluido] = useState(null);
 
   const subtotal = getTotal();
   const cupom = dadosCarrinho.cupom;
@@ -149,19 +151,28 @@ export default function CheckoutPage() {
     setErroFinal('');
 
     try {
-      const pedido = await criarPedido({
-        itens: cartItems,
-        frete,
-        cupom,
-        endereco: {
-          ...endereco,
-          cep: formatarCep(endereco.cep),
-        },
-        formaPagamento: FORMAS_PAGAMENTO.find((f) => f.id === pagamento),
-      });
+      let pedido = pedidoPendente;
 
+      if (!pedido) {
+        pedido = await criarPedido({
+          itens: cartItems,
+          frete,
+          cupom,
+          endereco: {
+            ...endereco,
+            cep: formatarCep(endereco.cep),
+          },
+          formaPagamento: FORMAS_PAGAMENTO.find((f) => f.id === pagamento),
+        });
+        setPedidoPendente(pedido);
+      }
+
+      const pedidoPago = await confirmarPagamentoPedido(pedido.id);
+
+      setPedidoConcluido(pedidoPago);
       clearCart();
-      navigate(`/pedidos/${pedido.id}`, { replace: true });
+      setEtapa(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       setErroFinal(error?.message || 'Não foi possível concluir o pedido. Tente novamente.');
     } finally {
@@ -169,7 +180,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (cartItems.length === 0) {
+  if (cartItems.length === 0 && !pedidoConcluido) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
         <Header />
@@ -210,7 +221,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!frete) {
+  if (!frete && !pedidoConcluido) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
         <Header />
@@ -338,22 +349,29 @@ export default function CheckoutPage() {
               fontFamily: "'Playfair Display', Georgia, serif",
             }}
           >
-            Finalizar Compra
+            {etapa === 4 ? 'Compra completa' : 'Finalizar Compra'}
           </h1>
         </div>
 
         {/* Stepper */}
         <Stepper etapa={etapa} />
 
-        <div
-          className="checkout-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 400px',
-            gap: '1.5rem',
-            alignItems: 'start',
-          }}
-        >
+        {etapa === 4 ? (
+          <CompraCompleta
+            pedido={pedidoConcluido}
+            onAcompanhar={() => navigate(`/pedidos/${pedidoConcluido.id}`, { replace: true })}
+            onContinuar={() => navigate('/buscaPecas', { replace: true })}
+          />
+        ) : (
+          <div
+            className="checkout-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 400px',
+              gap: '1.5rem',
+              alignItems: 'start',
+            }}
+          >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {etapa === 1 && (
               <EnderecoForm
@@ -461,7 +479,7 @@ export default function CheckoutPage() {
                       <span className="spinner-lg" /> Processando...
                     </>
                   ) : (
-                    'Confirmar Pedido 🔒'
+                    'Confirmar pagamento e concluir compra'
                   )}
                 </button>
               )}
@@ -479,14 +497,113 @@ export default function CheckoutPage() {
               pagamento={FORMAS_PAGAMENTO.find((f) => f.id === pagamento)}
             />
           </div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
+function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
+  return (
+    <section
+      style={{
+        maxWidth: 720,
+        margin: '0 auto',
+        padding: '3rem 2rem',
+        border: `1px solid ${BORDER}`,
+        borderRadius: 18,
+        backgroundColor: '#fff',
+        textAlign: 'center',
+        boxShadow: '0 14px 35px rgba(21, 34, 24, 0.08)',
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          placeItems: 'center',
+          width: 76,
+          height: 76,
+          margin: '0 auto 1.25rem',
+          borderRadius: '50%',
+          backgroundColor: '#D1FAE5',
+          color: '#065F46',
+          fontSize: '2.2rem',
+          fontWeight: 800,
+        }}
+      >
+        ✓
+      </div>
+      <span
+        style={{
+          color: '#065F46',
+          fontWeight: 800,
+          fontSize: '0.82rem',
+          textTransform: 'uppercase',
+          letterSpacing: 0.8,
+        }}
+      >
+        Pagamento confirmado
+      </span>
+      <h2
+        style={{
+          margin: '0.6rem 0',
+          color: BORDEAUX,
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontSize: '2rem',
+        }}
+      >
+        Compra concluída com sucesso
+      </h2>
+      <p style={{ margin: '0 auto', maxWidth: 520, color: MUTED, lineHeight: 1.65 }}>
+        Seu pedido <strong style={{ color: DARK }}>#{pedido?.id}</strong> foi confirmado e já está disponível para acompanhamento.
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+          marginTop: '1.75rem',
+        }}
+      >
+        <button
+          type="button"
+          onClick={onAcompanhar}
+          style={{
+            padding: '12px 24px',
+            border: 0,
+            borderRadius: 10,
+            backgroundColor: BORDEAUX,
+            color: CREAM,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Acompanhar pedido
+        </button>
+        <button
+          type="button"
+          onClick={onContinuar}
+          style={{
+            padding: '12px 24px',
+            border: `2px solid ${BORDEAUX}`,
+            borderRadius: 10,
+            backgroundColor: 'transparent',
+            color: BORDEAUX,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Continuar comprando
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function Stepper({ etapa }) {
-  const steps = ['Endereço', 'Pagamento', 'Revisão'];
+  const steps = ['Endereço', 'Pagamento', 'Revisão', 'Compra completa'];
   return (
     <div
       style={{

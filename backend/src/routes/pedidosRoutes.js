@@ -1,6 +1,10 @@
 const express = require('express');
 
 const { supabaseAdmin: supabase } = require('../config/supabaseClient');
+const {
+  garantirVendasDoPedido,
+  sincronizarStatusVendas,
+} = require('../services/vendasService');
 const AppError = require('../utils/AppError');
 
 const router = express.Router();
@@ -353,7 +357,9 @@ router.post('/', async (req, res, next) => {
       .single();
 
     if (error) throw error;
-    return res.status(201).json(montarCompra(data));
+
+    const pedidoComVendas = await garantirVendasDoPedido(data);
+    return res.status(201).json(montarCompra(pedidoComVendas));
   } catch (error) {
     return next(error);
   }
@@ -382,9 +388,18 @@ router.patch('/:id/status', async (req, res, next) => {
     const fornecedorEnvolvido = pedidoResolvido.itens.some(
       (item) => String(item.fornecedor_id) === String(usuario.id),
     );
+    const compradorDoPedido = String(pedidoResolvido.user_id) === String(usuario.id);
+    const compradorConfirmandoPagamento =
+      status === 'pago' &&
+      pedidoAtual.status === 'aguardando_pagamento' &&
+      compradorDoPedido;
 
-    if (!fornecedorEnvolvido) {
-      throw new AppError(403, 'Somente um fornecedor deste pedido pode atualizar o status.');
+    if (status === 'entregue' && !compradorDoPedido) {
+      throw new AppError(403, 'Somente o comprador pode confirmar o recebimento do pedido.');
+    }
+
+    if (status !== 'entregue' && !fornecedorEnvolvido && !compradorConfirmandoPagamento) {
+      throw new AppError(403, 'Somente um fornecedor deste pedido pode atualizar este status.');
     }
 
     const transicoesPermitidas = TRANSICOES_STATUS[pedidoAtual.status] || [];
@@ -406,7 +421,14 @@ router.patch('/:id/status', async (req, res, next) => {
 
     if (error) throw error;
 
-    const [pedidoAtualizado] = await resolverItensDosPedidos([data]);
+    const [pedidoResolvidoAtualizado] = await resolverItensDosPedidos([data]);
+    const pedidoAtualizado = await garantirVendasDoPedido(pedidoResolvidoAtualizado);
+    await sincronizarStatusVendas(pedidoAtualizado);
+
+    if (compradorDoPedido) {
+      return res.json(montarCompra(pedidoAtualizado));
+    }
+
     const compradoresPorId = await buscarUsuariosPorIds([pedidoAtualizado.user_id]);
     return res.json(montarVenda(pedidoAtualizado, usuario.id, compradoresPorId));
   } catch (error) {

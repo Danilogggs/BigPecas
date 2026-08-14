@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import { useCart } from '../contexts/CartContext';
 import {
+  buscarAvaliacoesFornecedor,
+  buscarAvaliacoesProduto,
+} from '../services/avaliacoesService';
+import {
   adicionarPecaWish,
   buscarFornecedoresRecomendados,
   buscarPecaPorId,
@@ -106,7 +110,7 @@ function TextSection({ title, children }) {
   );
 }
 
-function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatClick, notice }) {
+function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatClick, notice, resumoAvaliacoes }) {
   const textoNome = loading ? 'Carregando...' : error || nome || 'Vendedor nao informado';
 
   return (
@@ -186,8 +190,12 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
           fontWeight: 700,
         }}
       >
-        <span>Avaliacao do vendedor</span>
-        <span>Em breve</span>
+        <span>Avaliação do vendedor</span>
+        <span>
+          {resumoAvaliacoes?.total > 0
+            ? `★ ${Number(resumoAvaliacoes.media).toFixed(1)} (${resumoAvaliacoes.total})`
+            : 'Ainda sem avaliações'}
+        </span>
       </div>
 
       {notice && (
@@ -201,6 +209,63 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
         >
           {notice}
         </div>
+      )}
+    </section>
+  );
+}
+
+function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
+  return (
+    <section
+      style={{
+        backgroundColor: '#fff',
+        borderRadius: BORDER_RADIUS.LG,
+        boxShadow: SHADOWS.SM,
+        border: '1px solid rgba(123, 29, 46, 0.12)',
+        padding: SPACING.XL,
+      }}
+    >
+      <h2 style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
+        Avaliações do produto
+      </h2>
+
+      {resumo.total > 0 ? (
+        <>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: SPACING.LG }}>
+            <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
+              ★ {Number(resumo.media).toFixed(1)}
+            </strong>
+            <span style={{ color: '#6A5F58' }}>
+              {resumo.total} {resumo.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
+            </span>
+          </div>
+          <div style={{ display: 'grid', gap: SPACING.SM }}>
+            {avaliacoes.map((avaliacao) => (
+              <article
+                key={avaliacao.id}
+                style={{ padding: SPACING.MD, border: '1px solid #EAD8BE', borderRadius: BORDER_RADIUS.MD, background: '#FAF4E8' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <strong style={{ color: '#C69216' }}>
+                    {'★'.repeat(avaliacao.nota)}{'☆'.repeat(5 - avaliacao.nota)}
+                  </strong>
+                  <span style={{ color: '#21734A', fontSize: '0.78rem', fontWeight: 800 }}>
+                    ✓ Compra verificada
+                  </span>
+                </div>
+                {avaliacao.comentario && (
+                  <p style={{ margin: `${SPACING.SM} 0 0`, color: '#6A5F58', lineHeight: 1.6 }}>
+                    {avaliacao.comentario}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.7 }}>
+          Este produto ainda não recebeu avaliações de compras entregues.
+        </p>
       )}
     </section>
   );
@@ -229,6 +294,9 @@ export default function DetalhePeca() {
   const [wishMessage, setWishMessage] = useState('');
   const [carrinhoMessage, setCarrinhoMessage] = useState('');
   const [itemNoCarrinho, setItemNoCarrinho] = useState(false);
+  const [avaliacoesProduto, setAvaliacoesProduto] = useState([]);
+  const [resumoProduto, setResumoProduto] = useState({ total: 0, media: 0 });
+  const [resumoFornecedor, setResumoFornecedor] = useState({ total: 0, media: 0 });
 
   useEffect(() => {
     async function carregarDetalhes() {
@@ -272,6 +340,27 @@ export default function DetalhePeca() {
 
     carregarStatusWish();
   }, [peca?.id]);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarAvaliacoes() {
+      const [produto, vendedor] = await Promise.all([
+        buscarAvaliacoesProduto(id).catch(() => null),
+        peca?.fornecedor_id
+          ? buscarAvaliacoesFornecedor(peca.fornecedor_id).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
+      if (!ativo) return;
+      setAvaliacoesProduto(Array.isArray(produto?.avaliacoes) ? produto.avaliacoes : []);
+      setResumoProduto(produto?.resumo || { total: 0, media: 0 });
+      setResumoFornecedor(vendedor?.resumo || { total: 0, media: 0 });
+    }
+
+    carregarAvaliacoes();
+    return () => { ativo = false; };
+  }, [id, peca?.fornecedor_id]);
 
   useEffect(() => {
     async function carregarRecomendacoes() {
@@ -965,6 +1054,12 @@ export default function DetalhePeca() {
                 onClick={handleFornecedorClick}
                 onChatClick={handleChatClick}
                 notice={fornecedorNotice}
+                resumoAvaliacoes={resumoFornecedor}
+              />
+
+              <AvaliacoesProdutoSection
+                resumo={resumoProduto}
+                avaliacoes={avaliacoesProduto}
               />
 
               <RecomendacoesSection />

@@ -151,6 +151,42 @@ export const OrderProvider = ({ children }) => {
     return pedidoAtualizado;
   };
 
+  const confirmarRecebimentoPedido = async (pedidoId) => {
+    const pedidoAtualizado = normalizeOrder(
+      await atualizarStatusPedidoAPI(pedidoId, ORDER_STATUS.ENTREGUE),
+      'compra',
+    );
+
+    setCompras((prev) => prev.map((pedido) =>
+      String(pedido.id) === String(pedidoId) ? pedidoAtualizado : pedido,
+    ));
+    setVendas((prev) => prev.map((pedido) =>
+      String(pedido.id) === String(pedidoId)
+        ? { ...pedido, status: pedidoAtualizado.status, historico: pedidoAtualizado.historico }
+        : pedido,
+    ));
+
+    return pedidoAtualizado;
+  };
+
+  const confirmarPagamentoPedido = async (pedidoId) => {
+    const pedidoAtualizado = normalizeOrder(
+      await atualizarStatusPedidoAPI(pedidoId, ORDER_STATUS.PAGO),
+      'compra',
+    );
+
+    setCompras((prev) => prev.map((pedido) =>
+      String(pedido.id) === String(pedidoId) ? pedidoAtualizado : pedido,
+    ));
+    setVendas((prev) => prev.map((pedido) =>
+      String(pedido.id) === String(pedidoId)
+        ? { ...pedido, status: pedidoAtualizado.status, historico: pedidoAtualizado.historico }
+        : pedido,
+    ));
+
+    return pedidoAtualizado;
+  };
+
   const buscarPedido = (pedidoId, visao = 'compra') => {
     const origem = visao === 'venda' ? vendas : compras;
     return origem.find((pedido) => String(pedido.id) === String(pedidoId)) || null;
@@ -182,6 +218,8 @@ export const OrderProvider = ({ children }) => {
     ordersError,
     criarPedido,
     atualizarStatusPedido,
+    confirmarRecebimentoPedido,
+    confirmarPagamentoPedido,
     buscarPedido,
     recarregarPedido,
     carregarPedidos,
