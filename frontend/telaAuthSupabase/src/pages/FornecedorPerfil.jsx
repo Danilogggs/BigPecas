@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import { buscarPerfilFornecedor } from '../services/pecasService';
+import { buscarAvaliacoesFornecedor } from '../services/avaliacoesService';
 import {
   BORDER_RADIUS,
   BUTTON_PRIMARY_STYLE,
@@ -120,6 +121,8 @@ export default function FornecedorPerfil() {
 
   const [fornecedor, setFornecedor] = useState(null);
   const [pecas, setPecas] = useState([]);
+  const [avaliacoes, setAvaliacoes] = useState([]);
+  const [resumoAvaliacoes, setResumoAvaliacoes] = useState({ total: 0, media: 0 });
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -129,12 +132,19 @@ export default function FornecedorPerfil() {
       setErrorMessage('');
 
       try {
-        const data = await buscarPerfilFornecedor(id);
+        const [data, dadosAvaliacoes] = await Promise.all([
+          buscarPerfilFornecedor(id),
+          buscarAvaliacoesFornecedor(id).catch(() => null),
+        ]);
         setFornecedor(data?.fornecedor || null);
         setPecas(Array.isArray(data?.pecas) ? data.pecas : []);
+        setAvaliacoes(Array.isArray(dadosAvaliacoes?.avaliacoes) ? dadosAvaliacoes.avaliacoes : []);
+        setResumoAvaliacoes(dadosAvaliacoes?.resumo || { total: 0, media: 0 });
       } catch (error) {
         setFornecedor(null);
         setPecas([]);
+        setAvaliacoes([]);
+        setResumoAvaliacoes({ total: 0, media: 0 });
         setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar o perfil do vendedor.'));
       } finally {
         setLoading(false);
@@ -343,10 +353,44 @@ export default function FornecedorPerfil() {
                 <h2 style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
                   Avaliações do vendedor
                 </h2>
-                <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.7 }}>
-                  As avaliações reais entrarão quando o fluxo de compra e pós-compra estiver implementado.
-                  Nesta versão, a recomendação considera quantidade de peças, estoque disponível e completude do perfil.
-                </p>
+                {resumoAvaliacoes.total > 0 ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: SPACING.LG }}>
+                      <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
+                        ★ {Number(resumoAvaliacoes.media).toFixed(1)}
+                      </strong>
+                      <span style={{ color: '#6A5F58' }}>
+                        {resumoAvaliacoes.total} {resumoAvaliacoes.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'grid', gap: SPACING.SM }}>
+                      {avaliacoes.map((avaliacao) => (
+                        <article
+                          key={avaliacao.id}
+                          style={{ padding: SPACING.MD, border: '1px solid #EAD8BE', borderRadius: BORDER_RADIUS.MD, background: '#FAF4E8' }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                            <strong style={{ color: '#C69216' }}>
+                              {'★'.repeat(avaliacao.nota)}{'☆'.repeat(5 - avaliacao.nota)}
+                            </strong>
+                            <span style={{ color: '#21734A', fontSize: '0.78rem', fontWeight: 800 }}>
+                              ✓ Compra verificada
+                            </span>
+                          </div>
+                          {avaliacao.comentario && (
+                            <p style={{ margin: `${SPACING.SM} 0 0`, color: '#6A5F58', lineHeight: 1.6 }}>
+                              {avaliacao.comentario}
+                            </p>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.7 }}>
+                    Este vendedor ainda não recebeu avaliações de compras entregues.
+                  </p>
+                )}
               </section>
             </>
           )}

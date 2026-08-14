@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import { useOrders, ORDER_STATUS, STATUS_META } from '../contexts/OrderContext';
+import {
+  avaliarFornecedor,
+  avaliarProduto,
+  buscarAvaliacoesPedido,
+} from '../services/avaliacoesService';
 import './PedidosPage.css';
 
 const formatBRL = (value) =>
@@ -57,6 +62,7 @@ export default function PedidosPage() {
     ordersError,
     buscarPedido,
     atualizarStatusPedido,
+    confirmarRecebimentoPedido,
     carregarPedidos,
   } = useOrders();
   const [filtroStatus, setFiltroStatus] = useState('todos');
@@ -107,6 +113,7 @@ export default function PedidosPage() {
         view={visao}
         onBack={() => navigate(visao === 'venda' ? '/pedidos?visao=vendas' : '/pedidos')}
         onStatusChange={atualizarStatusPedido}
+        onConfirmReceipt={confirmarRecebimentoPedido}
         onExplore={() => navigate('/buscaPecas')}
       />
     );
@@ -335,7 +342,7 @@ function EmptyState({ title, description, actionLabel, onAction }) {
   );
 }
 
-function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
+function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, onExplore }) {
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState('');
   const meta = getStatusMeta(order.status);
@@ -343,13 +350,12 @@ function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
   const nextStatus = {
     [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: ORDER_STATUS.PAGO,
     [ORDER_STATUS.PAGO]: ORDER_STATUS.ENVIADO,
-    [ORDER_STATUS.ENVIADO]: ORDER_STATUS.ENTREGUE,
   }[order.status];
   const nextLabel = {
     [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: 'Confirmar pagamento',
     [ORDER_STATUS.PAGO]: 'Marcar como enviado',
-    [ORDER_STATUS.ENVIADO]: 'Marcar como entregue',
   }[order.status];
+  const podeConfirmarRecebimento = !isSale && order.status === ORDER_STATUS.ENVIADO;
 
   async function updateStatus() {
     if (!nextStatus || updating) return;
@@ -359,6 +365,19 @@ function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
       await onStatusChange(order.id, nextStatus);
     } catch (error) {
       setUpdateError(error?.message || 'Não foi possível atualizar o status deste pedido.');
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function confirmReceipt() {
+    if (!podeConfirmarRecebimento || updating) return;
+    setUpdating(true);
+    setUpdateError('');
+    try {
+      await onConfirmReceipt(order.id);
+    } catch (error) {
+      setUpdateError(error?.message || 'Não foi possível confirmar o recebimento deste pedido.');
     } finally {
       setUpdating(false);
     }
@@ -385,6 +404,11 @@ function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
         {isSale && order.pode_atualizar_status && nextStatus && (
           <button type="button" onClick={updateStatus} disabled={updating}>
             {updating ? 'Atualizando...' : nextLabel}
+          </button>
+        )}
+        {podeConfirmarRecebimento && (
+          <button type="button" onClick={confirmReceipt} disabled={updating}>
+            {updating ? 'Confirmando...' : 'Confirmar recebimento'}
           </button>
         )}
       </section>
@@ -438,6 +462,8 @@ function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
               {order.codigoRastreio && <p className="tracking-code">Rastreio: <strong>{order.codigoRastreio}</strong></p>}
             </DetailCard>
           )}
+
+          {!isSale && <PostPurchaseReviews order={order} />}
         </div>
 
         <aside className="detail-sidebar">
@@ -470,6 +496,259 @@ function OrderDetail({ order, view, onBack, onStatusChange, onExplore }) {
         </aside>
       </div>
     </PageShell>
+  );
+}
+
+function PostPurchaseReviews({ order }) {
+  const [reviews, setReviews] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [openForm, setOpenForm] = useState('');
+
+  const liberada = order.status === ORDER_STATUS.ENTREGUE;
+
+  async function loadReviews() {
+    setLoading(true);
+    setError('');
+    try {
+      setReviews(await buscarAvaliacoesPedido(order.id));
+    } catch (loadError) {
+      setError(loadError?.message || 'Não foi possível carregar as avaliações desta compra.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    setOpenForm('');
+    if (liberada) {
+      loadReviews();
+    } else {
+      setReviews(null);
+      setError('');
+    }
+  }, [liberada, order.id]);
+
+  async function submitReview(type, target, values) {
+    if (type === 'fornecedor') {
+      await avaliarFornecedor({
+        pedido_id: order.id,
+        fornecedor_id: target.fornecedor_id,
+        ...values,
+      });
+    } else {
+      await avaliarProduto({
+        pedido_id: order.id,
+        venda_id: target.venda_id,
+        peca_id: target.peca_id,
+        nota: values.nota,
+        comentario: values.comentario,
+      });
+    }
+
+    setOpenForm('');
+    await loadReviews();
+  }
+
+  if (!liberada) {
+    return (
+      <DetailCard title="Avaliações pós-compra">
+        <div className="review-locked">
+          <span aria-hidden="true">🔒</span>
+          <div>
+            <strong>Avaliações ainda bloqueadas</strong>
+            <p>Após receber o pedido, use “Confirmar recebimento”. Só então será possível avaliar o vendedor e os produtos.</p>
+          </div>
+        </div>
+      </DetailCard>
+    );
+  }
+
+  return (
+    <DetailCard title="Avalie sua compra">
+      <p className="review-intro">
+        Suas avaliações são marcadas como compra verificada e ajudam outros compradores.
+      </p>
+
+      {loading && !reviews && <div className="review-loading">Carregando avaliações...</div>}
+      {error && (
+        <div className="history-error" role="alert">
+          <span>{error}</span>
+          <button type="button" onClick={loadReviews}>Tentar novamente</button>
+        </div>
+      )}
+
+      {reviews && (
+        <div className="review-groups">
+          <ReviewGroup title="Vendedores">
+            {reviews.fornecedores.map((target) => {
+              const formKey = `fornecedor-${target.fornecedor_id}`;
+              return (
+                <ReviewTarget
+                  key={formKey}
+                  title={target.fornecedor_nome}
+                  subtitle="Avaliação do atendimento, envio e embalagem"
+                  review={target.avaliacao}
+                  open={openForm === formKey}
+                  onToggle={() => setOpenForm(openForm === formKey ? '' : formKey)}
+                >
+                  <ReviewForm
+                    type="fornecedor"
+                    onCancel={() => setOpenForm('')}
+                    onSubmit={(values) => submitReview('fornecedor', target, values)}
+                  />
+                </ReviewTarget>
+              );
+            })}
+          </ReviewGroup>
+
+          <ReviewGroup title="Produtos">
+            {reviews.produtos.map((target) => {
+              const formKey = `produto-${target.venda_id}`;
+              return (
+                <ReviewTarget
+                  key={formKey}
+                  title={target.nome}
+                  subtitle={`Vendido por ${target.fornecedor_nome}`}
+                  image={target.imagem}
+                  review={target.avaliacao}
+                  open={openForm === formKey}
+                  onToggle={() => setOpenForm(openForm === formKey ? '' : formKey)}
+                >
+                  <ReviewForm
+                    type="produto"
+                    onCancel={() => setOpenForm('')}
+                    onSubmit={(values) => submitReview('produto', target, values)}
+                  />
+                </ReviewTarget>
+              );
+            })}
+          </ReviewGroup>
+        </div>
+      )}
+    </DetailCard>
+  );
+}
+
+function ReviewGroup({ title, children }) {
+  return (
+    <section className="review-group">
+      <h3>{title}</h3>
+      <div className="review-targets">{children}</div>
+    </section>
+  );
+}
+
+function ReviewTarget({ title, subtitle, image, review, open, onToggle, children }) {
+  return (
+    <article className={`review-target${review ? ' is-reviewed' : ''}`}>
+      <div className="review-target-header">
+        {image && <img src={image} alt="" />}
+        <div>
+          <strong>{title}</strong>
+          <span>{subtitle}</span>
+        </div>
+        {review ? (
+          <span className="review-verified">✓ Compra verificada</span>
+        ) : (
+          <button type="button" onClick={onToggle}>{open ? 'Fechar' : 'Avaliar'}</button>
+        )}
+      </div>
+
+      {review && (
+        <div className="review-result">
+          <span aria-label={`${review.nota} de 5 estrelas`}>{'★'.repeat(review.nota)}{'☆'.repeat(5 - review.nota)}</span>
+          {review.comentario && <p>{review.comentario}</p>}
+        </div>
+      )}
+      {!review && open && children}
+    </article>
+  );
+}
+
+function ReviewForm({ type, onSubmit, onCancel }) {
+  const [values, setValues] = useState({
+    nota: 5,
+    comentario: '',
+    qualidade_peca: 5,
+    comunicacao: 5,
+    rapidez_entrega: 5,
+    embalagem: 5,
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const update = (field, value) => setValues((current) => ({ ...current, [field]: value }));
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      setSubmitError(error?.message || 'Não foi possível enviar sua avaliação.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form className="review-form" onSubmit={handleSubmit}>
+      <RatingInput
+        label={type === 'fornecedor' ? 'Nota geral do vendedor' : 'Nota do produto'}
+        value={values.nota}
+        onChange={(value) => update('nota', value)}
+      />
+
+      {type === 'fornecedor' && (
+        <div className="review-criteria">
+          <RatingInput label="Qualidade das peças" value={values.qualidade_peca} onChange={(value) => update('qualidade_peca', value)} />
+          <RatingInput label="Comunicação" value={values.comunicacao} onChange={(value) => update('comunicacao', value)} />
+          <RatingInput label="Rapidez da entrega" value={values.rapidez_entrega} onChange={(value) => update('rapidez_entrega', value)} />
+          <RatingInput label="Embalagem" value={values.embalagem} onChange={(value) => update('embalagem', value)} />
+        </div>
+      )}
+
+      <label className="review-comment">
+        <span>Comentário <small>(opcional)</small></span>
+        <textarea
+          value={values.comentario}
+          onChange={(event) => update('comentario', event.target.value)}
+          maxLength={1000}
+          rows={3}
+          placeholder="Conte como foi sua experiência"
+        />
+      </label>
+
+      {submitError && <div className="review-submit-error" role="alert">{submitError}</div>}
+      <div className="review-form-actions">
+        <button type="button" className="secondary" onClick={onCancel} disabled={submitting}>Cancelar</button>
+        <button type="submit" disabled={submitting}>{submitting ? 'Enviando...' : 'Publicar avaliação'}</button>
+      </div>
+    </form>
+  );
+}
+
+function RatingInput({ label, value, onChange }) {
+  return (
+    <fieldset className="rating-input">
+      <legend>{label}</legend>
+      <div>
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <button
+            key={rating}
+            type="button"
+            className={rating <= value ? 'active' : ''}
+            onClick={() => onChange(rating)}
+            aria-label={`${rating} ${rating === 1 ? 'estrela' : 'estrelas'}`}
+            aria-pressed={rating === value}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
