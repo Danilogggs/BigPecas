@@ -11,6 +11,7 @@ const INITIAL_FORM = {
   nome_loja: '',
   descricao_loja: '',
   telefone: '',
+  receber_email_notificacao_venda: true,
 };
 
 const REGEX = {
@@ -43,6 +44,7 @@ export default function ProfilePage() {
           nome_loja: perfil?.nome_loja || '',
           descricao_loja: perfil?.descricao_loja || '',
           telefone: perfil?.telefone || '',
+          receber_email_notificacao_venda: perfil?.receber_email_notificacao_venda !== false,
         });
       } catch (error) {
         setMessage({
@@ -181,6 +183,7 @@ export default function ProfilePage() {
         nome_loja: form.nome_loja.trim(),
         descricao_loja: form.descricao_loja.trim(),
         telefone: form.telefone.trim(),
+        receber_email_notificacao_venda: form.receber_email_notificacao_venda,
       });
 
       setForm({
@@ -192,6 +195,7 @@ export default function ProfilePage() {
         nome_loja: perfilAtualizado?.nome_loja ?? form.nome_loja,
         descricao_loja: perfilAtualizado?.descricao_loja ?? form.descricao_loja,
         telefone: perfilAtualizado?.telefone ?? form.telefone,
+        receber_email_notificacao_venda: perfilAtualizado?.receber_email_notificacao_venda ?? form.receber_email_notificacao_venda,
       });
 
       setErrors({});
@@ -398,6 +402,22 @@ export default function ProfilePage() {
               }}
             />
             <FieldError name="descricao_loja" />
+          </div>
+
+          <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <input
+              type="checkbox"
+              id="receber-email-notificacao-venda"
+              checked={Boolean(form.receber_email_notificacao_venda)}
+              onChange={() => setForm((prev) => ({
+                ...prev,
+                receber_email_notificacao_venda: !prev.receber_email_notificacao_venda,
+              }))}
+              style={{ width: '18px', height: '18px', accentColor: '#7B1D2E' }}
+            />
+            <label htmlFor="receber-email-notificacao-venda" style={{ color: '#7B1D2E', fontWeight: 600, cursor: 'pointer' }}>
+              Receber e-mail ao confirmar uma venda
+            </label>
           </div>
 
           {message.text && (

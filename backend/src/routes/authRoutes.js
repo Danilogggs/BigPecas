@@ -19,6 +19,17 @@ function normalizeEmail(value) {
   return normalizeString(value).toLowerCase();
 }
 
+function normalizeBoolean(value, fallback = true) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  }
+  return fallback;
+}
+
 function sanitizeUserBody(body = {}) {
   const full_name = normalizeString(body.full_name || body.nome);
   const email = normalizeEmail(body.email);
@@ -28,6 +39,10 @@ function sanitizeUserBody(body = {}) {
   const nome_loja = normalizeString(body.nome_loja);
   const descricao_loja = normalizeString(body.descricao_loja);
   const telefone = normalizeString(body.telefone);
+  const receber_email_notificacao_venda = normalizeBoolean(
+    body.receber_email_notificacao_venda,
+    true,
+  );
 
   return {
     full_name,
@@ -38,6 +53,7 @@ function sanitizeUserBody(body = {}) {
     nome_loja,
     descricao_loja,
     telefone,
+    receber_email_notificacao_venda,
   };
 }
 
@@ -79,6 +95,7 @@ function buildUserMetadata(userBody) {
     nome_loja: userBody.nome_loja || null,
     descricao_loja: userBody.descricao_loja || null,
     telefone: userBody.telefone || null,
+    receber_email_notificacao_venda: userBody.receber_email_notificacao_venda ?? true,
   };
 }
 
@@ -93,6 +110,7 @@ function buildUserPayload(userBody, options = {}) {
     nome_loja: userBody.nome_loja || null,
     descricao_loja: userBody.descricao_loja || null,
     telefone: userBody.telefone || null,
+    receber_email_notificacao_venda: userBody.receber_email_notificacao_venda ?? true,
     updated_at: new Date().toISOString(),
   };
 
@@ -119,6 +137,7 @@ function buildFallbackProfileFromAuthUser(user) {
     nome_loja: metadata.nome_loja || '',
     descricao_loja: metadata.descricao_loja || '',
     telefone: metadata.telefone || '',
+    receber_email_notificacao_venda: metadata.receber_email_notificacao_venda !== false,
     email_verificado: isSupabaseEmailConfirmed(user),
   };
 }
