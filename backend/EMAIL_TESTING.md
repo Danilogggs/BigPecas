@@ -1,6 +1,6 @@
 Teste de envio de e-mail (Mailgun / Resend)
 
-Este documento explica como testar o envio de e-mail a partir do backend local.
+Este documento explica como testar o envio de e-mail a partir do backend local. O mesmo serviço envia notificações de venda para vendedores e atualizações de status de pedido para clientes.
 
 Pré-requisitos
 - Ter as dependências instaladas no diretório `backend`:
@@ -21,7 +21,7 @@ Variáveis de ambiente necessárias (adicione em `backend/.env`):
   - `RESEND_API_KEY` — sua chave da API Resend
 
 - `EMAIL_NOTIFICACAO_VENDA_FROM` — remetente exibido (ex: `BigPeças <noreply@seudominio.com>`)
-- `EMAIL_NOTIFICACAO_VENDA_ENABLED=true` — habilita envio globalmente
+- `EMAIL_NOTIFICACAO_VENDA_ENABLED=true` — habilita o envio global de notificações
 - `TEST_EMAIL_TO` — e-mail de destino do teste (opcional)
 
 Como reproduzir o teste rapidamente
@@ -34,7 +34,10 @@ Opção A — criar e executar um script de teste (recomendado)
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-const { enviarNotificacaoVendaVendedor } = require('../src/services/emailService');
+const {
+  enviarNotificacaoStatusPedidoCliente,
+  enviarNotificacaoVendaVendedor,
+} = require('../src/services/emailService');
 
 (async () => {
   try {
@@ -52,6 +55,22 @@ const { enviarNotificacaoVendaVendedor } = require('../src/services/emailService
     });
 
     console.log('Resultado do envio:', result);
+
+    const statusResult = await enviarNotificacaoStatusPedidoCliente({
+      to: process.env.TEST_EMAIL_TO || 'you@example.com',
+      clienteNome: 'Cliente Teste',
+      pedidoId: 'TEST123',
+      statusAnterior: 'pago',
+      statusAtual: 'enviado',
+      itens: [
+        { nome: 'Parafuso M4', quantidade: 2, preco: 3.5 },
+        { nome: 'Porca M4', quantidade: 4, preco: 1.25 },
+      ],
+      valorTotal: 12.5,
+      codigoRastreio: 'BG123456789BR',
+    });
+
+    console.log('Resultado do envio de status:', statusResult);
     process.exit(0);
   } catch (err) {
     console.error('Erro ao enviar e-mail de teste:', err);
