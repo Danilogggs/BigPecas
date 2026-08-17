@@ -5,7 +5,10 @@ const {
   garantirVendasDoPedido,
   sincronizarStatusVendas,
 } = require('../services/vendasService');
-const { enviarNotificacaoVendaVendedor } = require('../services/emailService');
+const {
+  enviarNotificacaoStatusPedidoCliente,
+  enviarNotificacaoVendaVendedor,
+} = require('../services/emailService');
 const AppError = require('../utils/AppError');
 
 const router = express.Router();
@@ -389,7 +392,11 @@ router.patch('/:id/status', async (req, res, next) => {
     const fornecedorEnvolvido = pedidoResolvido.itens.some(
       (item) => String(item.fornecedor_id) === String(usuario.id),
     );
-    const compradorDoPedido = String(pedidoResolvido.user_id) === String(usuario.id);
+    const compradoresPorId = await buscarUsuariosPorIds([pedidoResolvido.user_id]);
+    const comprador = compradoresPorId.get(String(pedidoResolvido.user_id));
+    const compradorDoPedido =
+      String(pedidoResolvido.user_id) === String(usuario.id) ||
+      String(comprador?.email || '').toLowerCase() === String(usuario.email || '').toLowerCase();
     const compradorConfirmandoPagamento =
       status === 'pago' &&
       pedidoAtual.status === 'aguardando_pagamento' &&
@@ -426,12 +433,28 @@ router.patch('/:id/status', async (req, res, next) => {
     const pedidoAtualizado = await garantirVendasDoPedido(pedidoResolvidoAtualizado);
     await sincronizarStatusVendas(pedidoAtualizado);
 
+    try {
+      if (comprador?.email) {
+        await enviarNotificacaoStatusPedidoCliente({
+          to: comprador.email,
+          clienteNome: nomeUsuario(comprador),
+          pedidoId: pedidoAtualizado.id,
+          statusAnterior: pedidoAtual.status,
+          statusAtual: pedidoAtualizado.status,
+          itens: pedidoAtualizado.itens,
+          valorTotal: pedidoAtualizado.total,
+          codigoRastreio: pedidoAtualizado.codigo_rastreio || pedidoAtualizado.codigoRastreio,
+        });
+      }
+    } catch (notificationError) {
+      console.warn('Falha ao enviar e-mail de atualização de status ao cliente:', notificationError);
+    }
+
     if (status === 'pago') {
       try {
         const vendedoresPorId = await buscarUsuariosPorIds(
           [...new Set(pedidoAtualizado.itens.map((item) => item.fornecedor_id).filter(Boolean))],
         );
-        const comprador = (await buscarUsuariosPorIds([pedidoAtualizado.user_id])).get(String(pedidoAtualizado.user_id));
         const clienteNome = comprador ? nomeUsuario(comprador) : 'Cliente BigPeças';
 
         await Promise.all(
@@ -463,7 +486,6 @@ router.patch('/:id/status', async (req, res, next) => {
       return res.json(montarCompra(pedidoAtualizado));
     }
 
-    const compradoresPorId = await buscarUsuariosPorIds([pedidoAtualizado.user_id]);
     return res.json(montarVenda(pedidoAtualizado, usuario.id, compradoresPorId));
   } catch (error) {
     return next(error);
