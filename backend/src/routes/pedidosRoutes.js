@@ -5,6 +5,7 @@ const {
   garantirVendasDoPedido,
   sincronizarStatusVendas,
 } = require('../services/vendasService');
+const { enviarNotificacaoVendaVendedor } = require('../services/emailService');
 const AppError = require('../utils/AppError');
 
 const router = express.Router();
@@ -94,7 +95,7 @@ async function buscarUsuariosPorIds(ids) {
 
   const { data, error } = await supabase
     .from(USERS_TABLE)
-    .select('id, email, full_name, nome_loja')
+    .select('id, email, full_name, nome_loja, receber_email_notificacao_venda')
     .in('id', idsUnicos);
 
   if (error) throw error;
@@ -424,6 +425,39 @@ router.patch('/:id/status', async (req, res, next) => {
     const [pedidoResolvidoAtualizado] = await resolverItensDosPedidos([data]);
     const pedidoAtualizado = await garantirVendasDoPedido(pedidoResolvidoAtualizado);
     await sincronizarStatusVendas(pedidoAtualizado);
+
+    if (status === 'pago') {
+      try {
+        const vendedoresPorId = await buscarUsuariosPorIds(
+          [...new Set(pedidoAtualizado.itens.map((item) => item.fornecedor_id).filter(Boolean))],
+        );
+        const comprador = (await buscarUsuariosPorIds([pedidoAtualizado.user_id])).get(String(pedidoAtualizado.user_id));
+        const clienteNome = comprador ? nomeUsuario(comprador) : 'Cliente BigPeças';
+
+        await Promise.all(
+          [...new Set(pedidoAtualizado.itens.map((item) => String(item.fornecedor_id)).filter(Boolean))].map(async (fornecedorId) => {
+            const vendedor = vendedoresPorId.get(String(fornecedorId));
+            if (!vendedor?.email || vendedor.receber_email_notificacao_venda === false) return;
+
+            const itensDoFornecedor = pedidoAtualizado.itens.filter(
+              (item) => String(item.fornecedor_id) === String(fornecedorId),
+            );
+
+            await enviarNotificacaoVendaVendedor({
+              to: vendedor.email,
+              vendedorNome: nomeUsuario(vendedor),
+              clienteNome,
+              pedidoId: pedidoAtualizado.id,
+              itens: itensDoFornecedor,
+              valorTotal: calcularValorItens(itensDoFornecedor),
+              codigoRastreio: pedidoAtualizado.codigo_rastreio || pedidoAtualizado.codigoRastreio,
+            });
+          }),
+        );
+      } catch (notificationError) {
+        console.warn('Falha ao enviar e-mail de notificação de venda:', notificationError);
+      }
+    }
 
     if (compradorDoPedido) {
       return res.json(montarCompra(pedidoAtualizado));

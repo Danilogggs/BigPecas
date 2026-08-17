@@ -1,4 +1,17 @@
-require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+
+const possibleEnvPaths = [
+  path.resolve(__dirname, '../.env'),
+  path.resolve(__dirname, '.env'),
+];
+
+const envPath = possibleEnvPaths.find((candidate) => fs.existsSync(candidate));
+if (envPath) {
+  require('dotenv').config({ path: envPath });
+} else {
+  require('dotenv').config();
+}
 
 const app = require('./app');
 const initializeDatabaseData = require('./services/initializeDatabaseData');
