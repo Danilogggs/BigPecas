@@ -5,8 +5,8 @@
 
 import { useNavigate } from 'react-router-dom';
 
-const BORDEAUX = '#7B1D2E';
-const HIGHLIGHT = '#F0C060';
+const PRIMARY_ACTION = 'var(--bp-primary-action)';
+const ON_PRIMARY = 'var(--bp-on-primary)';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -19,8 +19,8 @@ export default function ProductCard({ product }) {
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#fff',
-        border: '1px solid #EAD8BE',
+        backgroundColor: 'var(--bp-surface)',
+        border: '1px solid var(--bp-border-light)',
         transition: 'all 0.2s',
         cursor: 'pointer',
       }}
@@ -59,8 +59,8 @@ export default function ProductCard({ product }) {
             paddingTop: '0.25rem',
             paddingBottom: '0.25rem',
             borderRadius: '9999px',
-            backgroundColor: BORDEAUX,
-            color: HIGHLIGHT,
+            backgroundColor: PRIMARY_ACTION,
+            color: ON_PRIMARY,
             fontWeight: 700,
           }}
         >
@@ -80,7 +80,7 @@ export default function ProductCard({ product }) {
           style={{
             fontSize: '0.75rem',
             marginBottom: '0.25rem',
-            color: '#9B7B6A',
+            color: 'var(--bp-text-muted)',
           }}
         >
           {product.application}
@@ -89,7 +89,7 @@ export default function ProductCard({ product }) {
           style={{
             fontSize: '0.875rem',
             flex: 1,
-            color: '#3B1A22',
+            color: 'var(--bp-text)',
             fontWeight: 600,
             lineHeight: 1.4,
           }}
@@ -106,7 +106,7 @@ export default function ProductCard({ product }) {
         >
           <span
             style={{
-              color: BORDEAUX,
+              color: 'var(--bp-text)',
               fontWeight: 700,
               fontSize: '0.95rem',
             }}
@@ -124,8 +124,8 @@ export default function ProductCard({ product }) {
               paddingBottom: '0.375rem',
               borderRadius: '9999px',
               fontSize: '0.75rem',
-              backgroundColor: BORDEAUX,
-              color: HIGHLIGHT,
+              backgroundColor: PRIMARY_ACTION,
+              color: ON_PRIMARY,
               fontWeight: 600,
               border: 'none',
               cursor: 'pointer',

@@ -295,7 +295,7 @@ export default function ChatPage() {
             maxWidth: 920,
             height: 'calc(100vh - 150px)',
             margin: '0 auto',
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--bp-surface)',
             borderRadius: BORDER_RADIUS.LG,
             border: '1px solid rgba(123, 29, 46, 0.12)',
             boxShadow: SHADOWS.SM,
@@ -357,7 +357,7 @@ export default function ChatPage() {
                 {loading && <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>Carregando mensagens...</div>}
 
                 {!loading && mensagens.length === 0 && (
-                  <div style={{ color: '#8A6B58', fontWeight: 700 }}>
+                  <div style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
                     Ainda nao ha mensagens. Envie a primeira pergunta sobre uma peca.
                   </div>
                 )}

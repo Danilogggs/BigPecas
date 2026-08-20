@@ -35,10 +35,10 @@ const INITIAL_FORM = {
 const pageStyles = `
   .editar-pecas-container {
     min-height: 100vh;
-    background: #EDE4CC;
+    background: var(--bp-cream);
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
-    color: #1A2820;
+    color: var(--bp-text);
   }
 
   .editar-pecas-main {
@@ -60,7 +60,7 @@ const pageStyles = `
 
   .editar-pecas-header h1 {
     margin: 0;
-    color: #152218;
+    color: var(--bp-text);
     font-size: 34px;
     font-weight: 900;
     letter-spacing: -0.04em;
@@ -68,7 +68,7 @@ const pageStyles = `
 
   .editar-pecas-kicker {
     margin: 0 0 6px;
-    color: #6B7D6E;
+    color: var(--bp-text-muted);
     font-size: 13px;
     font-weight: 900;
     letter-spacing: 0.08em;
@@ -77,7 +77,7 @@ const pageStyles = `
 
   .editar-pecas-subtitle {
     margin: 8px 0 0;
-    color: #6B7D6E;
+    color: var(--bp-text-muted);
     font-size: 15px;
     max-width: 640px;
     line-height: 1.5;
@@ -85,11 +85,11 @@ const pageStyles = `
 
   .editar-pecas-header button,
   .form-actions button {
-    border: 1px solid rgba(21, 34, 24, 0.2);
+    border: 1px solid var(--bp-border);
     border-radius: 9999px;
     padding: 12px 20px;
-    background: #fff;
-    color: #152218;
+    background: var(--bp-surface);
+    color: var(--bp-text);
     font-weight: 800;
     cursor: pointer;
     transition: 0.2s ease;
@@ -112,7 +112,7 @@ const pageStyles = `
 
   .pecas-list-container,
   .editar-form-container {
-    background: #fff;
+    background: var(--bp-surface);
     border-radius: 24px;
     padding: 24px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -125,7 +125,7 @@ const pageStyles = `
   .pecas-list-header h2,
   .form-title {
     margin: 0 0 18px;
-    color: #152218;
+    color: var(--bp-text);
     font-weight: 900;
   }
 
@@ -144,10 +144,10 @@ const pageStyles = `
     width: 100%;
     box-sizing: border-box;
     padding: 13px 14px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--bp-border);
     border-radius: 12px;
-    background: #fff;
-    color: #1f2937;
+    background: var(--bp-surface);
+    color: var(--bp-text);
     font-size: 15px;
     outline: none;
     transition: 0.2s ease;
@@ -157,7 +157,7 @@ const pageStyles = `
   .form-input:focus,
   .form-select:focus,
   .form-textarea:focus {
-    border-color: #152218;
+    border-color: var(--bp-gold);
     box-shadow: 0 0 0 3px rgba(21, 34, 24, 0.12);
   }
 
@@ -181,7 +181,7 @@ const pageStyles = `
   }
 
   .pecas-list-empty {
-    color: #6B7D6E;
+    color: var(--bp-text-muted);
     text-align: center;
     padding: 32px 12px;
   }
@@ -191,19 +191,19 @@ const pageStyles = `
     border-radius: 16px;
     padding: 14px;
     cursor: pointer;
-    background: #F5EDD8;
+    background: var(--bp-surface-muted);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .peca-item:hover,
   .peca-item.active {
-    border-color: #152218;
+    border-color: var(--bp-gold);
     box-shadow: 0 8px 18px rgba(21, 34, 24, 0.12);
     transform: translateY(-1px);
   }
 
   .peca-item-nome {
-    color: #1A2820;
+    color: var(--bp-text);
     font-weight: 900;
     margin-bottom: 6px;
     line-height: 1.3;
@@ -211,7 +211,7 @@ const pageStyles = `
 
   .peca-item-sku,
   .peca-item-preco {
-    color: #6B7D6E;
+    color: var(--bp-text-muted);
     font-size: 14px;
     line-height: 1.5;
   }
@@ -235,7 +235,7 @@ const pageStyles = `
   }
 
   .form-label {
-    color: #152218;
+    color: var(--bp-text);
     font-weight: 800;
     font-size: 14px;
   }
@@ -266,13 +266,13 @@ const pageStyles = `
   }
 
   .form-message.success {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--bp-success-bg);
+    color: var(--bp-success);
   }
 
   .form-message.error {
-    background: #fee2e2;
-    color: #152218;
+    background: var(--bp-error-bg);
+    color: var(--bp-error);
   }
 
   .image-preview {
@@ -291,8 +291,8 @@ const pageStyles = `
 
   .form-actions button[type="submit"] {
     border: none;
-    background: #C9A84C;
-    color: #1A2820;
+    background: var(--bp-gold);
+    color: var(--bp-green-900);
   }
 
   .form-actions button:disabled {
@@ -308,11 +308,11 @@ const pageStyles = `
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: #6B7D6E;
+    color: var(--bp-text-muted);
   }
 
   .editar-form-empty-text {
-    color: #152218;
+    color: var(--bp-text);
     font-size: 24px;
     font-weight: 900;
     margin-bottom: 8px;
@@ -346,14 +346,14 @@ const pageStyles = `
     border: 1px solid rgba(185, 28, 28, 0.2);
     border-radius: 9999px;
     padding: 10px 16px;
-    background: #fff;
+    background: var(--bp-surface);
     color: #B91C1C;
     font-weight: 800;
     cursor: pointer;
   }
 
   .form-image-help {
-    color: #6B7D6E;
+    color: var(--bp-text-muted);
     font-size: 13px;
     margin-top: 8px;
   }

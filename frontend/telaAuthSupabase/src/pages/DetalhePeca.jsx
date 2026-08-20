@@ -60,14 +60,14 @@ function InfoItem({ label, value }) {
     <div
       style={{
         padding: SPACING.MD,
-        backgroundColor: '#FAF4E8',
+        backgroundColor: 'var(--bp-surface-muted)',
         borderRadius: BORDER_RADIUS.MD,
-        border: '1px solid #EAD8BE',
+        border: '1px solid var(--bp-border-light)',
       }}
     >
       <div
         style={{
-          color: '#8A6B58',
+          color: 'var(--bp-text-muted)',
           fontSize: '0.78rem',
           fontWeight: 700,
           textTransform: 'uppercase',
@@ -87,7 +87,7 @@ function TextSection({ title, children }) {
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: BORDER_RADIUS.LG,
         boxShadow: SHADOWS.SM,
         border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -96,14 +96,14 @@ function TextSection({ title, children }) {
     >
       <h2
         style={{
-          color: COLORS.BORDEAUX,
+          color: COLORS.DARK_TEXT,
           fontSize: '1.1rem',
           margin: `0 0 ${SPACING.SM}`,
         }}
       >
         {title}
       </h2>
-      <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.7 }}>
+      <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.7 }}>
         {children || 'Nao informado'}
       </p>
     </section>
@@ -116,7 +116,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: BORDER_RADIUS.LG,
         boxShadow: SHADOWS.SM,
         border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -135,14 +135,14 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
         <div>
           <h2
             style={{
-              color: COLORS.BORDEAUX,
+              color: COLORS.DARK_TEXT,
               fontSize: '1.1rem',
               margin: `0 0 ${SPACING.SM}`,
             }}
           >
             Vendedor
           </h2>
-          <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
             {textoNome}
           </p>
         </div>
@@ -180,12 +180,12 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
         style={{
           marginTop: SPACING.LG,
           paddingTop: SPACING.LG,
-          borderTop: '1px solid #F0E1C8',
+          borderTop: '1px solid var(--bp-border-light)',
           display: 'flex',
           justifyContent: 'space-between',
           gap: SPACING.MD,
           flexWrap: 'wrap',
-          color: '#8A6B58',
+          color: 'var(--bp-text-muted)',
           fontSize: '0.9rem',
           fontWeight: 700,
         }}
@@ -202,7 +202,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
         <div
           style={{
             marginTop: SPACING.MD,
-            color: COLORS.BORDEAUX,
+            color: COLORS.DARK_TEXT,
             fontWeight: 700,
             fontSize: '0.9rem',
           }}
@@ -218,14 +218,14 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: BORDER_RADIUS.LG,
         boxShadow: SHADOWS.SM,
         border: '1px solid rgba(123, 29, 46, 0.12)',
         padding: SPACING.XL,
       }}
     >
-      <h2 style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
+      <h2 style={{ color: COLORS.DARK_TEXT, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
         Avaliações do produto
       </h2>
 
@@ -235,7 +235,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
             <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
               ★ {Number(resumo.media).toFixed(1)}
             </strong>
-            <span style={{ color: '#6A5F58' }}>
+            <span style={{ color: 'var(--bp-text-muted)' }}>
               {resumo.total} {resumo.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
             </span>
           </div>
@@ -243,18 +243,18 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
             {avaliacoes.map((avaliacao) => (
               <article
                 key={avaliacao.id}
-                style={{ padding: SPACING.MD, border: '1px solid #EAD8BE', borderRadius: BORDER_RADIUS.MD, background: '#FAF4E8' }}
+                style={{ padding: SPACING.MD, border: '1px solid var(--bp-border-light)', borderRadius: BORDER_RADIUS.MD, background: 'var(--bp-surface-muted)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                   <strong style={{ color: '#C69216' }}>
                     {'★'.repeat(avaliacao.nota)}{'☆'.repeat(5 - avaliacao.nota)}
                   </strong>
                   <span style={{ color: '#21734A', fontSize: '0.78rem', fontWeight: 800 }}>
-                    ✓ Compra verificada
+                    Compra verificada
                   </span>
                 </div>
                 {avaliacao.comentario && (
-                  <p style={{ margin: `${SPACING.SM} 0 0`, color: '#6A5F58', lineHeight: 1.6 }}>
+                  <p style={{ margin: `${SPACING.SM} 0 0`, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
                     {avaliacao.comentario}
                   </p>
                 )}
@@ -263,7 +263,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
           </div>
         </>
       ) : (
-        <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.7 }}>
+        <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.7 }}>
           Este produto ainda não recebeu avaliações de compras entregues.
         </p>
       )}
@@ -433,6 +433,18 @@ export default function DetalhePeca() {
     setItemNoCarrinho(jaNoCarrinho);
   }, [peca?.id, cartItems]);
 
+  useEffect(() => {
+    if (!wishMessage) return undefined;
+    const timer = window.setTimeout(() => setWishMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [wishMessage]);
+
+  useEffect(() => {
+    if (!carrinhoMessage) return undefined;
+    const timer = window.setTimeout(() => setCarrinhoMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [carrinhoMessage]);
+
   const categoriaNome = useMemo(() => {
     if (peca?.categoria?.nome) return peca.categoria.nome;
     return buscarNome(categorias, peca?.categoria_id, 'Categoria nao informada');
@@ -486,7 +498,7 @@ export default function DetalhePeca() {
     if (itemNoCarrinho) {
       // Remover do carrinho
       removeFromCart(peca.id);
-      setCarrinhoMessage('✓ Peça removida do carrinho!');
+      setCarrinhoMessage('Peça removida do carrinho.');
     } else {
       // Validar se há estoque
       if (Number(peca.estoque_atual) <= 0) {
@@ -507,13 +519,8 @@ export default function DetalhePeca() {
 
       // Adicionar ao carrinho
       addToCart(itemParaCarrinho);
-      setCarrinhoMessage('✓ Peça adicionada ao carrinho com sucesso!');
+      setCarrinhoMessage('Peça adicionada ao carrinho com sucesso.');
     }
-
-    // Limpar mensagem após 3 segundos
-    setTimeout(() => {
-      setCarrinhoMessage('');
-    }, 3000);
   }
 
   function RecomendacoesSection() {
@@ -521,7 +528,7 @@ export default function DetalhePeca() {
       return (
         <section
           style={{
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--bp-surface)',
             borderRadius: BORDER_RADIUS.LG,
             boxShadow: SHADOWS.SM,
             border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -530,7 +537,7 @@ export default function DetalhePeca() {
         >
           <h2
             style={{
-              color: COLORS.BORDEAUX,
+              color: COLORS.DARK_TEXT,
               fontSize: '1.1rem',
               margin: `0 0 ${SPACING.SM}`,
             }}
@@ -538,7 +545,7 @@ export default function DetalhePeca() {
             Peças relacionadas
           </h2>
 
-          <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
             Carregando recomendações...
           </p>
         </section>
@@ -552,7 +559,7 @@ export default function DetalhePeca() {
     return (
       <section
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--bp-surface)',
           borderRadius: BORDER_RADIUS.LG,
           boxShadow: SHADOWS.SM,
           border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -561,7 +568,7 @@ export default function DetalhePeca() {
       >
         <h2
           style={{
-            color: COLORS.BORDEAUX,
+            color: COLORS.DARK_TEXT,
             fontSize: '1.1rem',
             margin: `0 0 ${SPACING.SM}`,
           }}
@@ -573,7 +580,7 @@ export default function DetalhePeca() {
           style={{
             marginTop: 0,
             marginBottom: SPACING.LG,
-            color: '#6A5F58',
+            color: 'var(--bp-text-muted)',
             lineHeight: 1.6,
           }}
         >
@@ -583,7 +590,7 @@ export default function DetalhePeca() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
             gap: SPACING.LG,
           }}
         >
@@ -594,8 +601,8 @@ export default function DetalhePeca() {
               onClick={() => navigate(`/pecas/${item.id}`)}
               style={{
                 textAlign: 'left',
-                backgroundColor: '#FAF4E8',
-                border: '1px solid #EAD8BE',
+                backgroundColor: 'var(--bp-surface-muted)',
+                border: '1px solid var(--bp-border-light)',
                 borderRadius: BORDER_RADIUS.MD,
                 padding: SPACING.MD,
                 cursor: 'pointer',
@@ -625,14 +632,14 @@ export default function DetalhePeca() {
                 {item.nome_peca || 'Peça sem nome'}
               </strong>
 
-              <span style={{ color: COLORS.BORDEAUX, fontWeight: 700 }}>
+              <span style={{ color: COLORS.DARK_TEXT, fontWeight: 700 }}>
                 {formatarPreco(item.preco)}
               </span>
 
               <div
                 style={{
                   marginTop: 8,
-                  color: '#8A6B58',
+                  color: 'var(--bp-text-muted)',
                   fontSize: '0.85rem',
                   fontWeight: 700,
                 }}
@@ -651,7 +658,7 @@ export default function DetalhePeca() {
       return (
         <section
           style={{
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--bp-surface)',
             borderRadius: BORDER_RADIUS.LG,
             boxShadow: SHADOWS.SM,
             border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -660,14 +667,14 @@ export default function DetalhePeca() {
         >
           <h2
             style={{
-              color: COLORS.BORDEAUX,
+              color: COLORS.DARK_TEXT,
               fontSize: '1.1rem',
               margin: `0 0 ${SPACING.SM}`,
             }}
           >
             Fornecedores recomendados
           </h2>
-          <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
             Carregando fornecedores...
           </p>
         </section>
@@ -681,7 +688,7 @@ export default function DetalhePeca() {
     return (
       <section
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--bp-surface)',
           borderRadius: BORDER_RADIUS.LG,
           boxShadow: SHADOWS.SM,
           border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -690,7 +697,7 @@ export default function DetalhePeca() {
       >
         <h2
           style={{
-            color: COLORS.BORDEAUX,
+            color: COLORS.DARK_TEXT,
             fontSize: '1.1rem',
             margin: `0 0 ${SPACING.SM}`,
           }}
@@ -702,7 +709,7 @@ export default function DetalhePeca() {
           style={{
             marginTop: 0,
             marginBottom: SPACING.LG,
-            color: '#6A5F58',
+            color: 'var(--bp-text-muted)',
             lineHeight: 1.6,
           }}
         >
@@ -712,7 +719,7 @@ export default function DetalhePeca() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
             gap: SPACING.LG,
           }}
         >
@@ -730,8 +737,8 @@ export default function DetalhePeca() {
                 onClick={() => navigate(`/vendedores/${fornecedorItem.id}`)}
                 style={{
                   textAlign: 'left',
-                  backgroundColor: '#FAF4E8',
-                  border: '1px solid #EAD8BE',
+                  backgroundColor: 'var(--bp-surface-muted)',
+                  border: '1px solid var(--bp-border-light)',
                   borderRadius: BORDER_RADIUS.MD,
                   padding: SPACING.MD,
                   cursor: 'pointer',
@@ -747,14 +754,14 @@ export default function DetalhePeca() {
                   {nome}
                 </strong>
 
-                <div style={{ color: '#8A6B58', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                <div style={{ color: 'var(--bp-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
                   {fornecedorItem.descricao_loja || 'Fornecedor com peças cadastradas no BigPeças.'}
                 </div>
 
                 <div
                   style={{
                     marginTop: SPACING.SM,
-                    color: COLORS.BORDEAUX,
+                    color: COLORS.DARK_TEXT,
                     fontSize: '0.9rem',
                     fontWeight: 800,
                   }}
@@ -765,7 +772,7 @@ export default function DetalhePeca() {
                 <div
                   style={{
                     marginTop: 8,
-                    color: '#8A6B58',
+                    color: 'var(--bp-text-muted)',
                     fontSize: '0.85rem',
                     fontWeight: 700,
                   }}
@@ -781,7 +788,7 @@ export default function DetalhePeca() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
+    <div className="detalhe-peca-page" style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM, color: COLORS.DARK_TEXT }}>
       <style>{`
         @media (max-width: 860px) {
           .detalhe-peca-hero {
@@ -817,7 +824,7 @@ export default function DetalhePeca() {
           </div>
 
           {loading && (
-            <div style={{ color: COLORS.BORDEAUX, fontWeight: 700 }}>
+            <div style={{ color: COLORS.DARK_TEXT, fontWeight: 700 }}>
               Carregando detalhes da peca...
             </div>
           )}
@@ -874,7 +881,7 @@ export default function DetalhePeca() {
                   ) : (
                     <div
                       style={{
-                        color: COLORS.BORDEAUX,
+                        color: 'var(--bp-on-light)',
                         fontWeight: 800,
                         textAlign: 'center',
                         padding: SPACING.XL,
@@ -887,7 +894,7 @@ export default function DetalhePeca() {
 
                 <div
                   style={{
-                    backgroundColor: '#fff',
+                    backgroundColor: 'var(--bp-surface)',
                     borderRadius: BORDER_RADIUS.LG,
                     boxShadow: SHADOWS.SM,
                     border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -909,7 +916,7 @@ export default function DetalhePeca() {
                     >
                       <h1
                         style={{
-                          color: COLORS.BORDEAUX,
+                          color: COLORS.DARK_TEXT,
                           fontFamily: "'Playfair Display', Georgia, serif",
                           fontSize: '2rem',
                           lineHeight: 1.15,
@@ -922,7 +929,7 @@ export default function DetalhePeca() {
                       <span
                         style={{
                           backgroundColor: '#F8E9C5',
-                          color: COLORS.BORDEAUX,
+                          color: 'var(--bp-on-light)',
                           borderRadius: BORDER_RADIUS.FULL,
                           padding: '0.35rem 0.8rem',
                           fontSize: '0.8rem',
@@ -934,15 +941,15 @@ export default function DetalhePeca() {
                       </span>
                     </div>
 
-                    <p style={{ margin: `${SPACING.SM} 0 0`, color: '#7A5C4B' }}>
+                    <p style={{ margin: `${SPACING.SM} 0 0`, color: 'var(--bp-text-sub)' }}>
                       {categoriaNome} / {materialNome}
                     </p>
                   </div>
 
                   <div
                     style={{
-                      borderTop: '1px solid #F0E1C8',
-                      borderBottom: '1px solid #F0E1C8',
+                      borderTop: '1px solid var(--bp-border-light)',
+                      borderBottom: '1px solid var(--bp-border-light)',
                       padding: `${SPACING.LG} 0`,
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -951,7 +958,7 @@ export default function DetalhePeca() {
                       flexWrap: 'wrap',
                     }}
                   >
-                    <strong style={{ color: COLORS.BORDEAUX, fontSize: '1.7rem' }}>
+                    <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.7rem' }}>
                       {formatarPreco(peca.preco)}
                     </strong>
 
@@ -990,8 +997,8 @@ export default function DetalhePeca() {
                       style={{
                         ...BUTTON_SECONDARY_STYLE,
                         alignSelf: 'flex-start',
-                        backgroundColor: itemNoCarrinho ? COLORS.BORDEAUX : 'transparent',
-                        color: itemNoCarrinho ? '#fff' : COLORS.BORDEAUX,
+                        backgroundColor: itemNoCarrinho ? 'var(--bp-primary-action)' : 'transparent',
+                        color: itemNoCarrinho ? 'var(--bp-on-primary)' : 'var(--bp-action-text)',
                       }}
                     >
                       {itemNoCarrinho ? '✗ Remover do carrinho' : '🛒︎ Adicionar ao carrinho'}
@@ -1004,8 +1011,8 @@ export default function DetalhePeca() {
                       style={{
                         ...BUTTON_SECONDARY_STYLE,
                         alignSelf: 'flex-start',
-                        backgroundColor: salvoNaWish ? COLORS.BORDEAUX : 'transparent',
-                        color: salvoNaWish ? '#fff' : COLORS.BORDEAUX,
+                        backgroundColor: salvoNaWish ? 'var(--bp-primary-action)' : 'transparent',
+                        color: salvoNaWish ? 'var(--bp-on-primary)' : 'var(--bp-action-text)',
                         opacity: loadingWish ? 0.65 : 1,
                         cursor: loadingWish ? 'not-allowed' : 'pointer',
                       }}
@@ -1017,7 +1024,7 @@ export default function DetalhePeca() {
                   {wishMessage && (
                     <div
                       style={{
-                        color: COLORS.BORDEAUX,
+                        color: 'var(--bp-on-light)',
                         backgroundColor: '#FFF7D6',
                         border: '1px solid #F0C060',
                         borderRadius: BORDER_RADIUS.MD,
@@ -1032,7 +1039,7 @@ export default function DetalhePeca() {
                   {carrinhoMessage && (
                     <div
                       style={{
-                        color: COLORS.BORDEAUX,
+                        color: 'var(--bp-on-light)',
                         backgroundColor: '#FFF7D6',
                         border: '1px solid #F0C060',
                         borderRadius: BORDER_RADIUS.MD,

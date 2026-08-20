@@ -22,6 +22,7 @@ const PedidosPage         = lazy(() => import('./pages/PedidosPage'));
 const ChatPage            = lazy(() => import('./pages/ChatPage'));
 const ChatsPage           = lazy(() => import('./pages/ChatsPage'));
 const AdminPage           = lazy(() => import('./pages/AdminPage'));
+const SettingsPage        = lazy(() => import('./pages/SettingsPage'));
 
 function PageLoader() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/pecas/:id" element={<PrivateRoute><DetalhePeca /></PrivateRoute>} />
         <Route path="/vendedores/:id" element={<PrivateRoute><FornecedorPerfil /></PrivateRoute>} />
         <Route path="/perfil" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="/configuracoes" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
         <Route path="/wish" element={<PrivateRoute><WishPage /></PrivateRoute>} />
         <Route path="/carrinho" element={<PrivateRoute><CarrinhoPage /></PrivateRoute>} />
         <Route path="/checkout" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
