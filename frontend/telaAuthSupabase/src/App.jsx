@@ -21,6 +21,7 @@ const CheckoutPage        = lazy(() => import('./pages/CheckoutPage'));
 const PedidosPage         = lazy(() => import('./pages/PedidosPage'));
 const ChatPage            = lazy(() => import('./pages/ChatPage'));
 const ChatsPage           = lazy(() => import('./pages/ChatsPage'));
+const AdminPage           = lazy(() => import('./pages/AdminPage'));
 
 function PageLoader() {
   return (
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/editar-pecas" element={<PrivateRoute><EditarPecas /></PrivateRoute>} />
         <Route path="/chats" element={<PrivateRoute><ChatsPage /></PrivateRoute>} />
         <Route path="/chat/:id" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

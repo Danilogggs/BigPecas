@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { buscarPerfilUsuario } from '../services/usuarioService';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -12,10 +13,23 @@ export default function Header() {
 
   const [localSearch, setLocalSearch] = useState(searchParams.get('nome') || '');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const dropdownRef = useRef(null);
   const cartCount = cartItems.reduce((s, it) => s + (it.quantidade || 0), 0);
 
   useEffect(() => { setLocalSearch(searchParams.get('nome') || ''); }, [searchParams]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) {
+      setIsAdmin(false);
+      return undefined;
+    }
+    buscarPerfilUsuario()
+      .then((profile) => { if (active) setIsAdmin(profile?.is_admin === true); })
+      .catch(() => { if (active) setIsAdmin(false); });
+    return () => { active = false; };
+  }, [user]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -109,6 +123,7 @@ export default function Header() {
               <div className="bp-header__dropdown">
                 {[
                   { label: 'Início',            path: '/' },
+                  ...(isAdmin ? [{ label: 'Administração', path: '/admin' }] : []),
                   { label: 'Editar perfil',      path: '/perfil' },
                   { label: 'Lista de Desejos',   path: '/wish' },
                   { label: 'Carrinho',           path: '/carrinho' },

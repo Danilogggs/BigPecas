@@ -10,9 +10,11 @@ const pecasRoutes = require('./routes/pecasRoutes');
 const pedidosRoutes = require('./routes/pedidosRoutes');
 const avaliacoesRoutes = require('./routes/avaliacoesRoutes');
 const wishRoutes = require('./routes/wishRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
 const verifyToken = require('./middlewares/verifyToken');
+const verifyAdmin = require('./middlewares/verifyAdmin');
 
 const app = express();
 
@@ -60,6 +62,7 @@ app.use('/api/wish', verifyToken, wishRoutes);
 app.use('/api/pedidos', verifyToken, pedidosRoutes);
 app.use('/api/avaliacoes', verifyToken, avaliacoesRoutes);
 app.use('/api/frete', verifyToken, freteLimiter, freteRoutes);
+app.use('/api/admin', verifyToken, verifyAdmin, adminRoutes);
 app.use('/api', verifyToken, catalogRoutes);
 
 app.use(notFoundHandler);

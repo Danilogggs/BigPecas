@@ -119,6 +119,8 @@ No **SQL Editor** do Supabase, execute as migrations em `backend/supabase/migrat
 
 ```text
 backend/supabase/migrations/20260813_avaliacoes_pos_compra.sql
+backend/supabase/migrations/20260820_administradores.sql
+backend/supabase/migrations/20260820_admin_dashboard_preferences.sql
 ```
 
 ### 3. Configure o backend
@@ -198,6 +200,7 @@ VITE_API_URL=http://localhost:3001
 | `/api/pecas` | Catálogo, cadastro, edição e recomendações. |
 | `/api/pedidos` | Checkout, histórico e atualização de status. |
 | `/api/avaliacoes` | Avaliações verificadas de vendedores e produtos. |
+| `/api/admin` | Administração de usuários, peças, pedidos e avaliações. Consulte `backend/ADMIN_API.md`. |
 | `/api/frete` | Cotação e renovação do token do Melhor Envio. |
 | `/api/wish` | Lista de desejos. |
 | `/api/categorias` | Catálogo de categorias. |
