@@ -11,16 +11,16 @@ import {
   validarCep,
 } from '../services/freteService';
 
-const BORDEAUX = '#152218';
-const CREAM = '#EDE4CC';
-const HIGHLIGHT = '#C9A84C';
-const DARK = '#1A2820';
-const MUTED = '#6B7D6E';
-const BORDER = '#CFC5A5';
-const SUCCESS = '#065F46';
-const SUCCESS_BG = '#D1FAE5';
-const ERROR_BG = '#FEE2E2';
-const ERROR_FG = '#7F1D1D';
+const BORDEAUX = 'var(--bp-green-800)';
+const CREAM = 'var(--bp-cream)';
+const HIGHLIGHT = 'var(--bp-gold)';
+const DARK = 'var(--bp-text)';
+const MUTED = 'var(--bp-text-muted)';
+const BORDER = 'var(--bp-border)';
+const SUCCESS = 'var(--bp-success)';
+const SUCCESS_BG = 'var(--bp-success-bg)';
+const ERROR_BG = 'var(--bp-error-bg)';
+const ERROR_FG = 'var(--bp-error)';
 
 const formatBRL = (valor) =>
   Number(valor || 0).toLocaleString('pt-BR', {
@@ -602,7 +602,7 @@ export default function CarrinhoPage() {
                           fontSize: '0.95rem',
                         }}
                       >
-                        ✓ {cupomAtivo.codigo}
+                        {cupomAtivo.codigo}
                       </div>
                       <div style={{ fontSize: '0.82rem', color: SUCCESS }}>
                         {cupomAtivo.descricao}
@@ -800,7 +800,7 @@ function Card({ title, subtitle, children }) {
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: 16,
         padding: '1.5rem',
         border: `1px solid ${BORDER}`,
@@ -1036,7 +1036,7 @@ function EmptyCart({ navigate }) {
   return (
     <div
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: 16,
         padding: '4rem 2rem',
         textAlign: 'center',

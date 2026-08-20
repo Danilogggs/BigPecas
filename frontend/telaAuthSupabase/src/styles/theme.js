@@ -1,21 +1,21 @@
 // ===== CORES =====
 export const COLORS = {
-  BORDEAUX: '#152218',        /* verde escuro primário */
-  CREAM: '#EDE4CC',           /* fundo principal */
-  DARK_TEXT: '#1A2820',
-  MUTED_TEXT: '#6B7D6E',
-  BORDER: '#CFC5A5',
-  BACKGROUND_LIGHT: '#F5EDD8',
-  HIGHLIGHT: '#C9A84C',       /* ouro */
+  BORDEAUX: 'var(--bp-green-800)',
+  CREAM: 'var(--bp-cream)',
+  DARK_TEXT: 'var(--bp-text)',
+  MUTED_TEXT: 'var(--bp-text-muted)',
+  BORDER: 'var(--bp-border)',
+  BACKGROUND_LIGHT: 'var(--bp-surface-muted)',
+  HIGHLIGHT: 'var(--bp-gold)',
 
   // Cores semânticas
-  SUCCESS: '#D1FAE5',
-  SUCCESS_DARK: '#2D6A4F',
-  SUCCESS_BORDER: '#6EE7B7',
+  SUCCESS: 'var(--bp-success-bg)',
+  SUCCESS_DARK: 'var(--bp-success)',
+  SUCCESS_BORDER: 'var(--bp-success)',
 
-  ERROR: '#FEE2E2',
-  ERROR_DARK: '#7F1D1D',
-  ERROR_BORDER: '#FCA5A5',
+  ERROR: 'var(--bp-error-bg)',
+  ERROR_DARK: 'var(--bp-error)',
+  ERROR_BORDER: 'var(--bp-error)',
 
   DISABLED_OPACITY: 0.7,
 };
@@ -113,8 +113,8 @@ export const TEXTAREA_STYLE = {
 export const BUTTON_PRIMARY_STYLE = {
   padding: `${SPACING.SM} ${SPACING.LG}`,
   borderRadius: BORDER_RADIUS.MD,
-  backgroundColor: COLORS.BORDEAUX,
-  color: COLORS.CREAM,
+  backgroundColor: 'var(--bp-primary-action)',
+  color: 'var(--bp-on-primary)',
   fontWeight: 600,
   cursor: 'pointer',
   fontSize: TYPOGRAPHY.BODY.fontSize,
@@ -128,9 +128,9 @@ export const BUTTON_PRIMARY_STYLE = {
 export const BUTTON_SECONDARY_STYLE = {
   padding: `${SPACING.SM} ${SPACING.LG}`,
   borderRadius: BORDER_RADIUS.MD,
-  border: `2px solid ${COLORS.BORDEAUX}`,
+  border: '2px solid var(--bp-action-border)',
   backgroundColor: 'transparent',
-  color: COLORS.BORDEAUX,
+  color: 'var(--bp-action-text)',
   fontWeight: 600,
   cursor: 'pointer',
   fontSize: TYPOGRAPHY.BODY.fontSize,
@@ -162,7 +162,7 @@ export const ALERT_ERROR_STYLE = {
 
 // Card
 export const CARD_STYLE = {
-  backgroundColor: '#fff',
+  backgroundColor: 'var(--bp-surface)',
   borderRadius: BORDER_RADIUS.LG,
   border: `2px solid ${COLORS.BORDEAUX}22`,
   padding: SPACING.XL,
@@ -181,7 +181,7 @@ export const PAGE_CONTAINER_STYLE = {
 export const HEADER_STYLE = {
   backgroundColor: COLORS.BORDEAUX,
   padding: `${SPACING.MD} ${SPACING.XL}`,
-  color: COLORS.CREAM,
+  color: 'var(--bp-on-primary)',
   textShadow: '1px 1px 4px rgba(0,0,0,0.35)',
 };
 
@@ -195,13 +195,13 @@ export const MAIN_CONTENT_STYLE = {
 // Grid responsivo
 export const GRID_TWO_COLUMNS = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
   gap: SPACING.LG,
 };
 
 export const GRID_FOUR_COLUMNS = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr 1fr 1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
   gap: SPACING.LG,
 };
 

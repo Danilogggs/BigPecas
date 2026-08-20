@@ -77,7 +77,7 @@ export default function LoginPage() {
               'Curadoria por marca, década e condição',
             ].map((text) => (
               <div key={text} className="auth-panel-left__feature">
-                <span className="auth-panel-left__feature-icon">✓</span>
+                <span className="auth-panel-left__feature-icon" aria-hidden="true">•</span>
                 {text}
               </div>
             ))}

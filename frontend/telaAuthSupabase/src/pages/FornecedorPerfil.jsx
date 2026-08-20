@@ -38,7 +38,7 @@ function InfoCard({ label, value }) {
     >
       <div
         style={{
-          color: '#8A6B58',
+          color: 'var(--bp-text-muted)',
           fontSize: '0.78rem',
           fontWeight: 800,
           textTransform: 'uppercase',
@@ -108,7 +108,7 @@ function PecaCard({ peca, onClick }) {
         {formatarPreco(peca.preco)}
       </span>
 
-      <div style={{ marginTop: 8, color: '#8A6B58', fontSize: '0.85rem', fontWeight: 700 }}>
+      <div style={{ marginTop: 8, color: 'var(--bp-text-muted)', fontSize: '0.85rem', fontWeight: 700 }}>
         Estoque: {peca.estoque_atual ?? 0}
       </div>
     </button>
@@ -228,7 +228,7 @@ export default function FornecedorPerfil() {
               >
                 <div
                   style={{
-                    backgroundColor: '#fff',
+                    backgroundColor: 'var(--bp-surface)',
                     borderRadius: BORDER_RADIUS.LG,
                     boxShadow: SHADOWS.SM,
                     border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -262,19 +262,19 @@ export default function FornecedorPerfil() {
                     {nomeExibicao}
                   </h1>
 
-                  <p style={{ color: '#6A5F58', lineHeight: 1.7, marginTop: SPACING.MD }}>
+                  <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.7, marginTop: SPACING.MD }}>
                     {fornecedor.descricao_loja ||
                       'Este vendedor ainda não adicionou uma descrição pública para a loja.'}
                   </p>
 
                   <div style={{ display: 'flex', gap: SPACING.SM, flexWrap: 'wrap', marginTop: SPACING.LG }}>
                     {fornecedor.email && (
-                      <span style={{ color: '#8A6B58', fontWeight: 700 }}>
+                      <span style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
                         Email: {fornecedor.email}
                       </span>
                     )}
                     {fornecedor.telefone && (
-                      <span style={{ color: '#8A6B58', fontWeight: 700 }}>
+                      <span style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
                         Telefone: {fornecedor.telefone}
                       </span>
                     )}
@@ -297,7 +297,7 @@ export default function FornecedorPerfil() {
 
               <section
                 style={{
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--bp-surface)',
                   borderRadius: BORDER_RADIUS.LG,
                   boxShadow: SHADOWS.SM,
                   border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -314,19 +314,19 @@ export default function FornecedorPerfil() {
                   Peças deste vendedor
                 </h2>
 
-                <p style={{ marginTop: 0, marginBottom: SPACING.LG, color: '#6A5F58', lineHeight: 1.6 }}>
+                <p style={{ marginTop: 0, marginBottom: SPACING.LG, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
                   Catálogo de peças cadastradas por este fornecedor no BigPeças.
                 </p>
 
                 {pecas.length === 0 ? (
-                  <div style={{ color: '#8A6B58', fontWeight: 700 }}>
+                  <div style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
                     Este vendedor ainda não possui peças cadastradas.
                   </div>
                 ) : (
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
                       gap: SPACING.LG,
                     }}
                   >
@@ -343,7 +343,7 @@ export default function FornecedorPerfil() {
 
               <section
                 style={{
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--bp-surface)',
                   borderRadius: BORDER_RADIUS.LG,
                   boxShadow: SHADOWS.SM,
                   border: '1px solid rgba(123, 29, 46, 0.12)',
@@ -359,7 +359,7 @@ export default function FornecedorPerfil() {
                       <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
                         ★ {Number(resumoAvaliacoes.media).toFixed(1)}
                       </strong>
-                      <span style={{ color: '#6A5F58' }}>
+                      <span style={{ color: 'var(--bp-text-muted)' }}>
                         {resumoAvaliacoes.total} {resumoAvaliacoes.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
                       </span>
                     </div>
@@ -374,11 +374,11 @@ export default function FornecedorPerfil() {
                               {'★'.repeat(avaliacao.nota)}{'☆'.repeat(5 - avaliacao.nota)}
                             </strong>
                             <span style={{ color: '#21734A', fontSize: '0.78rem', fontWeight: 800 }}>
-                              ✓ Compra verificada
+                              Compra verificada
                             </span>
                           </div>
                           {avaliacao.comentario && (
-                            <p style={{ margin: `${SPACING.SM} 0 0`, color: '#6A5F58', lineHeight: 1.6 }}>
+                            <p style={{ margin: `${SPACING.SM} 0 0`, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
                               {avaliacao.comentario}
                             </p>
                           )}
@@ -387,7 +387,7 @@ export default function FornecedorPerfil() {
                     </div>
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: '#6A5F58', lineHeight: 1.7 }}>
+                  <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.7 }}>
                     Este vendedor ainda não recebeu avaliações de compras entregues.
                   </p>
                 )}

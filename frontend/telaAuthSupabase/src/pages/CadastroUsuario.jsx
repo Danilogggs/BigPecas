@@ -227,7 +227,7 @@ export default function CadastroUsuario() {
           <div className="auth-panel-left__features">
             {['Anuncie com procedência verificada', 'Acompanhe pedidos e simulações', 'Curadoria por marca, década e condição'].map((t) => (
               <div key={t} className="auth-panel-left__feature">
-                <span className="auth-panel-left__feature-icon">✓</span>{t}
+                <span className="auth-panel-left__feature-icon" aria-hidden="true">•</span>{t}
               </div>
             ))}
           </div>
@@ -240,7 +240,7 @@ export default function CadastroUsuario() {
         style={{
           width: '100%',
           maxWidth: '680px',
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--bp-surface)',
           borderRadius: 'var(--r-2xl)',
           border: '1px solid var(--bp-border-light)',
           padding: '2.5rem',

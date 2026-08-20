@@ -157,7 +157,7 @@ export default function ResetPasswordPage() {
         style={{
           width: '100%',
           maxWidth: '500px',
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--bp-surface)',
           borderRadius: BORDER_RADIUS.LG,
           border: `2px solid ${COLORS.BORDEAUX}22`,
           padding: SPACING.XL,

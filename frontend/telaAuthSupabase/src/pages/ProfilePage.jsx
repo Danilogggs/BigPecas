@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import { buscarPerfilUsuario, salvarPerfilUsuario } from '../services/usuarioService';
 
 const INITIAL_FORM = {
@@ -222,8 +223,9 @@ export default function ProfilePage() {
   function getInputStyle(fieldName, disabled = false) {
     return {
       ...inputStyle,
-      backgroundColor: disabled ? '#f3f4f6' : '#fff',
-      border: errors[fieldName] ? '1.5px solid #B91C1C' : '1px solid #d1d5db',
+      backgroundColor: disabled ? 'var(--bp-surface-muted)' : 'var(--bp-surface)',
+      color: 'var(--bp-text)',
+      border: errors[fieldName] ? '1.5px solid var(--bp-error)' : '1px solid var(--bp-border)',
       boxShadow: errors[fieldName] ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
     };
   }
@@ -231,7 +233,7 @@ export default function ProfilePage() {
   const labelStyle = {
     display: 'block',
     marginBottom: '8px',
-    color: '#7B1D2E',
+    color: 'var(--bp-text-sub)',
     fontWeight: 600,
   };
 
@@ -249,36 +251,41 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', color: '#7B1D2E' }}>
-        Carregando perfil...
+      <div className="profile-page" style={{ minHeight: '100vh', backgroundColor: 'var(--bp-cream)' }}>
+        <Header />
+        <main style={{ padding: '2rem', color: 'var(--bp-text-sub)' }}>
+          Carregando perfil...
+        </main>
       </div>
     );
   }
 
   return (
-    <div
+    <div className="profile-page"
       style={{
         minHeight: '100vh',
-        backgroundColor: '#f3ead7',
-        padding: '40px 20px',
+        backgroundColor: 'var(--bp-cream)',
       }}
     >
+      <Header />
+      <main style={{ padding: '40px 20px' }}>
       <div
         style={{
           maxWidth: '720px',
           margin: '0 auto',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bp-surface)',
+          border: '1px solid var(--bp-border-light)',
           borderRadius: '24px',
           padding: '32px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--shadow-md)',
         }}
       >
         <h1
           style={{
             margin: 0,
-            fontSize: '32px',
+            fontSize: 'clamp(1.75rem, 6vw, 2rem)',
             fontWeight: 700,
-            color: '#7B1D2E',
+            color: 'var(--bp-text)',
           }}
         >
           Editar Perfil
@@ -288,7 +295,7 @@ export default function ProfilePage() {
           style={{
             marginTop: '8px',
             marginBottom: '24px',
-            color: '#8b6b5c',
+            color: 'var(--bp-text-muted)',
           }}
         >
           Atualize suas informações básicas.
@@ -334,7 +341,7 @@ export default function ProfilePage() {
             </select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>CEP *</label>
               <input
@@ -369,8 +376,8 @@ export default function ProfilePage() {
               margin: '8px 0 16px',
               padding: '14px 16px',
               borderRadius: '12px',
-              backgroundColor: '#fff8e8',
-              color: '#6b4d35',
+              backgroundColor: 'var(--bp-surface-muted)',
+              color: 'var(--bp-text-muted)',
               lineHeight: 1.5,
             }}
           >
@@ -413,9 +420,9 @@ export default function ProfilePage() {
                 ...prev,
                 receber_email_notificacao_venda: !prev.receber_email_notificacao_venda,
               }))}
-              style={{ width: '18px', height: '18px', accentColor: '#7B1D2E' }}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--bp-gold)' }}
             />
-            <label htmlFor="receber-email-notificacao-venda" style={{ color: '#7B1D2E', fontWeight: 600, cursor: 'pointer' }}>
+            <label htmlFor="receber-email-notificacao-venda" style={{ color: 'var(--bp-text)', fontWeight: 600, cursor: 'pointer' }}>
               Receber e-mail ao confirmar uma venda
             </label>
           </div>
@@ -425,7 +432,7 @@ export default function ProfilePage() {
               style={{
                 marginTop: '8px',
                 marginBottom: '16px',
-                color: message.type === 'success' ? '#166534' : '#7B1D2E',
+                color: message.type === 'success' ? 'var(--bp-success)' : 'var(--bp-error)',
                 fontWeight: 500,
               }}
             >
@@ -441,8 +448,8 @@ export default function ProfilePage() {
                 border: 'none',
                 borderRadius: '9999px',
                 padding: '12px 24px',
-                backgroundColor: '#F0C060',
-                color: '#3a1a16',
+                backgroundColor: 'var(--bp-gold)',
+                color: 'var(--bp-green-900)',
                 fontWeight: 700,
                 fontSize: '15px',
                 cursor: saving ? 'not-allowed' : 'pointer',
@@ -456,11 +463,11 @@ export default function ProfilePage() {
               type="button"
               onClick={() => navigate('/editar-pecas')}
               style={{
-                border: '1px solid #7B1D2E33',
+                border: '1px solid var(--bp-border)',
                 borderRadius: '9999px',
                 padding: '12px 24px',
-                backgroundColor: '#FFFFFF',
-                color: '#7B1D2E',
+                backgroundColor: 'var(--bp-surface)',
+                color: 'var(--bp-text)',
                 fontWeight: 700,
                 fontSize: '15px',
                 cursor: 'pointer',
@@ -473,11 +480,11 @@ export default function ProfilePage() {
               type="button"
               onClick={() => navigate('/')}
               style={{
-                border: '1px solid #7B1D2E33',
+                border: '1px solid var(--bp-border)',
                 borderRadius: '9999px',
                 padding: '12px 24px',
-                backgroundColor: '#FFFFFF',
-                color: '#7B1D2E',
+                backgroundColor: 'var(--bp-surface)',
+                color: 'var(--bp-text)',
                 fontWeight: 700,
                 fontSize: '15px',
                 cursor: 'pointer',
@@ -488,6 +495,7 @@ export default function ProfilePage() {
           </div>
         </form>
       </div>
+      </main>
     </div>
   );
 }
