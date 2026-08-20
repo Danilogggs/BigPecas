@@ -53,11 +53,6 @@ export default function Footer() {
 
         <div className="bp-footer__bottom">
           <span>© {year} BigPeças · EST. 2026 · Nicho Clássico</span>
-          <span>
-            Frete via{' '}
-            <strong style={{ color: 'rgba(255,255,255,.6)' }}>Melhor Envio</strong>{' '}
-            · Sandbox
-          </span>
         </div>
       </div>
     </footer>

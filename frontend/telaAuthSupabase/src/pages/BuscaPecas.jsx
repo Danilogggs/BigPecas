@@ -80,6 +80,12 @@ export default function BuscaPecas() {
     }));
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!feedbackMessage) return undefined;
+    const timer = window.setTimeout(() => setFeedbackMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [feedbackMessage]);
+
   const fetchPecas = async (page = 1, append = false) => {
     const params = { ...filters, sort, ordem, page, limit: PAGE_SIZE };
 
@@ -309,7 +315,7 @@ export default function BuscaPecas() {
         {showFilters && (
           <div style={{
             margin: `0 ${SPACING.XL}`,
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--bp-surface)',
             padding: SPACING.XL,
             borderRadius: BORDER_RADIUS.LG,
             boxShadow: SHADOWS.SM,
@@ -317,7 +323,7 @@ export default function BuscaPecas() {
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
               gap: SPACING.LG,
             }}>
 
@@ -611,7 +617,7 @@ export default function BuscaPecas() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: SPACING.LG,
           padding: SPACING.XL,
         }}>
@@ -625,7 +631,7 @@ export default function BuscaPecas() {
             <article
               className="peca-card"
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--bp-surface)',
                 borderRadius: BORDER_RADIUS.LG,
                 boxShadow: SHADOWS.SM,
                 overflow: 'hidden',

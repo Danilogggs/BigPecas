@@ -102,7 +102,9 @@ export default function HomePage() {
                 onChange={(e) => setHeroSearch(e.target.value)}
                 placeholder="Ex.: carburador Solex, farol Opala, emblema…"
               />
-              <button type="submit">Explorar catálogo</button>
+              <button type="submit" aria-label="Explorar catálogo" title="Explorar catálogo">
+                <SearchIcon />
+              </button>
             </form>
 
             <div className="bp-hero__trust">
@@ -112,7 +114,7 @@ export default function HomePage() {
                 'Curadoria por nicho',
               ].map((t) => (
                 <span key={t} className="bp-hero__trust-item">
-                  <CheckIcon /> {t}
+                  <span className="bp-hero__trust-dot" aria-hidden="true" /> {t}
                 </span>
               ))}
             </div>
@@ -145,7 +147,7 @@ export default function HomePage() {
                 )}
                 <div className="bp-hero__featured-footer">
                   <span className="bp-hero__featured-price">{formatBRL(destaque.preco)}</span>
-                  <span className="badge badge-verified">✓ Verificado</span>
+                  <span className="badge badge-verified">Verificado</span>
                 </div>
               </div>
             ) : (
@@ -293,18 +295,18 @@ export default function HomePage() {
           <div className="container">
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px),1fr))',
               gap: '1.25rem',
             }}>
               {[
                 { value: loading ? '...' : stats.total,       label: 'Peças no catálogo',   icon: '🔩' },
                 { value: loading ? '...' : stats.categorias,  label: 'Categorias',          icon: '📂' },
-                { value: 'Melhor Envio',                       label: 'Frete integrado',     icon: '🚚' },
-                { value: 'Sandbox',                            label: 'Ambiente de testes',  icon: '🔒' },
+                { value: 'Histórico',                          label: 'Pedidos rastreáveis', icon: '📦' },
+                { value: 'Direto',                             label: 'Contato com vendedor', icon: '💬' },
               ].map(({ value, label, icon }) => (
                 <div key={label} className="card card-pad" style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '1.75rem', marginBottom: '.5rem' }}>{icon}</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--bp-green-800)', fontFamily: 'var(--font-serif)' }}>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--bp-text)', fontFamily: 'var(--font-serif)' }}>
                     {value}
                   </div>
                   <div style={{ fontSize: '.82rem', color: 'var(--bp-text-muted)', marginTop: '.25rem' }}>{label}</div>
@@ -409,7 +411,7 @@ function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
             onClick={onAdd}
             disabled={semEstoque || added}
           >
-            {added ? '✓ Adicionado' : inCart ? 'No carrinho' : '+ Carrinho'}
+            {added ? 'Adicionado' : inCart ? 'No carrinho' : '+ Carrinho'}
           </button>
         </div>
       </div>
@@ -434,10 +436,11 @@ function SkeletonCard() {
   );
 }
 
-function CheckIcon() {
+function SearchIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
     </svg>
   );
 }

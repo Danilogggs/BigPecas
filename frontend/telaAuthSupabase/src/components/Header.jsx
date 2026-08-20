@@ -17,6 +17,8 @@ export default function Header() {
 
   useEffect(() => { setLocalSearch(searchParams.get('nome') || ''); }, [searchParams]);
 
+  useEffect(() => { setDropdownOpen(false); }, [location.pathname]);
+
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
@@ -100,24 +102,31 @@ export default function Header() {
             <button
               className="bp-header__user-btn"
               onClick={() => setDropdownOpen((v) => !v)}
+              aria-expanded={dropdownOpen}
+              aria-haspopup="menu"
+              aria-label="Abrir menu da conta"
             >
               <UserIcon />
               <ChevronIcon open={dropdownOpen} />
             </button>
 
             {dropdownOpen && (
-              <div className="bp-header__dropdown">
+              <div className="bp-header__dropdown" role="menu">
                 {[
                   { label: 'Início',            path: '/' },
+                  { label: 'Catálogo',           path: '/buscaPecas' },
+                  { label: 'Vender peça',        path: '/cadastroPecas' },
                   { label: 'Editar perfil',      path: '/perfil' },
                   { label: 'Lista de Desejos',   path: '/wish' },
                   { label: 'Carrinho',           path: '/carrinho' },
                   { label: 'Chats',              path: '/chats' },
                   { label: 'Compras e vendas',   path: '/pedidos' },
+                  { label: 'Configurações',      path: '/configuracoes' },
                 ].map(({ label, path }) => (
                   <button
                     key={path}
                     className="bp-header__dropdown-item"
+                    role="menuitem"
                     onClick={() => { navigate(path); setDropdownOpen(false); }}
                   >
                     {label}
@@ -125,6 +134,7 @@ export default function Header() {
                 ))}
                 <button
                   className="bp-header__dropdown-item bp-header__dropdown-item--danger"
+                  role="menuitem"
                   onClick={() => { logout(); navigate('/login'); setDropdownOpen(false); }}
                 >
                   Sair

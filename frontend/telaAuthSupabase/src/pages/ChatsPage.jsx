@@ -154,7 +154,7 @@ export default function ChatsPage() {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: SPACING.MD,
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--bp-surface)',
               borderRadius: BORDER_RADIUS.LG,
               border: '1px solid rgba(123, 29, 46, 0.12)',
               boxShadow: SHADOWS.SM,
@@ -173,7 +173,7 @@ export default function ChatsPage() {
               >
                 Chats ativos
               </h1>
-              <p style={{ color: '#6A5F58', lineHeight: 1.6, margin: `${SPACING.SM} 0 0` }}>
+              <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.6, margin: `${SPACING.SM} 0 0` }}>
                 Conversas iniciadas com vendedores e compradores.
               </p>
             </div>
@@ -207,7 +207,7 @@ export default function ChatsPage() {
           {conversasVazias && (
             <section
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--bp-surface)',
                 borderRadius: BORDER_RADIUS.LG,
                 border: '1px solid rgba(123, 29, 46, 0.12)',
                 boxShadow: SHADOWS.SM,
@@ -217,7 +217,7 @@ export default function ChatsPage() {
               <strong style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem' }}>
                 Voce ainda nao tem chats ativos.
               </strong>
-              <p style={{ color: '#6A5F58', lineHeight: 1.6, margin: `${SPACING.SM} 0 ${SPACING.LG}` }}>
+              <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.6, margin: `${SPACING.SM} 0 ${SPACING.LG}` }}>
                 Abra uma peca ou o perfil de um vendedor para iniciar uma conversa.
               </p>
               <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_PRIMARY_STYLE}>
@@ -245,7 +245,7 @@ export default function ChatsPage() {
                     key={String(conversa.outroUsuarioId)}
                     className="chat-row"
                     style={{
-                      backgroundColor: '#fff',
+                      backgroundColor: 'var(--bp-surface)',
                       borderRadius: BORDER_RADIUS.LG,
                       border: '1px solid rgba(123, 29, 46, 0.12)',
                       boxShadow: SHADOWS.SM,
@@ -287,14 +287,14 @@ export default function ChatsPage() {
                         >
                           {nome}
                         </strong>
-                        <span style={{ color: '#8A6B58', fontSize: '0.82rem', fontWeight: 800 }}>
+                        <span style={{ color: 'var(--bp-text-muted)', fontSize: '0.82rem', fontWeight: 800 }}>
                           {formatarData(conversa.ultimaMensagem.created_at)}
                         </span>
                       </div>
 
                       <div
                         style={{
-                          color: '#6A5F58',
+                          color: 'var(--bp-text-muted)',
                           lineHeight: 1.5,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',

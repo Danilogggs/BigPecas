@@ -649,7 +649,7 @@ function ReviewTarget({ title, subtitle, image, review, open, onToggle, children
           <span>{subtitle}</span>
         </div>
         {review ? (
-          <span className="review-verified">✓ Compra verificada</span>
+          <span className="review-verified">Compra verificada</span>
         ) : (
           <button type="button" onClick={onToggle}>{open ? 'Fechar' : 'Avaliar'}</button>
         )}

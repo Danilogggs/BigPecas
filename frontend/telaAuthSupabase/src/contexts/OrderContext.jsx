@@ -50,7 +50,7 @@ export const STATUS_META = {
     color: '#065F46',
     bg: '#D1FAE5',
     border: '#6EE7B7',
-    icone: '✓',
+    icone: '📦',
     descricao: 'Pedido entregue ao destinatário.',
     ordem: 4,
   },

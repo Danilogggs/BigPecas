@@ -54,7 +54,7 @@ const fieldBaseStyle = {
   borderRadius: BORDER_RADIUS.MD,
   fontSize: '0.93rem',
   color: COLORS.DARK_TEXT,
-  backgroundColor: '#fff',
+  backgroundColor: 'var(--bp-surface)',
   outline: 'none',
   boxSizing: 'border-box',
 };
@@ -136,7 +136,7 @@ function InfoModal({ open, title, text, onClose }) {
         style={{
           width: '100%',
           maxWidth: 460,
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--bp-surface)',
           borderRadius: BORDER_RADIUS.LG,
           boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
           overflow: 'hidden',
@@ -1202,7 +1202,7 @@ export default function CadastroPecas() {
               alignItems: 'center',
               gap: SPACING.MD,
               flexWrap: 'wrap',
-              backgroundColor: '#fff',
+              backgroundColor: 'var(--bp-surface)',
               borderRadius: BORDER_RADIUS.LG,
               border: `1px solid ${COLORS.BORDER}`,
               boxShadow: SHADOWS.SM,
@@ -1227,7 +1227,7 @@ export default function CadastroPecas() {
                 cursor: loading || loadingOptions ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? 'Cadastrando...' : loadingOptions ? 'Carregando opções...' : '✓ Cadastrar Peça'}
+              {loading ? 'Cadastrando...' : loadingOptions ? 'Carregando opções...' : 'Cadastrar Peça'}
             </button>
           </div>
           </form>

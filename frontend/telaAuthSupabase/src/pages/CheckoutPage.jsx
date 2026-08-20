@@ -5,14 +5,14 @@ import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrderContext';
 import { formatarCep, validarCep, sanitizarCep } from '../services/freteService';
 
-const BORDEAUX = '#152218';
-const CREAM = '#EDE4CC';
-const HIGHLIGHT = '#C9A84C';
-const DARK = '#1A2820';
-const MUTED = '#6B7D6E';
-const BORDER = '#CFC5A5';
-const ERROR_BG = '#FEE2E2';
-const ERROR_FG = '#7F1D1D';
+const BORDEAUX = 'var(--bp-green-800)';
+const CREAM = 'var(--bp-cream)';
+const HIGHLIGHT = 'var(--bp-gold)';
+const DARK = 'var(--bp-text)';
+const MUTED = 'var(--bp-text-muted)';
+const BORDER = 'var(--bp-border)';
+const ERROR_BG = 'var(--bp-error-bg)';
+const ERROR_FG = 'var(--bp-error)';
 
 const formatBRL = (v) =>
   Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -188,7 +188,7 @@ export default function CheckoutPage() {
           style={{
             maxWidth: 600,
             margin: '4rem auto',
-            background: '#fff',
+            background: 'var(--bp-surface)',
             borderRadius: 16,
             padding: '3rem 2rem',
             textAlign: 'center',
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
           style={{
             maxWidth: 600,
             margin: '4rem auto',
-            background: '#fff',
+            background: 'var(--bp-surface)',
             borderRadius: 16,
             padding: '3rem 2rem',
             textAlign: 'center',
@@ -513,7 +513,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
         padding: '3rem 2rem',
         border: `1px solid ${BORDER}`,
         borderRadius: 18,
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         textAlign: 'center',
         boxShadow: '0 14px 35px rgba(21, 34, 24, 0.08)',
       }}
@@ -532,7 +532,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
           fontWeight: 800,
         }}
       >
-        ✓
+        OK
       </div>
       <span
         style={{
@@ -611,7 +611,7 @@ function Stepper({ etapa }) {
         alignItems: 'center',
         gap: 12,
         marginBottom: '2rem',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         padding: '1rem 1.25rem',
         borderRadius: 12,
         border: `1px solid ${BORDER}`,
@@ -638,7 +638,7 @@ function Stepper({ etapa }) {
                 color: concluido || ativo ? CREAM : MUTED,
               }}
             >
-              {concluido ? '✓' : numero}
+              {numero}
             </div>
             <div>
               <div
@@ -700,7 +700,7 @@ function EnderecoForm({ endereco, setEndereco, errors }) {
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: 16,
         padding: '1.5rem',
         border: `1px solid ${BORDER}`,
@@ -835,7 +835,7 @@ function PagamentoForm({
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: 16,
         padding: '1.5rem',
         border: `1px solid ${BORDER}`,
@@ -1052,7 +1052,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: 16,
         padding: '1.5rem',
         border: `1px solid ${BORDER}`,
@@ -1150,7 +1150,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
   return (
     <section
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--bp-surface)',
         borderRadius: 16,
         padding: '1.5rem',
         border: `1px solid ${BORDER}`,

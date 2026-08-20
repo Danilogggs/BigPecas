@@ -52,6 +52,12 @@ export default function WishPage() {
     carregarWish();
   }, []);
 
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = window.setTimeout(() => setSuccessMessage(''), 3000);
+    return () => window.clearTimeout(timer);
+  }, [successMessage]);
+
   async function handleRemover(event, pecaId) {
     event.stopPropagation();
 
@@ -152,7 +158,7 @@ export default function WishPage() {
 
             <div
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--bp-surface)',
                 borderRadius: BORDER_RADIUS.LG,
                 padding: SPACING.XL,
                 boxShadow: SHADOWS.SM,
@@ -211,7 +217,7 @@ export default function WishPage() {
           {wishVazia && (
             <section
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--bp-surface)',
                 borderRadius: BORDER_RADIUS.LG,
                 padding: SPACING.XL,
                 boxShadow: SHADOWS.SM,
@@ -241,7 +247,7 @@ export default function WishPage() {
                     display: 'grid',
                     gridTemplateColumns: '210px 1fr auto',
                     gap: SPACING.LG,
-                    backgroundColor: '#fff',
+                    backgroundColor: 'var(--bp-surface)',
                     borderRadius: BORDER_RADIUS.LG,
                     boxShadow: SHADOWS.SM,
                     border: '1px solid rgba(123, 29, 46, 0.12)',
