@@ -83,7 +83,7 @@ function isSupabaseEmailConfirmed(user) {
 }
 
 function normalizeProfileRole(profile) {
-  return profile ? { ...profile, tipo_usuario: 'ambos' } : profile;
+  return profile ? { ...profile, tipo_usuario: 'ambos', is_admin: profile.is_admin === true } : profile;
 }
 
 function buildUserMetadata(userBody) {
@@ -139,6 +139,7 @@ function buildFallbackProfileFromAuthUser(user) {
     telefone: metadata.telefone || '',
     receber_email_notificacao_venda: metadata.receber_email_notificacao_venda !== false,
     email_verificado: isSupabaseEmailConfirmed(user),
+    is_admin: false,
   };
 }
 
