@@ -145,15 +145,15 @@ function InfoModal({ open, title, text, onClose }) {
       >
         <div
           style={{
-            backgroundColor: COLORS.BORDEAUX,
-            color: COLORS.CREAM,
+            backgroundColor: 'var(--bp-primary-action)',
+            color: 'var(--bp-on-primary)',
             padding: SPACING.LG,
           }}
         >
           <h2
             style={{
               margin: 0,
-              color: COLORS.CREAM,
+              color: 'var(--bp-on-primary)',
               fontSize: '1.25rem',
               fontFamily: 'Georgia, serif',
             }}
@@ -712,7 +712,7 @@ export default function CadastroPecas() {
 
         {!loadingProfile && profileError && (
           <section style={{ ...CARD_STYLE, padding: SPACING.XL, textAlign: 'center' }}>
-            <h2 style={{ margin: 0, color: COLORS.BORDEAUX, fontFamily: 'Georgia, serif' }}>
+            <h2 style={{ margin: 0, color: COLORS.DARK_TEXT, fontFamily: 'Georgia, serif' }}>
               Não foi possível verificar sua loja
             </h2>
             <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>{profileError}</p>
@@ -732,7 +732,7 @@ export default function CadastroPecas() {
                   marginBottom: SPACING.MD,
                   borderRadius: BORDER_RADIUS.FULL,
                   backgroundColor: `${COLORS.HIGHLIGHT}22`,
-                  color: COLORS.BORDEAUX,
+                  color: 'var(--bp-action-text)',
                   fontSize: '0.75rem',
                   fontWeight: 800,
                   textTransform: 'uppercase',
@@ -745,7 +745,7 @@ export default function CadastroPecas() {
               <h2
                 style={{
                   margin: 0,
-                  color: COLORS.BORDEAUX,
+                  color: COLORS.DARK_TEXT,
                   fontSize: '1.45rem',
                   fontFamily: 'Georgia, serif',
                 }}
@@ -828,7 +828,7 @@ export default function CadastroPecas() {
               <h2
                 style={{
                   margin: 0,
-                  color: COLORS.BORDEAUX,
+                  color: COLORS.DARK_TEXT,
                   fontSize: '1.2rem',
                   fontFamily: 'Georgia, serif',
                 }}
@@ -977,7 +977,7 @@ export default function CadastroPecas() {
               <h2
                 style={{
                   margin: 0,
-                  color: COLORS.BORDEAUX,
+                  color: COLORS.DARK_TEXT,
                   fontSize: '1.2rem',
                   fontFamily: 'Georgia, serif',
                 }}
@@ -1025,7 +1025,7 @@ export default function CadastroPecas() {
                     alignItems: 'center',
                     gap: SPACING.MD,
                     padding: SPACING.MD,
-                    backgroundColor: '#FAF4E8',
+                    backgroundColor: 'var(--bp-surface-muted)',
                     borderRadius: BORDER_RADIUS.LG,
                     border: `1px solid ${COLORS.BORDER}`,
                     flexWrap: 'wrap',
@@ -1040,12 +1040,12 @@ export default function CadastroPecas() {
                       objectFit: 'cover',
                       borderRadius: BORDER_RADIUS.MD,
                       border: `2px solid ${COLORS.BORDEAUX}22`,
-                      backgroundColor: COLORS.CREAM,
+                      backgroundColor: 'var(--bp-surface)',
                     }}
                   />
 
                   <div style={{ flex: 1, minWidth: 220 }}>
-                    <p style={{ margin: 0, color: COLORS.BORDEAUX, fontWeight: 800 }}>
+                    <p style={{ margin: 0, color: COLORS.DARK_TEXT, fontWeight: 800 }}>
                       Prévia da imagem
                     </p>
                     <p
@@ -1154,7 +1154,7 @@ export default function CadastroPecas() {
               <h2
                 style={{
                   margin: 0,
-                  color: COLORS.BORDEAUX,
+                  color: COLORS.DARK_TEXT,
                   fontSize: '1.2rem',
                   fontFamily: 'Georgia, serif',
                 }}

@@ -166,13 +166,13 @@ export default function CarrinhoPage() {
         .qty-btn {
           width: 32px; height: 32px;
           border: 1px solid ${BORDER};
-          background: #fff; color: ${BORDEAUX};
+          background: var(--bp-surface-muted); color: var(--bp-action-text);
           border-radius: 8px; cursor: pointer;
           font-weight: 700; font-size: 1rem;
           display: flex; align-items: center; justify-content: center;
           transition: all 0.15s;
         }
-        .qty-btn:hover { background: ${BORDEAUX}; color: ${CREAM}; }
+        .qty-btn:hover { background: var(--bp-primary-action); color: var(--bp-on-primary); }
         .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #f5f5f5; color: ${MUTED}; }
         .frete-opcao {
           padding: 14px;
@@ -180,18 +180,18 @@ export default function CarrinhoPage() {
           border-radius: 12px;
           cursor: pointer;
           transition: all 0.18s;
-          background: #fff;
+          background: var(--bp-surface-muted);
           display: flex; align-items: center; gap: 12px;
         }
         .frete-opcao:hover { border-color: ${HIGHLIGHT}; transform: translateY(-1px); }
-        .frete-opcao.ativa { border-color: ${BORDEAUX}; background: ${CREAM}; box-shadow: 0 4px 12px rgba(123,29,46,0.15); }
+        .frete-opcao.ativa { border-color: var(--bp-action-border); background: var(--bp-surface-muted); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .input-clean {
           width: 100%;
           padding: 12px 14px;
           border: 2px solid ${BORDER};
           border-radius: 10px;
           font-size: 0.95rem;
-          background: #fff;
+          background: var(--bp-surface-muted);
           color: ${DARK};
           outline: none;
           transition: border-color 0.18s;
@@ -242,14 +242,14 @@ export default function CarrinhoPage() {
             >
               Peças
             </span>{' '}
-            › <span style={{ color: BORDEAUX, fontWeight: 600 }}>Carrinho</span>
+            › <span style={{ color: 'var(--bp-action-text)', fontWeight: 600 }}>Carrinho</span>
           </div>
           <h1
             className="pagina-titulo"
             style={{
               fontSize: '2rem',
               fontWeight: 700,
-              color: BORDEAUX,
+              color: DARK,
               margin: 0,
               fontFamily: "'Playfair Display', Georgia, serif",
             }}
@@ -298,8 +298,8 @@ export default function CarrinhoPage() {
                     marginTop: '1.25rem',
                     padding: '0.85rem 1rem',
                     backgroundColor: 'transparent',
-                    color: BORDEAUX,
-                    border: `2px dashed ${BORDEAUX}55`,
+                    color: 'var(--bp-action-text)',
+                    border: '2px dashed var(--bp-action-border)',
                     borderRadius: 12,
                     fontSize: '0.95rem',
                     fontWeight: 600,
@@ -353,7 +353,7 @@ export default function CarrinhoPage() {
                         marginTop: 6,
                         background: 'none',
                         border: 'none',
-                        color: BORDEAUX,
+                        color: 'var(--bp-action-text)',
                         fontSize: '0.78rem',
                         cursor: 'pointer',
                         padding: 0,
@@ -368,8 +368,8 @@ export default function CarrinhoPage() {
                     disabled={calculando}
                     style={{
                       padding: '12px 22px',
-                      backgroundColor: calculando ? MUTED : BORDEAUX,
-                      color: CREAM,
+                      backgroundColor: calculando ? MUTED : 'var(--bp-primary-action)',
+                      color: 'var(--bp-on-primary)',
                       border: 'none',
                       borderRadius: 10,
                       fontWeight: 600,
@@ -455,8 +455,8 @@ export default function CarrinhoPage() {
                                 width: 38,
                                 height: 38,
                                 borderRadius: 10,
-                                backgroundColor: ativa ? BORDEAUX : `${BORDEAUX}15`,
-                                color: ativa ? CREAM : BORDEAUX,
+                                backgroundColor: ativa ? 'var(--bp-primary-action)' : 'var(--bp-surface-muted)',
+                                color: ativa ? 'var(--bp-on-primary)' : 'var(--bp-action-text)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -496,7 +496,7 @@ export default function CarrinhoPage() {
                               <div
                                 style={{
                                   marginTop: 4,
-                                  color: BORDEAUX,
+                                  color: DARK,
                                   fontWeight: 700,
                                   fontSize: '0.95rem',
                                 }}
@@ -509,8 +509,8 @@ export default function CarrinhoPage() {
                                 width: 18,
                                 height: 18,
                                 borderRadius: '50%',
-                                border: `2px solid ${ativa ? BORDEAUX : BORDER}`,
-                                backgroundColor: ativa ? BORDEAUX : '#fff',
+                                border: `2px solid ${ativa ? 'var(--bp-action-border)' : BORDER}`,
+                                backgroundColor: ativa ? 'var(--bp-primary-action)' : 'var(--bp-surface)',
                                 flexShrink: 0,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -523,7 +523,7 @@ export default function CarrinhoPage() {
                                     width: 8,
                                     height: 8,
                                     borderRadius: '50%',
-                                    backgroundColor: CREAM,
+                                    backgroundColor: 'var(--bp-on-primary)',
                                   }}
                                 />
                               )}
@@ -721,7 +721,7 @@ export default function CarrinhoPage() {
                         style={{
                           fontSize: '1.7rem',
                           fontWeight: 800,
-                          color: BORDEAUX,
+                          color: DARK,
                           lineHeight: 1,
                         }}
                       >
@@ -750,8 +750,8 @@ export default function CarrinhoPage() {
                     width: '100%',
                     padding: '14px',
                     marginTop: 18,
-                    backgroundColor: BORDEAUX,
-                    color: CREAM,
+                    backgroundColor: 'var(--bp-primary-action)',
+                    color: 'var(--bp-on-primary)',
                     border: 'none',
                     borderRadius: 12,
                     fontSize: '1rem',
@@ -777,7 +777,7 @@ export default function CarrinhoPage() {
                   style={{
                     marginTop: 14,
                     padding: '10px 12px',
-                    backgroundColor: '#FAFAFA',
+                    backgroundColor: 'var(--bp-surface-muted)',
                     borderRadius: 8,
                     fontSize: '0.75rem',
                     color: MUTED,
@@ -815,7 +815,7 @@ function Card({ title, subtitle, children }) {
                 margin: 0,
                 fontSize: '1.1rem',
                 fontWeight: 700,
-                color: BORDEAUX,
+                color: DARK,
               }}
             >
               {title}
@@ -864,7 +864,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
           width: 96,
           height: 96,
           borderRadius: 12,
-          backgroundColor: '#F2EAD3',
+          backgroundColor: 'var(--bp-surface-muted)',
           overflow: 'hidden',
           cursor: 'pointer',
           display: 'flex',
@@ -944,7 +944,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            backgroundColor: '#FAFAFA',
+            backgroundColor: 'var(--bp-surface-muted)',
             border: `1px solid ${BORDER}`,
             borderRadius: 10,
             padding: 4,
@@ -992,7 +992,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
             style={{
               fontSize: '1.05rem',
               fontWeight: 700,
-              color: BORDEAUX,
+              color: DARK,
             }}
           >
             {formatBRL(subtotal)}
@@ -1061,7 +1061,7 @@ function EmptyCart({ navigate }) {
       </div>
       <h2
         style={{
-          color: BORDEAUX,
+          color: DARK,
           fontSize: '1.4rem',
           margin: '0 0 8px',
           fontFamily: "'Playfair Display', Georgia, serif",
@@ -1075,8 +1075,8 @@ function EmptyCart({ navigate }) {
       <button
         onClick={() => navigate('/buscaPecas')}
         style={{
-          backgroundColor: BORDEAUX,
-          color: CREAM,
+          backgroundColor: 'var(--bp-primary-action)',
+          color: 'var(--bp-on-primary)',
           padding: '12px 28px',
           borderRadius: 10,
           border: 'none',

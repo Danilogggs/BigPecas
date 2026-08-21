@@ -164,7 +164,7 @@ export default function ChatsPage() {
             <div>
               <h1
                 style={{
-                  color: COLORS.BORDEAUX,
+                  color: COLORS.DARK_TEXT,
                   fontFamily: "'Georgia', serif",
                   fontSize: '2rem',
                   lineHeight: 1.15,
@@ -184,7 +184,7 @@ export default function ChatsPage() {
           </section>
 
           {loading && (
-            <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
+            <div style={{ color: COLORS.DARK_TEXT, fontWeight: 800 }}>
               Carregando chats...
             </div>
           )}
@@ -214,7 +214,7 @@ export default function ChatsPage() {
                 padding: SPACING.XL,
               }}
             >
-              <strong style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem' }}>
+              <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.1rem' }}>
                 Voce ainda nao tem chats ativos.
               </strong>
               <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.6, margin: `${SPACING.SM} 0 ${SPACING.LG}` }}>
