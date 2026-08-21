@@ -118,6 +118,91 @@
 .review-submit-error { padding: 10px 12px; border-radius: 8px; background: #fee2e2; color: #7f1d1d; font-size: .82rem; }
 .review-form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .review-form-actions button.secondary { border: 1px solid #879489; background: transparent; color: #34453a; }
+
+/* Modo escuro */
+:root[data-theme='dark'] .history-page { background: var(--bp-cream); color: var(--bp-text); }
+:root[data-theme='dark'] .history-heading h1,
+:root[data-theme='dark'] .history-section-heading h2,
+:root[data-theme='dark'] .detail-header h1,
+:root[data-theme='dark'] .summary-card strong,
+:root[data-theme='dark'] .order-card h3,
+:root[data-theme='dark'] .order-card-value strong,
+:root[data-theme='dark'] .history-empty h2,
+:root[data-theme='dark'] .detail-status-card strong,
+:root[data-theme='dark'] .detail-card h2,
+:root[data-theme='dark'] .detail-item b,
+:root[data-theme='dark'] .detail-card address strong,
+:root[data-theme='dark'] .value-row strong,
+:root[data-theme='dark'] .detail-total strong { color: var(--bp-text); }
+
+:root[data-theme='dark'] .history-heading p,
+:root[data-theme='dark'] .history-section-heading p,
+:root[data-theme='dark'] .detail-header p,
+:root[data-theme='dark'] .history-breadcrumb,
+:root[data-theme='dark'] .summary-card span,
+:root[data-theme='dark'] .order-card-topline,
+:root[data-theme='dark'] .order-card-meta,
+:root[data-theme='dark'] .order-card-value span,
+:root[data-theme='dark'] .order-card-value small,
+:root[data-theme='dark'] .history-empty p,
+:root[data-theme='dark'] .detail-back,
+:root[data-theme='dark'] .detail-status-card p,
+:root[data-theme='dark'] .detail-item span,
+:root[data-theme='dark'] .detail-item small,
+:root[data-theme='dark'] .detail-timeline small,
+:root[data-theme='dark'] .detail-card address,
+:root[data-theme='dark'] .detail-counterpart,
+:root[data-theme='dark'] .tracking-code,
+:root[data-theme='dark'] .detail-payment,
+:root[data-theme='dark'] .detail-note,
+:root[data-theme='dark'] .value-row,
+:root[data-theme='dark'] .detail-total span { color: var(--bp-text-muted); }
+
+:root[data-theme='dark'] .history-refresh,
+:root[data-theme='dark'] .summary-card,
+:root[data-theme='dark'] .order-card,
+:root[data-theme='dark'] .history-loading,
+:root[data-theme='dark'] .history-empty,
+:root[data-theme='dark'] .detail-status-card,
+:root[data-theme='dark'] .detail-card,
+:root[data-theme='dark'] .review-target,
+:root[data-theme='dark'] .review-form { background: var(--bp-surface); border-color: var(--bp-border); color: var(--bp-text); }
+
+:root[data-theme='dark'] .history-refresh,
+:root[data-theme='dark'] .history-tabs button.active,
+:root[data-theme='dark'] .detail-secondary-action { color: var(--bp-action-text); border-color: var(--bp-action-border); }
+:root[data-theme='dark'] .history-tabs { border-color: var(--bp-border); }
+:root[data-theme='dark'] .history-tabs button { color: var(--bp-text-muted); }
+:root[data-theme='dark'] .history-tabs strong { background: var(--bp-surface-muted); color: var(--bp-text); }
+
+:root[data-theme='dark'] .status-filters button { background: var(--bp-surface); border-color: var(--bp-border); color: var(--bp-text-sub); }
+:root[data-theme='dark'] .status-filters button.active,
+:root[data-theme='dark'] .history-empty button,
+:root[data-theme='dark'] .detail-primary-action,
+:root[data-theme='dark'] .detail-status-card button,
+:root[data-theme='dark'] .review-target-header button,
+:root[data-theme='dark'] .review-form-actions button { background: var(--bp-primary-action); color: var(--bp-on-primary); border-color: var(--bp-primary-action); }
+
+:root[data-theme='dark'] .history-empty-icon,
+:root[data-theme='dark'] .detail-item-image,
+:root[data-theme='dark'] .detail-payment,
+:root[data-theme='dark'] .review-locked,
+:root[data-theme='dark'] .review-target.is-reviewed { background: var(--bp-surface-muted); color: var(--bp-text); border-color: var(--bp-border); }
+:root[data-theme='dark'] .detail-item,
+:root[data-theme='dark'] .tracking-code,
+:root[data-theme='dark'] .detail-total,
+:root[data-theme='dark'] .review-form { border-color: var(--bp-border-light); }
+:root[data-theme='dark'] .review-locked strong,
+:root[data-theme='dark'] .review-group h3,
+:root[data-theme='dark'] .rating-input legend,
+:root[data-theme='dark'] .review-comment > span { color: var(--bp-text-sub); }
+:root[data-theme='dark'] .review-locked p,
+:root[data-theme='dark'] .review-intro,
+:root[data-theme='dark'] .review-result p,
+:root[data-theme='dark'] .review-target-header > div > span,
+:root[data-theme='dark'] .review-comment small,
+:root[data-theme='dark'] .review-loading { color: var(--bp-text-muted); }
+:root[data-theme='dark'] .review-form-actions button.secondary { background: transparent; color: var(--bp-action-text); border-color: var(--bp-action-border); }
 .review-form-actions button:disabled { opacity: .6; cursor: wait; }
 @media (max-width: 760px) {
   .history-container { width: min(100% - 24px, 1120px); padding-top: 24px; }

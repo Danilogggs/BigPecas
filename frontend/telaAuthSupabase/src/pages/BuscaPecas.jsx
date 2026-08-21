@@ -256,7 +256,7 @@ export default function BuscaPecas() {
 
         .peca-card-link:focus-visible {
           border-radius: ${BORDER_RADIUS.LG};
-          outline: 3px solid ${COLORS.BORDEAUX};
+          outline: 3px solid var(--bp-action-border);
           outline-offset: 4px;
         }
       `}</style>
@@ -271,7 +271,7 @@ export default function BuscaPecas() {
           padding: `${SPACING.XL} ${SPACING.XL} 0`,
           flexWrap: 'wrap',
         }}>
-          <span style={{ fontWeight: 'bold', color: COLORS.BORDEAUX, marginRight: SPACING.SM }}>
+          <span style={{ fontWeight: 'bold', color: COLORS.DARK_TEXT, marginRight: SPACING.SM }}>
             Ordenar por:
           </span>
 
@@ -279,7 +279,8 @@ export default function BuscaPecas() {
             onClick={() => handleSortClick('preco')}
             style={{
               ...BUTTON_PRIMARY_STYLE,
-              backgroundColor: sort === 'preco' ? COLORS.BORDEAUX : '#ccc',
+              backgroundColor: sort === 'preco' ? 'var(--bp-primary-action)' : 'var(--bp-surface-muted)',
+              color: sort === 'preco' ? 'var(--bp-on-primary)' : COLORS.DARK_TEXT,
               padding: '8px 16px',
             }}
           >
@@ -290,7 +291,8 @@ export default function BuscaPecas() {
             onClick={() => handleSortClick('data_cadastro')}
             style={{
               ...BUTTON_PRIMARY_STYLE,
-              backgroundColor: sort === 'data_cadastro' ? COLORS.BORDEAUX : '#ccc',
+              backgroundColor: sort === 'data_cadastro' ? 'var(--bp-primary-action)' : 'var(--bp-surface-muted)',
+              color: sort === 'data_cadastro' ? 'var(--bp-on-primary)' : COLORS.DARK_TEXT,
               padding: '8px 16px',
             }}
           >
@@ -412,8 +414,8 @@ export default function BuscaPecas() {
         }}
         style={{
           width: '90px',
-          backgroundColor: COLORS.BORDEAUX,
-          color: '#fff',
+          backgroundColor: 'var(--bp-primary-action)',
+          color: 'var(--bp-on-primary)',
           border: 'none',
           borderRadius: '4px',
           padding: '4px 8px',
@@ -457,8 +459,8 @@ export default function BuscaPecas() {
         }}
         style={{
           width: '90px',
-          backgroundColor: COLORS.BORDEAUX,
-          color: '#fff',
+          backgroundColor: 'var(--bp-primary-action)',
+          color: 'var(--bp-on-primary)',
           border: 'none',
           borderRadius: '4px',
           padding: '4px 8px',
@@ -500,7 +502,7 @@ export default function BuscaPecas() {
             100
         }%`,
         height: '4px',
-        background: COLORS.BORDEAUX,
+        background: 'var(--bp-primary-action)',
         borderRadius: '4px',
       }}
     />
@@ -577,7 +579,7 @@ export default function BuscaPecas() {
             style={{
               margin: `0 ${SPACING.XL} ${SPACING.MD}`,
               backgroundColor: '#FFF7D6',
-              color: COLORS.BORDEAUX,
+              color: 'var(--bp-on-light)',
               padding: SPACING.MD,
               borderRadius: '0.625rem',
               border: '2px solid #F0C060',
@@ -604,13 +606,13 @@ export default function BuscaPecas() {
         )}
 
         {loading && (
-          <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.BORDEAUX, fontWeight: 600 }}>
+          <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.DARK_TEXT, fontWeight: 600 }}>
             Carregando peças...
           </div>
         )}
 
         {shouldShowEmptyState && (
-          <div style={{ padding: `0 ${SPACING.XL}`, color: '#9B7B6A' }}>
+          <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.MUTED_TEXT }}>
             Nenhuma peça foi encontrada com os filtros informados.
           </div>
         )}
@@ -667,9 +669,9 @@ export default function BuscaPecas() {
                     width: 42,
                     height: 42,
                     borderRadius: '999px',
-                    border: `2px solid ${wishIds.has(String(item.id)) ? COLORS.BORDEAUX : '#fff'}`,
-                    backgroundColor: wishIds.has(String(item.id)) ? COLORS.BORDEAUX : 'rgba(255, 255, 255, 0.92)',
-                    color: wishIds.has(String(item.id)) ? '#fff' : COLORS.BORDEAUX,
+                    border: `2px solid ${wishIds.has(String(item.id)) ? 'var(--bp-primary-action)' : '#fff'}`,
+                    backgroundColor: wishIds.has(String(item.id)) ? 'var(--bp-primary-action)' : 'rgba(255, 255, 255, 0.92)',
+                    color: wishIds.has(String(item.id)) ? 'var(--bp-on-primary)' : 'var(--bp-on-light)',
                     boxShadow: '0 8px 18px rgba(0,0,0,0.18)',
                     cursor: wishLoadingId === item.id ? 'not-allowed' : 'pointer',
                     fontSize: '1.25rem',
@@ -700,7 +702,7 @@ export default function BuscaPecas() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexDirection: 'column',
-                      color: COLORS.BORDEAUX,
+                      color: 'var(--bp-on-light)',
                       fontWeight: 700,
                       textAlign: 'center',
                       padding: SPACING.MD,
@@ -717,7 +719,7 @@ export default function BuscaPecas() {
                   <h2
                     style={{
                       margin: 0,
-                      color: COLORS.BORDEAUX,
+                      color: COLORS.DARK_TEXT,
                       fontSize: '1.15rem',
                       lineHeight: 1.3,
                     }}
@@ -728,7 +730,7 @@ export default function BuscaPecas() {
                   <span
                     style={{
                       backgroundColor: '#F8E9C5',
-                      color: COLORS.BORDEAUX,
+                      color: 'var(--bp-on-light)',
                       borderRadius: '999px',
                       padding: '0.25rem 0.6rem',
                       fontSize: '0.75rem',
@@ -744,7 +746,7 @@ export default function BuscaPecas() {
                 <p
                   style={{
                     margin: 0,
-                    color: '#7A5C4B',
+                    color: COLORS.MUTED_TEXT,
                     fontSize: '0.9rem',
                   }}
                 >
@@ -755,7 +757,7 @@ export default function BuscaPecas() {
                   <p
                     style={{
                       margin: 0,
-                      color: '#7A5C4B',
+                      color: COLORS.MUTED_TEXT,
                       fontSize: '0.9rem',
                     }}
                   >
@@ -767,7 +769,7 @@ export default function BuscaPecas() {
                   <p
                     style={{
                       margin: 0,
-                      color: '#7A5C4B',
+                      color: COLORS.MUTED_TEXT,
                       fontSize: '0.9rem',
                     }}
                   >
@@ -779,7 +781,7 @@ export default function BuscaPecas() {
                   style={{
                     marginTop: SPACING.SM,
                     paddingTop: SPACING.SM,
-                    borderTop: '1px solid #F0E1C8',
+                    borderTop: '1px solid var(--bp-border-light)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -788,7 +790,7 @@ export default function BuscaPecas() {
                 >
                   <strong
                     style={{
-                      color: COLORS.BORDEAUX,
+                      color: COLORS.DARK_TEXT,
                       fontSize: '1.15rem',
                     }}
                   >
@@ -818,7 +820,7 @@ export default function BuscaPecas() {
         {/* Paginação — Carregar mais */}
         {!loading && pecas.length > 0 && (
           <div style={{ padding: `0 ${SPACING.XL} ${SPACING.XL}`, textAlign: 'center' }}>
-            <p style={{ fontSize: '0.82rem', color: '#9B7B6A', marginBottom: SPACING.MD }}>
+            <p style={{ fontSize: '0.82rem', color: COLORS.MUTED_TEXT, marginBottom: SPACING.MD }}>
               Exibindo {pecas.length} de {totalPecas} peças
             </p>
             {hasMore && (

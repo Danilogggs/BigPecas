@@ -28,7 +28,6 @@ export default function SettingsPage() {
           <div className="settings-card__heading">
             <span className="settings-card__eyebrow">Preferências</span>
             <h1 id="settings-title">Configurações</h1>
-            <p>Escolha a aparência que deixa sua navegação mais confortável.</p>
           </div>
 
           <fieldset className="theme-picker">
@@ -56,7 +55,7 @@ export default function SettingsPage() {
                           {selected ? 'Selecionado' : 'Selecionar'}
                         </span>
                       </span>
-                      <span className="theme-option__description">{option.description}</span>
+                      {/* <span className="theme-option__description">{option.description}</span> */}
                       <span className="theme-option__palette" aria-hidden="true">
                         {option.colors.map((color, colorIndex) => (
                           <span key={`${option.id}-${colorIndex}`} style={{ backgroundColor: color }} />
@@ -69,9 +68,6 @@ export default function SettingsPage() {
             </div>
           </fieldset>
 
-          <p className="settings-card__note">
-            A preferência fica salva neste navegador e é aplicada imediatamente.
-          </p>
         </section>
       </main>
     </div>

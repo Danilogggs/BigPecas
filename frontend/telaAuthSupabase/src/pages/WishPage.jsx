@@ -118,7 +118,7 @@ export default function WishPage() {
             <div
               style={{
                 background: `linear-gradient(135deg, ${COLORS.BORDEAUX} 0%, #4D101C 100%)`,
-                color: COLORS.CREAM,
+                color: 'var(--bp-on-primary)',
                 borderRadius: BORDER_RADIUS.LG,
                 padding: SPACING.XL,
                 boxShadow: SHADOWS.MD,
@@ -169,7 +169,7 @@ export default function WishPage() {
                 gap: SPACING.MD,
               }}
             >
-              <strong style={{ color: COLORS.BORDEAUX, fontSize: '2rem' }}>{pecas.length}</strong>
+              <strong style={{ color: COLORS.DARK_TEXT, fontSize: '2rem' }}>{pecas.length}</strong>
               <span style={{ color: COLORS.MUTED_TEXT, fontWeight: 700 }}>
                 {pecas.length === 1 ? 'peça salva' : 'peças salvas'} na sua lista de desejos
               </span>
@@ -183,7 +183,7 @@ export default function WishPage() {
             <div
               style={{
                 backgroundColor: '#FFF7D6',
-                color: COLORS.BORDEAUX,
+                color: 'var(--bp-on-light)',
                 padding: SPACING.MD,
                 borderRadius: BORDER_RADIUS.MD,
                 border: '2px solid #F0C060',
@@ -209,7 +209,7 @@ export default function WishPage() {
           )}
 
           {loading && (
-            <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
+            <div style={{ color: COLORS.DARK_TEXT, fontWeight: 800 }}>
               Carregando sua lista de desejos...
             </div>
           )}
@@ -226,7 +226,7 @@ export default function WishPage() {
               }}
             >
               <div style={{ fontSize: '3rem', marginBottom: SPACING.MD }}>♡</div>
-              <h2 style={{ margin: 0, color: COLORS.BORDEAUX }}>Sua lista de desejos ainda está vazia</h2>
+              <h2 style={{ margin: 0, color: COLORS.DARK_TEXT }}>Sua lista de desejos ainda está vazia</h2>
               <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>
                 Abra o catálogo e clique no coração das peças que deseja guardar.
               </p>
@@ -272,12 +272,12 @@ export default function WishPage() {
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
                     ) : (
-                      <span style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>Sem imagem</span>
+                      <span style={{ color: 'var(--bp-on-light)', fontWeight: 800 }}>Sem imagem</span>
                     )}
                   </div>
 
                   <div style={{ padding: `${SPACING.LG} 0`, display: 'flex', flexDirection: 'column', gap: SPACING.SM }}>
-                    <h2 style={{ color: COLORS.BORDEAUX, margin: 0, fontSize: '1.25rem' }}>
+                    <h2 style={{ color: COLORS.DARK_TEXT, margin: 0, fontSize: '1.25rem' }}>
                       {peca.nome_peca || 'Peça sem nome'}
                     </h2>
                     <p style={{ margin: 0, color: COLORS.MUTED_TEXT }}>
@@ -286,7 +286,7 @@ export default function WishPage() {
                     <p style={{ margin: 0, color: COLORS.MUTED_TEXT }}>
                       {peca.oem_number ? `OEM: ${peca.oem_number}` : 'OEM não informado'}
                     </p>
-                    <strong style={{ color: COLORS.BORDEAUX, fontSize: '1.2rem' }}>
+                    <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.2rem' }}>
                       {formatarPreco(peca.preco)}
                     </strong>
                   </div>
