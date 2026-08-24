@@ -24,6 +24,7 @@ const ChatPage            = lazy(() => import('./pages/ChatPage'));
 const ChatsPage           = lazy(() => import('./pages/ChatsPage'));
 const AdminPage           = lazy(() => import('./pages/AdminPage'));
 const SettingsPage        = lazy(() => import('./pages/SettingsPage'));
+const NotificacoesPage    = lazy(() => import('./pages/NotificacoesPage'));
 
 function PageLoader() {
   const { t } = useLanguage();
@@ -66,6 +67,7 @@ export default function App() {
         <Route path="/chats" element={<PrivateRoute><ChatsPage /></PrivateRoute>} />
         <Route path="/chat/:id" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
+        <Route path="/notificacoes" element={<PrivateRoute><NotificacoesPage /></PrivateRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

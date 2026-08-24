@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { buscarPerfilUsuario } from '../services/usuarioService';
+import { buscarContagemNotificacoesNaoLidas } from '../services/notificacoesService';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -17,6 +18,7 @@ export default function Header() {
   const [localSearch, setLocalSearch] = useState(searchParams.get('nome') || '');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0);
   const dropdownRef = useRef(null);
   const cartCount = cartItems.reduce((s, it) => s + (it.quantidade || 0), 0);
 
@@ -28,12 +30,39 @@ export default function Header() {
     let active = true;
     if (!user) {
       setIsAdmin(false);
+      setNotificacoesNaoLidas(0);
       return undefined;
     }
     buscarPerfilUsuario()
       .then((profile) => { if (active) setIsAdmin(profile?.is_admin === true); })
       .catch(() => { if (active) setIsAdmin(false); });
     return () => { active = false; };
+  }, [user]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!user) {
+      setNotificacoesNaoLidas(0);
+      return undefined;
+    }
+
+    const carregar = async () => {
+      try {
+        const count = await buscarContagemNotificacoesNaoLidas();
+        if (active) setNotificacoesNaoLidas(count);
+      } catch {
+        if (active) setNotificacoesNaoLidas(0);
+      }
+    };
+
+    carregar();
+    const interval = window.setInterval(carregar, 30000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -98,6 +127,20 @@ export default function Header() {
       {/* Actions */}
       <div className="bp-header__actions">
         <LanguageSwitcher />
+        <button
+          type="button"
+          className="bp-header__notifications"
+          onClick={() => navigate('/notificacoes')}
+          title="Notificações"
+          aria-label="Notificações"
+        >
+          <BellIcon />
+          {notificacoesNaoLidas > 0 && (
+            <span className="bp-header__notifications-badge">
+              {notificacoesNaoLidas > 99 ? '99+' : notificacoesNaoLidas}
+            </span>
+          )}
+        </button>
         {/* Cart */}
         {user && (
           <button
@@ -198,6 +241,15 @@ function CartIcon() {
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
+      <path d="M10 17a2 2 0 0 0 4 0" />
     </svg>
   );
 }

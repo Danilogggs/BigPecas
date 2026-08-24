@@ -497,6 +497,25 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); line-height: 1.2; color
 }
 .bp-header__btn-login:hover { background: rgba(255,255,255,.12); border-color: var(--bp-white); }
 
+.bp-header__notifications {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: var(--r-full);
+  background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.2);
+  color: var(--bp-white); cursor: pointer;
+  transition: all var(--transition);
+}
+.bp-header__notifications:hover { background: rgba(255,255,255,.2); }
+
+.bp-header__notifications-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #ef4444; color: #fff;
+  border: 2px solid var(--bp-green-800);
+  border-radius: var(--r-full);
+  min-width: 18px; height: 18px; padding: 0 4px;
+  font-size: .65rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+
 .bp-header__cart {
   position: relative; display: flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; border-radius: var(--r-full);
