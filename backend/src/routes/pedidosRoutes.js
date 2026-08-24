@@ -444,6 +444,7 @@ router.patch('/:id/status', async (req, res, next) => {
           itens: pedidoAtualizado.itens,
           valorTotal: pedidoAtualizado.total,
           codigoRastreio: pedidoAtualizado.codigo_rastreio || pedidoAtualizado.codigoRastreio,
+          destinatarioUserId: comprador.id,
         });
       }
     } catch (notificationError) {
@@ -474,6 +475,7 @@ router.patch('/:id/status', async (req, res, next) => {
               itens: itensDoFornecedor,
               valorTotal: calcularValorItens(itensDoFornecedor),
               codigoRastreio: pedidoAtualizado.codigo_rastreio || pedidoAtualizado.codigoRastreio,
+              destinatarioUserId: vendedor.id,
             });
           }),
         );

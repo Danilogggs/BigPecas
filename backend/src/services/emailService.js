@@ -6,6 +6,14 @@ const EMAIL_NOTIFICACAO_ENABLED = String(process.env.EMAIL_NOTIFICACAO_VENDA_ENA
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN;
 const MAILGUN_API_URL = process.env.MAILGUN_API_URL; // optional (e.g., https://api.eu.mailgun.net)
+const NOTIFICACOES_TABLE = process.env.SUPABASE_NOTIFICACOES_TABLE || 'notificacoes';
+
+let supabaseAdmin = null;
+try {
+  ({ supabaseAdmin } = require('../config/supabaseClient'));
+} catch {
+  supabaseAdmin = null;
+}
 
 const STATUS_LABELS = {
   aguardando_pagamento: 'Aguardando pagamento',
@@ -42,6 +50,32 @@ function montarTextoItens(itens = []) {
     const preco = Number(item?.preco || 0);
     return `- ${nome} — ${quantidade} unidade(s) — ${formatBRL(preco * quantidade)}`;
   }).join('\n');
+}
+
+async function registrarNotificacao({
+  userId,
+  pedidoId = null,
+  tipo,
+  titulo,
+  mensagem,
+  statusEnvio = 'pendente',
+}) {
+  if (!supabaseAdmin || !userId) {
+    return null;
+  }
+
+  const payload = {
+    user_id: String(userId),
+    pedido_id: pedidoId ? String(pedidoId) : null,
+    tipo,
+    titulo,
+    mensagem,
+    status_envio: statusEnvio,
+  };
+
+  const { error } = await supabaseAdmin.from(NOTIFICACOES_TABLE).insert(payload);
+  if (error) throw error;
+  return payload;
 }
 
 async function enviarEmail({ to, subject, html, text }) {
@@ -115,6 +149,7 @@ async function enviarNotificacaoVendaVendedor({
   itens = [],
   valorTotal = 0,
   codigoRastreio,
+  destinatarioUserId = null,
 }) {
   const html = `
     <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6;">
@@ -162,12 +197,32 @@ async function enviarNotificacaoVendaVendedor({
     codigoRastreio ? `Código de rastreio: ${codigoRastreio}` : '',
   ].filter(Boolean).join('\n');
 
-  return enviarEmail({
-    to,
-    subject: `Venda confirmada — Pedido #${pedidoId}`,
-    html,
-    text,
-  });
+  let result;
+  try {
+    result = await enviarEmail({
+      to,
+      subject: `Venda confirmada — Pedido #${pedidoId}`,
+      html,
+      text,
+    });
+  } catch (error) {
+    result = { sent: false, error };
+  }
+
+  try {
+    await registrarNotificacao({
+      userId: destinatarioUserId,
+      pedidoId,
+      tipo: 'venda_confirmada',
+      titulo: 'Venda confirmada',
+      mensagem: `Uma venda foi confirmada no pedido #${pedidoId}.`,
+      statusEnvio: result.sent ? 'enviada' : 'pendente',
+    });
+  } catch (error) {
+    console.warn('Falha ao registrar notificação de venda:', error);
+  }
+
+  return result;
 }
 
 async function enviarNotificacaoStatusPedidoCliente({
@@ -179,6 +234,7 @@ async function enviarNotificacaoStatusPedidoCliente({
   itens = [],
   valorTotal = 0,
   codigoRastreio,
+  destinatarioUserId = null,
 }) {
   const statusAnteriorTexto = STATUS_LABELS[statusAnterior] || statusAnterior || 'Status anterior';
   const statusAtualTexto = STATUS_LABELS[statusAtual] || statusAtual || 'Status atualizado';
@@ -231,15 +287,36 @@ async function enviarNotificacaoStatusPedidoCliente({
     codigoRastreio ? `Código de rastreio: ${codigoRastreio}` : '',
   ].filter(Boolean).join('\n');
 
-  return enviarEmail({
-    to,
-    subject: `Pedido #${pedidoId} atualizado: ${statusAtualTexto}`,
-    html,
-    text,
-  });
+  let result;
+  try {
+    result = await enviarEmail({
+      to,
+      subject: `Pedido #${pedidoId} atualizado: ${statusAtualTexto}`,
+      html,
+      text,
+    });
+  } catch (error) {
+    result = { sent: false, error };
+  }
+
+  try {
+    await registrarNotificacao({
+      userId: destinatarioUserId,
+      pedidoId,
+      tipo: 'status_pedido',
+      titulo: 'Status do pedido atualizado',
+      mensagem: `O status do pedido #${pedidoId} mudou de ${statusAnteriorTexto} para ${statusAtualTexto}.`,
+      statusEnvio: result.sent ? 'enviada' : 'pendente',
+    });
+  } catch (error) {
+    console.warn('Falha ao registrar notificação de status:', error);
+  }
+
+  return result;
 }
 
 module.exports = {
   enviarNotificacaoVendaVendedor,
   enviarNotificacaoStatusPedidoCliente,
+  registrarNotificacao,
 };

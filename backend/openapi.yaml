@@ -1,0 +1,1350 @@
+openapi: 3.0.3
+info:
+  title: BigPecas Backend API
+  version: 1.0.0
+  description: |
+    API REST do BigPecas para autenticacao, catalogo, pecas, pedidos, frete,
+    wishlist, notificacoes, avaliacoes e administracao.
+
+    A maioria das rotas exige token Supabase Auth no header
+    `Authorization: Bearer <access_token>`.
+servers:
+  - url: http://localhost:3001
+    description: Ambiente local
+tags:
+  - name: Health
+    description: Verificacao basica de disponibilidade da API.
+  - name: Auth
+    description: Cadastro, validacao de sessao e perfil do usuario.
+  - name: Catalogo
+    description: Dados auxiliares do catalogo, como categorias e materiais.
+  - name: Pecas
+    description: Cadastro, consulta, atualizacao, remocao e recomendacoes de pecas.
+  - name: Wishlist
+    description: Lista de desejos do usuario autenticado.
+  - name: Pedidos
+    description: Criacao de pedidos, historico de compras/vendas e mudanca de status.
+  - name: Notificacoes
+    description: Notificacoes salvas para o cliente e contador de nao lidas.
+  - name: Avaliacoes
+    description: Avaliacoes pos-compra de fornecedores e produtos.
+  - name: Frete
+    description: Calculo de frete e refresh de token do Melhor Envio.
+  - name: Admin
+    description: Endpoints administrativos para dashboard e moderacao.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /:
+    get:
+      tags: [Health]
+      security: []
+      summary: Verifica se a API esta online
+      description: Retorna uma resposta simples indicando que o servidor Express esta rodando.
+      responses:
+        "200":
+          description: API online.
+          content:
+            application/json:
+              example:
+                name: BigPecas API
+                status: running
+
+  /api/health:
+    get:
+      tags: [Health]
+      security: []
+      summary: Verifica conectividade basica da API
+      description: Health check usado pelo frontend ou monitoramento para confirmar disponibilidade.
+      responses:
+        "200":
+          description: API disponivel.
+          content:
+            application/json:
+              example:
+                status: ok
+                message: BigPecas API conectada ao Supabase.
+
+  /api/auth/health:
+    get:
+      tags: [Auth]
+      security: []
+      summary: Verifica modulo de autenticacao
+      description: Confirma que as rotas de autenticacao estao carregadas.
+      responses:
+        "200":
+          description: Modulo de autenticacao disponivel.
+          content:
+            application/json:
+              example:
+                status: ok
+                message: API de autenticação do BigPeças funcionando com Supabase.
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Cria usuario no Supabase Auth e perfil local
+      description: Cadastra a conta no Supabase Auth e salva o perfil correspondente na tabela `users`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            example:
+              full_name: Francisco Martins
+              email: francisco.martins@example.com
+              password: SenhaForte123
+              gender: male
+              cep: "80240140"
+              telefone: "41902111119"
+              nome_loja: Auto Pecas Martins
+              descricao_loja: Loja especializada em pecas antigas para carros classicos.
+              receber_email_notificacao_venda: true
+      responses:
+        "201":
+          description: Conta criada e perfil salvo.
+          content:
+            application/json:
+              example:
+                message: Conta criada. Verifique seu email para confirmar o cadastro.
+                emailVerificationRequiredForSelling: true
+                authUser:
+                  id: 6f81f9d3-8d2b-4af2-a2c1-e56a4305297a
+                  email: francisco.martins@example.com
+                profile:
+                  id: 12
+                  email: francisco.martins@example.com
+                  full_name: Francisco Martins
+                  tipo_usuario: ambos
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Retorna usuario autenticado
+      description: Valida o token Bearer e devolve dados do usuario Auth e perfil local.
+      responses:
+        "200":
+          description: Usuario autenticado.
+          content:
+            application/json:
+              example:
+                message: Token validado com sucesso no backend.
+                user:
+                  id: 6f81f9d3-8d2b-4af2-a2c1-e56a4305297a
+                  email: francisco.martins@example.com
+                  profile:
+                    id: 12
+                    full_name: Francisco Martins
+                    email: francisco.martins@example.com
+                    tipo_usuario: ambos
+                    is_admin: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/users/{id}:
+    get:
+      tags: [Auth]
+      summary: Busca usuario por id local ou Supabase Auth
+      description: Aceita id numerico da tabela `users` ou UUID do Supabase Auth.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Usuario encontrado.
+          content:
+            application/json:
+              example:
+                user:
+                  id: 12
+                  email: francisco.martins@example.com
+                  profile:
+                    id: 12
+                    full_name: Francisco Martins
+                    nome_loja: Auto Pecas Martins
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/auth/profile:
+    get:
+      tags: [Auth]
+      summary: Carrega perfil do usuario autenticado
+      description: Busca o perfil local associado ao e-mail do token Supabase.
+      responses:
+        "200":
+          description: Perfil carregado.
+          content:
+            application/json:
+              example:
+                id: 12
+                full_name: Francisco Martins
+                email: francisco.martins@example.com
+                gender: male
+                cep: "80240140"
+                tipo_usuario: ambos
+                nome_loja: Auto Pecas Martins
+                descricao_loja: Loja especializada em pecas antigas.
+                telefone: "41902111119"
+                receber_email_notificacao_venda: true
+                is_admin: false
+    post:
+      tags: [Auth]
+      summary: Cria ou atualiza perfil do usuario autenticado
+      description: Salva dados de perfil e sincroniza metadados no Supabase Auth.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              full_name: Francisco Martins
+              gender: male
+              cep: "80240140"
+              nome_loja: Auto Pecas Martins
+              descricao_loja: Loja especializada em pecas antigas.
+              telefone: "41902111119"
+              receber_email_notificacao_venda: true
+      responses:
+        "200":
+          description: Perfil atualizado.
+          content:
+            application/json:
+              example:
+                message: Perfil atualizado com sucesso.
+                profile:
+                  id: 12
+                  full_name: Francisco Martins
+                  email: francisco.martins@example.com
+        "201":
+          description: Perfil criado.
+
+  /api/categorias:
+    get:
+      tags: [Catalogo]
+      summary: Lista categorias de pecas
+      description: Retorna categorias ordenadas por nome.
+      responses:
+        "200":
+          description: Categorias carregadas.
+          content:
+            application/json:
+              example:
+                - id: 1
+                  nome: Motor
+                - id: 2
+                  nome: Interior
+
+  /api/materiais:
+    get:
+      tags: [Catalogo]
+      summary: Lista materiais de pecas
+      description: Retorna materiais ordenados por nome.
+      responses:
+        "200":
+          description: Materiais carregados.
+          content:
+            application/json:
+              example:
+                - id: 1
+                  nome: Aco
+                - id: 2
+                  nome: Aluminio
+
+  /api/pecas:
+    get:
+      tags: [Pecas]
+      summary: Lista pecas com filtros e paginacao
+      description: Permite buscar pecas por nome, categoria, material, condicao, preco, estoque, fornecedor e ordenacao.
+      parameters:
+        - name: nome
+          in: query
+          schema: { type: string }
+          example: carburador
+        - name: categoria_id
+          in: query
+          schema: { type: integer }
+          example: 1
+        - name: material_id
+          in: query
+          schema: { type: integer }
+          example: 2
+        - name: condicao
+          in: query
+          schema: { type: string }
+          example: NOS
+        - name: min_preco
+          in: query
+          schema: { type: number }
+          example: 100
+        - name: max_preco
+          in: query
+          schema: { type: number }
+          example: 5000
+        - name: minhas_pecas
+          in: query
+          schema: { type: boolean }
+          example: false
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 40, maximum: 100 }
+      responses:
+        "200":
+          description: Lista de pecas.
+          headers:
+            X-Total-Count:
+              schema: { type: integer }
+              description: Total estimado de registros.
+            X-Page:
+              schema: { type: integer }
+            X-Page-Size:
+              schema: { type: integer }
+          content:
+            application/json:
+              example:
+                - id: 45
+                  nome_peca: Carburador Solex H40
+                  sku: SOLEX-H40-001
+                  categoria_id: 1
+                  material_id: 2
+                  condicao: Restaurada
+                  preco: 444
+                  estoque_atual: 1
+                  fornecedor_id: 12
+
+  /api/pecas/cadastrar:
+    post:
+      tags: [Pecas]
+      summary: Cadastra uma peca
+      description: Cria uma nova peca vinculada ao fornecedor autenticado. Exige loja configurada e e-mail confirmado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PecaInput"
+            example:
+              nome_peca: Carburador Solex H40
+              sku: SOLEX-H40-001
+              oem_number: VW-040-129
+              num_serie: SN-98765
+              categoria_id: 1
+              material_id: 2
+              condicao: Restaurada
+              peso_gramas: 3200
+              comprimento_mm: 280
+              largura_mm: 220
+              altura_mm: 180
+              detalhes_gravacao: Gravacao Solex original preservada.
+              historico_proveniencia: Retirado de estoque antigo de oficina.
+              preco: 444
+              estoque_atual: 1
+              imagem: https://example.com/carburador.jpg
+      responses:
+        "201":
+          description: Peca cadastrada.
+          content:
+            application/json:
+              example:
+                id: 45
+                message: Peça cadastrada com sucesso!
+                peca:
+                  id: 45
+                  nome_peca: Carburador Solex H40
+                  preco: 444
+
+  /api/pecas/fornecedores/recomendados:
+    get:
+      tags: [Pecas]
+      summary: Lista fornecedores recomendados
+      description: Calcula ranking simples com base em quantidade de pecas, estoque e completude do perfil.
+      parameters:
+        - name: limite
+          in: query
+          schema: { type: integer, default: 4 }
+      responses:
+        "200":
+          description: Fornecedores recomendados.
+          content:
+            application/json:
+              example:
+                total: 1
+                fornecedores:
+                  - id: 12
+                    full_name: Francisco Martins
+                    nome_loja: Auto Pecas Martins
+                    total_pecas: 18
+                    pecas_com_estoque: 12
+                    score_recomendacao: 210
+
+  /api/pecas/fornecedores/{id}/perfil:
+    get:
+      tags: [Pecas]
+      summary: Exibe perfil publico de fornecedor
+      description: Retorna dados publicos da loja e pecas cadastradas pelo fornecedor.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Perfil de vendedor.
+          content:
+            application/json:
+              example:
+                fornecedor:
+                  id: 12
+                  nome_loja: Auto Pecas Martins
+                  total_pecas: 18
+                pecas:
+                  - id: 45
+                    nome_peca: Carburador Solex H40
+                    preco: 444
+
+  /api/pecas/{id}:
+    get:
+      tags: [Pecas]
+      summary: Busca peca por id
+      description: Retorna os dados completos de uma peca.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Peca encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Peca"
+              example:
+                id: 45
+                nome_peca: Carburador Solex H40
+                preco: 444
+                estoque_atual: 1
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Pecas]
+      summary: Atualiza peca do fornecedor autenticado
+      description: Permite alterar apenas campos permitidos e somente se a peca pertence ao fornecedor logado.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              preco: 469.9
+              estoque_atual: 2
+              condicao: Restaurada
+      responses:
+        "200":
+          description: Peca atualizada.
+          content:
+            application/json:
+              example:
+                id: 45
+                message: Peça atualizada com sucesso!
+                peca:
+                  id: 45
+                  preco: 469.9
+                  estoque_atual: 2
+    delete:
+      tags: [Pecas]
+      summary: Remove peca do fornecedor autenticado
+      description: Remove uma peca apenas se ela pertence ao usuario logado.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Peca removida.
+          content:
+            application/json:
+              example:
+                message: Peça deletada com sucesso!
+
+  /api/pecas/{id}/recomendacoes:
+    get:
+      tags: [Pecas]
+      summary: Recomenda pecas relacionadas
+      description: Gera recomendacoes por categoria, material, condicao, fornecedor, preco e nome.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - name: limite
+          in: query
+          schema: { type: integer, default: 4 }
+      responses:
+        "200":
+          description: Pecas recomendadas.
+          content:
+            application/json:
+              example:
+                peca_base_id: 45
+                total: 1
+                recomendacoes:
+                  - id: 46
+                    nome_peca: Kit reparo carburador Solex
+                    score_recomendacao: 75
+
+  /api/wish:
+    get:
+      tags: [Wishlist]
+      summary: Lista wishlist do usuario
+      description: Retorna itens da wishlist e as pecas correspondentes.
+      responses:
+        "200":
+          description: Wishlist carregada.
+          content:
+            application/json:
+              example:
+                message: Lista de desejos carregada com sucesso.
+                total: 1
+                itens:
+                  - id: 9
+                    user_id: 12
+                    peca_id: 45
+                pecas:
+                  - id: 45
+                    nome_peca: Carburador Solex H40
+
+  /api/wish/status/{pecaId}:
+    get:
+      tags: [Wishlist]
+      summary: Verifica se uma peca esta na wishlist
+      description: Retorna `in_wish` para a peca informada.
+      parameters:
+        - name: pecaId
+          in: path
+          required: true
+          schema: { type: integer }
+          example: 45
+      responses:
+        "200":
+          description: Status retornado.
+          content:
+            application/json:
+              example:
+                peca_id: 45
+                in_wish: true
+                item:
+                  id: 9
+                  user_id: 12
+                  peca_id: 45
+
+  /api/wish/{pecaId}:
+    post:
+      tags: [Wishlist]
+      summary: Adiciona peca a wishlist
+      description: Insere uma peca na lista de desejos do usuario autenticado.
+      parameters:
+        - name: pecaId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "201":
+          description: Peca adicionada.
+          content:
+            application/json:
+              example:
+                message: Peça adicionada à sua lista de desejos.
+                item:
+                  id: 9
+                  user_id: 12
+                  peca_id: 45
+    delete:
+      tags: [Wishlist]
+      summary: Remove peca da wishlist
+      description: Remove uma peca da lista de desejos do usuario autenticado.
+      parameters:
+        - name: pecaId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Peca removida.
+          content:
+            application/json:
+              example:
+                message: Peça removida da sua lista de desejos.
+                peca_id: 45
+
+  /api/pedidos:
+    get:
+      tags: [Pedidos]
+      summary: Lista compras do usuario
+      description: Endpoint de compatibilidade que retorna somente compras do usuario autenticado.
+      responses:
+        "200":
+          description: Compras do usuario.
+          content:
+            application/json:
+              example:
+                - id: "2026-123456"
+                  user_id: 12
+                  status: pago
+                  total: 462.46
+                  visao: compra
+    post:
+      tags: [Pedidos]
+      summary: Cria pedido
+      description: Cria pedido com itens, frete, endereco e forma de pagamento; tambem gera codigo de rastreio e vendas por fornecedor.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PedidoCreateRequest"
+            example:
+              itens:
+                - id: 45
+                  quantidade: 1
+              frete:
+                transportadora: Loggi
+                tipo: Loggi Ponto
+                valor: 18.46
+                prazo_texto: Entrega em até 6 dias úteis
+              cupom: null
+              endereco:
+                nome: Francisco Martins
+                cep: 80240-140
+                logradouro: Rua 12
+                numero: "12"
+                complemento: "1"
+                bairro: Centro
+                cidade: Curitiba
+                uf: PR
+                telefone: "41902111119"
+              forma_pagamento:
+                id: pix
+                nome: PIX
+                descricao: Aprovação imediata
+      responses:
+        "201":
+          description: Pedido criado.
+          content:
+            application/json:
+              example:
+                id: "2026-123456"
+                status: aguardando_pagamento
+                total: 462.46
+                codigo_rastreio: BG123456789AB
+                visao: compra
+
+  /api/pedidos/historico:
+    get:
+      tags: [Pedidos]
+      summary: Lista historico completo
+      description: Retorna compras do cliente e vendas do fornecedor autenticado.
+      responses:
+        "200":
+          description: Historico carregado.
+          content:
+            application/json:
+              example:
+                perfil:
+                  id: 12
+                  tipo_usuario: ambos
+                  pode_vender: true
+                compras:
+                  - id: "2026-123456"
+                    status: pago
+                    visao: compra
+                vendas:
+                  - id: "2026-654321"
+                    status: enviado
+                    visao: venda
+
+  /api/pedidos/{id}:
+    get:
+      tags: [Pedidos]
+      summary: Busca pedido por id
+      description: Retorna a visao de compra ou venda conforme usuario e query `visao=venda`.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          example: "2026-123456"
+        - name: visao
+          in: query
+          schema: { type: string, enum: [compra, venda, vendas] }
+      responses:
+        "200":
+          description: Pedido encontrado.
+          content:
+            application/json:
+              example:
+                id: "2026-123456"
+                status: pago
+                itens:
+                  - id: 45
+                    nome: Carburador Solex H40
+                    quantidade: 1
+                visao: compra
+
+  /api/pedidos/{id}/status:
+    patch:
+      tags: [Pedidos]
+      summary: Atualiza status do pedido
+      description: |
+        Altera o status respeitando transicoes validas:
+        `aguardando_pagamento -> pago/cancelado`, `pago -> enviado/cancelado`,
+        `enviado -> entregue`.
+
+        Ao mudar status, o backend sincroniza vendas e registra/enviar notificacoes.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+          example: "2026-123456"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              status: enviado
+      responses:
+        "200":
+          description: Status atualizado.
+          content:
+            application/json:
+              example:
+                id: "2026-123456"
+                status: enviado
+                historico:
+                  - status: aguardando_pagamento
+                    data: "2026-08-24T13:00:00.000Z"
+                  - status: pago
+                    data: "2026-08-24T13:05:00.000Z"
+                  - status: enviado
+                    data: "2026-08-24T14:00:00.000Z"
+
+  /api/notificacoes:
+    get:
+      tags: [Notificacoes]
+      summary: Lista notificacoes do usuario
+      description: Retorna ate 50 notificacoes do usuario autenticado, ordenadas da mais recente para a mais antiga.
+      responses:
+        "200":
+          description: Notificacoes carregadas.
+          content:
+            application/json:
+              example:
+                notificacoes:
+                  - id: 01J5Q2H1M5JH9V9Y2FN5WRMZ3K
+                    user_id: "12"
+                    pedido_id: "2026-123456"
+                    tipo: status_pedido
+                    titulo: Status do pedido atualizado
+                    mensagem: O status do pedido #2026-123456 mudou de Pagamento confirmado para Pedido enviado.
+                    status_envio: enviada
+                    lida_em: null
+                    criada_em: "2026-08-24T14:00:00.000Z"
+
+  /api/notificacoes/nao-lidas/count:
+    get:
+      tags: [Notificacoes]
+      summary: Conta notificacoes nao lidas
+      description: Retorna a quantidade de notificacoes com `lida_em = null`.
+      responses:
+        "200":
+          description: Contagem retornada.
+          content:
+            application/json:
+              example:
+                count: 3
+
+  /api/notificacoes/{id}/lida:
+    patch:
+      tags: [Notificacoes]
+      summary: Marca notificacao como lida
+      description: Atualiza `lida_em` da notificacao pertencente ao usuario autenticado.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Notificacao marcada como lida.
+          content:
+            application/json:
+              example:
+                notificacao:
+                  id: 01J5Q2H1M5JH9V9Y2FN5WRMZ3K
+                  lida_em: "2026-08-24T15:00:00.000Z"
+
+  /api/avaliacoes/pedidos/{pedidoId}:
+    get:
+      tags: [Avaliacoes]
+      summary: Consulta estado de avaliacoes do pedido
+      description: Retorna se a avaliacao esta liberada e quais fornecedores/produtos ja foram avaliados.
+      parameters:
+        - name: pedidoId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Estado de avaliacoes.
+          content:
+            application/json:
+              example:
+                pedido_id: "2026-123456"
+                status: entregue
+                liberada: true
+                fornecedores:
+                  - fornecedor_id: 12
+                    fornecedor_nome: Auto Pecas Martins
+                    avaliado: false
+                produtos:
+                  - peca_id: 45
+                    nome: Carburador Solex H40
+                    avaliado: false
+
+  /api/avaliacoes/fornecedores:
+    post:
+      tags: [Avaliacoes]
+      summary: Avalia fornecedor apos compra
+      description: Cria avaliacao verificada para fornecedor de um pedido entregue.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              pedido_id: "2026-123456"
+              fornecedor_id: 12
+              nota: 5
+              comentario: Atendimento excelente e envio rapido.
+              qualidade_peca: 5
+              comunicacao: 5
+              rapidez_entrega: 4
+              embalagem: 5
+      responses:
+        "201":
+          description: Avaliacao criada.
+          content:
+            application/json:
+              example:
+                id: 7
+                pedido_id: "2026-123456"
+                fornecedor_id: 12
+                nota: 5
+                verificada: true
+
+  /api/avaliacoes/produtos:
+    post:
+      tags: [Avaliacoes]
+      summary: Avalia produto apos compra
+      description: Cria avaliacao verificada para produto recebido em pedido entregue.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              pedido_id: "2026-123456"
+              venda_id: 88
+              peca_id: 45
+              nota: 5
+              comentario: Peca chegou conforme anunciado.
+      responses:
+        "201":
+          description: Avaliacao criada.
+          content:
+            application/json:
+              example:
+                id: 11
+                pedido_id: "2026-123456"
+                peca_id: 45
+                nota: 5
+                verificada: true
+
+  /api/avaliacoes/fornecedores/{fornecedorId}:
+    get:
+      tags: [Avaliacoes]
+      summary: Lista avaliacoes publicas de fornecedor
+      description: Retorna avaliacoes verificadas e medias de qualidade, comunicacao, entrega e embalagem.
+      parameters:
+        - name: fornecedorId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Avaliacoes do fornecedor.
+          content:
+            application/json:
+              example:
+                resumo:
+                  total: 2
+                  media: 4.8
+                  qualidade_peca: 5
+                  comunicacao: 5
+                  rapidez_entrega: 4.5
+                  embalagem: 4.5
+                avaliacoes:
+                  - id: 7
+                    nota: 5
+                    comentario: Atendimento excelente.
+
+  /api/avaliacoes/produtos/{pecaId}:
+    get:
+      tags: [Avaliacoes]
+      summary: Lista avaliacoes publicas de produto
+      description: Retorna avaliacoes verificadas e media da peca.
+      parameters:
+        - name: pecaId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Avaliacoes do produto.
+          content:
+            application/json:
+              example:
+                resumo:
+                  total: 1
+                  media: 5
+                avaliacoes:
+                  - id: 11
+                    nota: 5
+                    comentario: Peca chegou conforme anunciado.
+
+  /api/frete/calcular:
+    post:
+      tags: [Frete]
+      summary: Calcula opcoes de frete
+      description: Envia dimensoes e CEPs ao Melhor Envio e retorna opcoes normalizadas por preco.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              cep_origem: "01001000"
+              cep_destino: "80240140"
+              produtos:
+                - id: 45
+                  peso_gramas: 3200
+                  comprimento_mm: 280
+                  largura_mm: 220
+                  altura_mm: 180
+                  preco: 444
+                  quantidade: 1
+      responses:
+        "200":
+          description: Opcoes de frete calculadas.
+          content:
+            application/json:
+              example:
+                cep_destino: "80240140"
+                opcoes:
+                  - id: 1
+                    transportadora: Loggi
+                    tipo: Loggi Ponto
+                    valor: 18.46
+                    prazo_texto: Entrega em até 6 dias úteis
+
+  /api/frete/refresh:
+    post:
+      tags: [Frete]
+      summary: Renova token do Melhor Envio
+      description: Forca renovacao manual do token do Melhor Envio para uso interno ou debug.
+      responses:
+        "200":
+          description: Token renovado.
+          content:
+            application/json:
+              example:
+                message: Token renovado com sucesso.
+                expires_in: 2592000
+
+  /api/admin/me:
+    get:
+      tags: [Admin]
+      summary: Confirma administrador atual
+      description: Retorna o perfil administrativo validado pelo middleware `verifyAdmin`.
+      responses:
+        "200":
+          description: Administrador atual.
+          content:
+            application/json:
+              example:
+                admin:
+                  id: 1
+                  email: admin@bigpecas.com
+                  is_admin: true
+
+  /api/admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Retorna indicadores administrativos
+      description: Conta usuarios, administradores, pecas, pedidos pendentes e avaliacoes.
+      responses:
+        "200":
+          description: Dashboard administrativo.
+          content:
+            application/json:
+              example:
+                usuarios: 25
+                administradores: 2
+                pecas: 140
+                pedidos: 38
+                pedidos_pendentes: 6
+                avaliacoes: 18
+
+  /api/admin/preferencias:
+    get:
+      tags: [Admin]
+      summary: Carrega preferencias do painel
+      description: Retorna configuracao de widgets salva para o administrador.
+      responses:
+        "200":
+          description: Preferencias carregadas.
+          content:
+            application/json:
+              example:
+                config:
+                  widgets: [usuarios, pecas, pedidos, pedidos_pendentes, avaliacoes]
+                updated_at: "2026-08-24T12:00:00.000Z"
+    put:
+      tags: [Admin]
+      summary: Atualiza preferencias do painel
+      description: Salva ordem e visibilidade dos widgets administrativos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              widgets: [usuarios, administradores, pecas, pedidos]
+      responses:
+        "200":
+          description: Preferencias salvas.
+          content:
+            application/json:
+              example:
+                message: Painel personalizado com sucesso.
+                config:
+                  widgets: [usuarios, administradores, pecas, pedidos]
+
+  /api/admin/usuarios:
+    get:
+      tags: [Admin]
+      summary: Lista usuarios para administracao
+      description: Lista usuarios com paginacao, busca textual e filtro de administradores.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: search
+          in: query
+          schema: { type: string }
+          example: francisco
+        - name: is_admin
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminList"
+
+  /api/admin/usuarios/{id}/admin:
+    patch:
+      tags: [Admin]
+      summary: Promove ou remove administrador
+      description: Atualiza `is_admin` do usuario, impedindo remover o ultimo administrador.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              is_admin: true
+      responses:
+        "200":
+          description: Permissao atualizada.
+          content:
+            application/json:
+              example:
+                message: Permissao administrativa atualizada.
+                usuario:
+                  id: 12
+                  email: francisco.martins@example.com
+                  is_admin: true
+
+  /api/admin/pecas:
+    get:
+      tags: [Admin]
+      summary: Lista pecas para moderacao
+      description: Lista pecas com paginacao e busca por nome, SKU ou OEM.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminList"
+
+  /api/admin/pecas/{id}:
+    delete:
+      tags: [Admin]
+      summary: Remove peca como administrador
+      description: Permite moderacao e remocao administrativa de uma peca.
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Peca removida.
+          content:
+            application/json:
+              example:
+                message: Peca removida pelo administrador.
+                peca:
+                  id: 45
+                  nome_peca: Carburador Solex H40
+
+  /api/admin/pedidos:
+    get:
+      tags: [Admin]
+      summary: Lista pedidos para administracao
+      description: Lista pedidos com paginacao e filtro opcional por status.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminList"
+
+  /api/admin/pedidos/{id}/status:
+    patch:
+      tags: [Admin]
+      summary: Corrige status de pedido como administrador
+      description: Atualiza status de pedido e registra no historico que a alteracao foi feita por administrador.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              status: cancelado
+      responses:
+        "200":
+          description: Status atualizado.
+          content:
+            application/json:
+              example:
+                message: Status atualizado pelo administrador.
+                pedido:
+                  id: "2026-123456"
+                  status: cancelado
+
+  /api/admin/avaliacoes/{tipo}:
+    get:
+      tags: [Admin]
+      summary: Lista avaliacoes para moderacao
+      description: Use `produtos` ou `fornecedores` como tipo.
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema: { type: string, enum: [produtos, fornecedores] }
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminList"
+
+  /api/admin/avaliacoes/{tipo}/{id}:
+    delete:
+      tags: [Admin]
+      summary: Remove avaliacao como administrador
+      description: Remove avaliacao de produto ou fornecedor.
+      parameters:
+        - name: tipo
+          in: path
+          required: true
+          schema: { type: string, enum: [produtos, fornecedores] }
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Avaliacao removida.
+          content:
+            application/json:
+              example:
+                message: Avaliacao removida pelo administrador.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 45
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+
+  responses:
+    BadRequest:
+      description: Requisicao invalida.
+      content:
+        application/json:
+          example:
+            error: Informe um email válido.
+    Unauthorized:
+      description: Token ausente ou invalido.
+      content:
+        application/json:
+          example:
+            error: Você precisa estar autenticado para realizar esta ação.
+    Forbidden:
+      description: Usuario sem permissao.
+      content:
+        application/json:
+          example:
+            error: Acesso administrativo negado.
+    NotFound:
+      description: Recurso nao encontrado.
+      content:
+        application/json:
+          example:
+            error: Registro não encontrado.
+    Conflict:
+      description: Conflito de regra de negocio.
+      content:
+        application/json:
+          example:
+            error: Este email já está cadastrado.
+    AdminList:
+      description: Lista administrativa paginada.
+      content:
+        application/json:
+          example:
+            data:
+              - id: 12
+                email: francisco.martins@example.com
+            pagination:
+              page: 1
+              limit: 20
+              total: 1
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [full_name, email, password]
+      properties:
+        full_name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        gender: { type: string }
+        cep: { type: string }
+        nome_loja: { type: string }
+        descricao_loja: { type: string }
+        telefone: { type: string }
+        receber_email_notificacao_venda: { type: boolean }
+
+    PecaInput:
+      type: object
+      required: [nome_peca, categoria_id, material_id, preco]
+      properties:
+        nome_peca: { type: string }
+        sku: { type: string }
+        oem_number: { type: string }
+        num_serie: { type: string }
+        categoria_id: { type: integer }
+        material_id: { type: integer }
+        condicao: { type: string }
+        peso_gramas: { type: integer }
+        comprimento_mm: { type: integer }
+        largura_mm: { type: integer }
+        altura_mm: { type: integer }
+        detalhes_gravacao: { type: string }
+        historico_proveniencia: { type: string }
+        preco: { type: number }
+        estoque_atual: { type: integer }
+        imagem: { type: string }
+
+    Peca:
+      allOf:
+        - $ref: "#/components/schemas/PecaInput"
+        - type: object
+          properties:
+            id: { type: integer }
+            fornecedor_id: { type: integer }
+            data_cadastro: { type: string, format: date-time }
+
+    OrderStatus:
+      type: string
+      enum:
+        - aguardando_pagamento
+        - pago
+        - enviado
+        - entregue
+        - cancelado
+
+    PedidoCreateRequest:
+      type: object
+      required: [itens, endereco, forma_pagamento]
+      properties:
+        itens:
+          type: array
+          items:
+            type: object
+            required: [id, quantidade]
+            properties:
+              id: { type: integer }
+              quantidade: { type: integer }
+        frete:
+          type: object
+        cupom:
+          nullable: true
+        endereco:
+          type: object
+          required: [nome, cep, logradouro, numero, bairro, cidade, uf, telefone]
+          properties:
+            nome: { type: string }
+            cep: { type: string }
+            logradouro: { type: string }
+            numero: { type: string }
+            complemento: { type: string }
+            bairro: { type: string }
+            cidade: { type: string }
+            uf: { type: string }
+            telefone: { type: string }
+        forma_pagamento:
+          type: object
