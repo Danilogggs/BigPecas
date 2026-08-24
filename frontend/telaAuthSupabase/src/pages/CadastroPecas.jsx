@@ -18,6 +18,7 @@ import {
   SPACING,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const INITIAL_FORM = {
   nome_peca: '',
@@ -105,10 +106,11 @@ function FieldError({ message }) {
 }
 
 function FormGroup({ label, required, error, children, style }) {
+  const { t } = useLanguage();
   return (
     <div style={style}>
       <label style={labelStyle}>
-        {label}{required ? ' *' : ''}
+        {t(label)}{required ? ' *' : ''}
       </label>
       {children}
       <FieldError message={error} />
@@ -117,6 +119,7 @@ function FormGroup({ label, required, error, children, style }) {
 }
 
 function InfoModal({ open, title, text, onClose }) {
+  const { t } = useLanguage();
   if (!open) return null;
 
   return (
@@ -186,7 +189,7 @@ function InfoModal({ open, title, text, onClose }) {
               onClick={onClose}
               style={BUTTON_PRIMARY_STYLE}
             >
-              Entendi
+              {t('gotIt')}
             </button>
           </div>
         </div>
@@ -197,6 +200,7 @@ function InfoModal({ open, title, text, onClose }) {
 
 export default function CadastroPecas() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const imageInputRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
@@ -233,7 +237,7 @@ export default function CadastroPecas() {
       });
     } catch (error) {
       setProfileError(
-        parseUnexpectedError(error, 'Não foi possível verificar os dados da sua loja agora.')
+        parseUnexpectedError(error, t('storeCheckFailed'))
       );
     } finally {
       setLoadingProfile(false);
@@ -259,7 +263,7 @@ export default function CadastroPecas() {
       } catch (error) {
         setMessage({
           type: 'error',
-          text: parseUnexpectedError(error, 'Não foi possível carregar categorias e materiais agora.'),
+          text: parseUnexpectedError(error, t('optionsLoadFailed')),
         });
       } finally {
         setLoadingOptions(false);
@@ -283,15 +287,15 @@ export default function CadastroPecas() {
     const newErrors = {};
 
     if (!storeForm.nome_loja.trim()) {
-      newErrors.nome_loja = 'Informe o nome da loja.';
+      newErrors.nome_loja = t('storeNameRequired');
     } else if (!REGEX.loja.test(storeForm.nome_loja.trim())) {
-      newErrors.nome_loja = 'Use pelo menos 3 caracteres válidos no nome da loja.';
+      newErrors.nome_loja = t('storeNameInvalid');
     }
 
     if (!storeForm.descricao_loja.trim()) {
-      newErrors.descricao_loja = 'Informe a descrição da loja.';
+      newErrors.descricao_loja = t('storeDescriptionRequired');
     } else if (storeForm.descricao_loja.trim().length < 10) {
-      newErrors.descricao_loja = 'Descreva sua loja usando pelo menos 10 caracteres.';
+      newErrors.descricao_loja = t('storeDescriptionInvalid');
     }
 
     setStoreErrors(newErrors);
@@ -330,12 +334,12 @@ export default function CadastroPecas() {
       setStoreErrors({});
       setMessage({
         type: 'success',
-        text: 'Loja configurada com sucesso. Agora você já pode anunciar sua peça.',
+        text: t('storeConfigured'),
       });
     } catch (error) {
       setMessage({
         type: 'error',
-        text: parseUnexpectedError(error, 'Não foi possível salvar os dados da loja agora.'),
+        text: parseUnexpectedError(error, t('storeSaveFailed')),
       });
     } finally {
       setSavingStore(false);
@@ -377,7 +381,7 @@ export default function CadastroPecas() {
     if (!tiposPermitidos.includes(file.type)) {
       setMessage({
         type: 'error',
-        text: 'Selecione uma imagem nos formatos JPG, PNG ou WEBP.',
+        text: t('Selecione uma imagem nos formatos JPG, PNG ou WEBP.'),
       });
 
       setFormData((prev) => ({ ...prev, imagem: '' }));
@@ -396,7 +400,7 @@ export default function CadastroPecas() {
     if (file.size > tamanhoMaximoBytes) {
       setMessage({
         type: 'error',
-        text: `A imagem deve ter no máximo ${tamanhoMaximoMB}MB.`,
+        text: t('A imagem deve ter no máximo {value}MB.', { value: tamanhoMaximoMB }),
       });
 
       setFormData((prev) => ({ ...prev, imagem: '' }));
@@ -633,14 +637,14 @@ export default function CadastroPecas() {
         <div className="page-header">
           <div className="page-breadcrumb">
             <button type="button" onClick={() => navigate('/')}>
-              Início
+              {t('home')}
             </button>
             <span>›</span>
             <button type="button" onClick={() => navigate('/buscaPecas')}>
-              Catálogo
+              {t('catalog')}
             </button>
             <span>›</span>
-            <span className="current">Cadastrar peça</span>
+            <span className="current">{t('registerPart')}</span>
           </div>
 
           <div
@@ -663,14 +667,14 @@ export default function CadastroPecas() {
                   fontSize: '0.72rem',
                 }}
               >
-                Catálogo BigPeças
+                {t('bigPecasCatalog')}
               </p>
 
-              <h1 className="page-title">Cadastrar Peça</h1>
+              <h1 className="page-title">{t('registerPartTitle')}</h1>
               <p className="page-subtitle">
                 {storeConfigured
                   ? `Anuncie uma peça pela loja ${profile.nome_loja}.`
-                  : 'Configure sua loja uma única vez para começar a vender.'}
+                  : t('configureStoreToSell')}
               </p>
             </div>
 
@@ -679,7 +683,7 @@ export default function CadastroPecas() {
               onClick={() => navigate('/editar-pecas')}
               style={BUTTON_SECONDARY_STYLE}
             >
-              Minhas peças
+              {t('yourParts')}
             </button>
           </div>
         </div>
@@ -705,7 +709,7 @@ export default function CadastroPecas() {
         {loadingProfile && (
           <section style={{ ...CARD_STYLE, padding: SPACING.XL, textAlign: 'center' }}>
             <p style={{ margin: 0, color: COLORS.MUTED_TEXT, fontWeight: 700 }}>
-              Verificando os dados da sua loja...
+              {t('checkingStore')}
             </p>
           </section>
         )}
@@ -713,11 +717,11 @@ export default function CadastroPecas() {
         {!loadingProfile && profileError && (
           <section style={{ ...CARD_STYLE, padding: SPACING.XL, textAlign: 'center' }}>
             <h2 style={{ margin: 0, color: COLORS.DARK_TEXT, fontFamily: 'Georgia, serif' }}>
-              Não foi possível verificar sua loja
+              {t('storeCheckFailedTitle')}
             </h2>
             <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>{profileError}</p>
             <button type="button" onClick={carregarPerfil} style={BUTTON_PRIMARY_STYLE}>
-              Tentar novamente
+              {t('tryAgain')}
             </button>
           </section>
         )}
@@ -739,7 +743,7 @@ export default function CadastroPecas() {
                   letterSpacing: '0.06em',
                 }}
               >
-                Primeira venda
+                {t('firstSale')}
               </div>
 
               <h2
@@ -750,7 +754,7 @@ export default function CadastroPecas() {
                   fontFamily: 'Georgia, serif',
                 }}
               >
-                Antes de anunciar, conte sobre sua loja
+                {t('tellUsAboutStore')}
               </h2>
               <p
                 style={{
@@ -759,16 +763,15 @@ export default function CadastroPecas() {
                   lineHeight: 1.6,
                 }}
               >
-                Estes dados serão exibidos aos compradores e só precisam ser preenchidos uma vez.
-                Depois você poderá alterá-los no seu perfil.
+                {t('storeDataDescription')}
               </p>
 
               <div style={{ display: 'grid', gap: SPACING.LG }}>
-                <FormGroup label="Nome da loja" required error={storeErrors.nome_loja}>
+                <FormGroup label={t('Nome da loja')} required error={storeErrors.nome_loja}>
                   <input
                     type="text"
                     name="nome_loja"
-                    placeholder="Ex: Auto Peças Garabetti"
+                    placeholder={t('storeNamePlaceholder')}
                     value={storeForm.nome_loja}
                     onChange={handleStoreChange}
                     maxLength={150}
@@ -777,13 +780,13 @@ export default function CadastroPecas() {
                 </FormGroup>
 
                 <FormGroup
-                  label="Descrição da loja"
+                  label={t('Descrição da loja')}
                   required
                   error={storeErrors.descricao_loja}
                 >
                   <textarea
                     name="descricao_loja"
-                    placeholder="Ex: Loja especializada em peças antigas e difíceis de encontrar"
+                    placeholder={t('storeDescriptionPlaceholder')}
                     value={storeForm.descricao_loja}
                     onChange={handleStoreChange}
                     maxLength={500}
@@ -808,7 +811,7 @@ export default function CadastroPecas() {
                     cursor: savingStore ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {savingStore ? 'Salvando loja...' : 'Salvar e continuar'}
+                  {savingStore ? t('savingStore') : t('saveContinue')}
                 </button>
               </div>
             </section>
@@ -833,7 +836,7 @@ export default function CadastroPecas() {
                   fontFamily: 'Georgia, serif',
                 }}
               >
-                Dados principais
+                {t('mainData')}
               </h2>
               <p
                 style={{
@@ -842,12 +845,12 @@ export default function CadastroPecas() {
                   fontSize: '0.9rem',
                 }}
               >
-                Identificação, categoria, material, preço e estoque da peça.
+                {t('mainDataDescription')}
               </p>
             </div>
 
             <div className="form-grid-2">
-              <FormGroup label="Nome da peça" required error={errors.nome_peca}>
+              <FormGroup label={t('Nome da peça')} required error={errors.nome_peca}>
                 <input
                   type="text"
                   name="nome_peca"
@@ -861,36 +864,36 @@ export default function CadastroPecas() {
                 <input
                   type="text"
                   name="sku"
-                  placeholder="Ex: OPALA-FRISO-001"
+                  placeholder={t('skuPlaceholder')}
                   value={formData.sku}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.sku)}
                 />
               </FormGroup>
 
-              <FormGroup label="Número OEM" required error={errors.oem_number}>
+              <FormGroup label={t('Número OEM')} required error={errors.oem_number}>
                 <input
                   type="text"
                   name="oem_number"
-                  placeholder="Ex: GM-12345"
+                  placeholder={t('oemPlaceholder')}
                   value={formData.oem_number}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.oem_number)}
                 />
               </FormGroup>
 
-              <FormGroup label="Número de série" required error={errors.num_serie}>
+              <FormGroup label={t('Número de série')} required error={errors.num_serie}>
                 <input
                   type="text"
                   name="num_serie"
-                  placeholder="Ex: SN-98765"
+                  placeholder={t('serialPlaceholder')}
                   value={formData.num_serie}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.num_serie)}
                 />
               </FormGroup>
 
-              <FormGroup label="Categoria" required error={errors.categoria_id}>
+              <FormGroup label={t('Categoria')} required error={errors.categoria_id}>
                 <select
                   name="categoria_id"
                   value={formData.categoria_id}
@@ -899,7 +902,7 @@ export default function CadastroPecas() {
                   style={getFieldStyle(errors.categoria_id)}
                 >
                   <option value="">
-                    {loadingOptions ? 'Carregando categorias...' : 'Selecione uma categoria'}
+                    {loadingOptions ? t('loadingCategories') : t('selectCategory')}
                   </option>
                   {categorias.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
@@ -909,7 +912,7 @@ export default function CadastroPecas() {
                 </select>
               </FormGroup>
 
-              <FormGroup label="Material" required error={errors.material_id}>
+              <FormGroup label={t('Material')} required error={errors.material_id}>
                 <select
                   name="material_id"
                   value={formData.material_id}
@@ -918,7 +921,7 @@ export default function CadastroPecas() {
                   style={getFieldStyle(errors.material_id)}
                 >
                   <option value="">
-                    {loadingOptions ? 'Carregando materiais...' : 'Selecione um material'}
+                    {loadingOptions ? t('loadingMaterials') : t('selectMaterial')}
                   </option>
                   {materiais.map((material) => (
                     <option key={material.id} value={material.id}>
@@ -928,7 +931,7 @@ export default function CadastroPecas() {
                 </select>
               </FormGroup>
 
-              <FormGroup label="Condição" required>
+              <FormGroup label={t('Condição')} required>
                 <select
                   name="condicao"
                   value={formData.condicao}
@@ -942,22 +945,22 @@ export default function CadastroPecas() {
                 </select>
               </FormGroup>
 
-              <FormGroup label="Preço" required error={errors.preco}>
+              <FormGroup label={t('Preço')} required error={errors.preco}>
                 <input
                   type="text"
                   name="preco"
-                  placeholder="Ex: 3490.00"
+                  placeholder={t('pricePlaceholder')}
                   value={formData.preco}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.preco)}
                 />
               </FormGroup>
 
-              <FormGroup label="Estoque atual" required error={errors.estoque_atual}>
+              <FormGroup label={t('Estoque atual')} required error={errors.estoque_atual}>
                 <input
                   type="text"
                   name="estoque_atual"
-                  placeholder="Ex: 3"
+                  placeholder={t('stockPlaceholder')}
                   value={formData.estoque_atual}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.estoque_atual)}
@@ -982,7 +985,7 @@ export default function CadastroPecas() {
                   fontFamily: 'Georgia, serif',
                 }}
               >
-                Imagem e especificações
+                {t('imageAndSpecs')}
               </h2>
               <p
                 style={{
@@ -991,11 +994,11 @@ export default function CadastroPecas() {
                   fontSize: '0.9rem',
                 }}
               >
-                Foto, dimensões, peso e informações técnicas da peça.
+                {t('imageSpecsDescription')}
               </p>
             </div>
 
-            <FormGroup label="Imagem da peça">
+            <FormGroup label={t('Imagem da peça')}>
               <input
                 ref={imageInputRef}
                 type="file"
@@ -1014,7 +1017,7 @@ export default function CadastroPecas() {
                   color: COLORS.MUTED_TEXT,
                 }}
               >
-                Formatos aceitos: JPG, PNG ou WEBP. Tamanho máximo: 2MB.
+                {t('acceptedImageFormats')}
               </p>
 
               {imagemPreview && (
@@ -1033,7 +1036,7 @@ export default function CadastroPecas() {
                 >
                   <img
                     src={imagemPreview}
-                    alt="Prévia da peça"
+                    alt={t('partPreview')}
                     style={{
                       width: 150,
                       height: 110,
@@ -1046,7 +1049,7 @@ export default function CadastroPecas() {
 
                   <div style={{ flex: 1, minWidth: 220 }}>
                     <p style={{ margin: 0, color: COLORS.DARK_TEXT, fontWeight: 800 }}>
-                      Prévia da imagem
+                      {t('imagePreview')}
                     </p>
                     <p
                       style={{
@@ -1055,7 +1058,7 @@ export default function CadastroPecas() {
                         fontSize: '0.86rem',
                       }}
                     >
-                      Essa imagem será salva junto com a peça.
+                      {t('imageSavedWithPart')}
                     </p>
 
                     <button
@@ -1072,7 +1075,7 @@ export default function CadastroPecas() {
                         fontWeight: 700,
                       }}
                     >
-                      Remover imagem
+                      {t('removeImage')}
                     </button>
                   </div>
                 </div>
@@ -1081,13 +1084,13 @@ export default function CadastroPecas() {
 
             <div style={{ height: SPACING.LG }} />
 
-            <FormGroup label="Dimensões em milímetros" required>
+            <FormGroup label={t('Dimensões em milímetros')} required>
               <div className="form-grid-3">
                 <div>
                   <input
                     type="number"
                     name="comprimento_mm"
-                    placeholder="Comprimento"
+                    placeholder={t('length')}
                     min="0"
                     step="1"
                     value={formData.comprimento_mm}
@@ -1101,7 +1104,7 @@ export default function CadastroPecas() {
                   <input
                     type="number"
                     name="largura_mm"
-                    placeholder="Largura"
+                    placeholder={t('width')}
                     min="0"
                     step="1"
                     value={formData.largura_mm}
@@ -1115,7 +1118,7 @@ export default function CadastroPecas() {
                   <input
                     type="number"
                     name="altura_mm"
-                    placeholder="Altura"
+                    placeholder={t('height')}
                     min="0"
                     step="1"
                     value={formData.altura_mm}
@@ -1129,11 +1132,11 @@ export default function CadastroPecas() {
 
             <div style={{ height: SPACING.LG }} />
 
-            <FormGroup label="Peso em gramas" required error={errors.peso_gramas}>
+            <FormGroup label={t('Peso em gramas')} required error={errors.peso_gramas}>
               <input
                 type="number"
                 name="peso_gramas"
-                placeholder="Ex: 5000"
+                placeholder={t('weightPlaceholder')}
                 min="0"
                 step="1"
                 value={formData.peso_gramas}
@@ -1159,7 +1162,7 @@ export default function CadastroPecas() {
                   fontFamily: 'Georgia, serif',
                 }}
               >
-                Descrição técnica
+                {t('technicalDescription')}
               </h2>
               <p
                 style={{
@@ -1168,25 +1171,25 @@ export default function CadastroPecas() {
                   fontSize: '0.9rem',
                 }}
               >
-                Detalhes que ajudam o comprador a validar a autenticidade da peça.
+                {t('technicalDescriptionHelp')}
               </p>
             </div>
 
             <div style={{ display: 'grid', gap: SPACING.LG }}>
-              <FormGroup label="Detalhes de gravação" required error={errors.detalhes_gravacao}>
+              <FormGroup label={t('Detalhes de gravação')} required error={errors.detalhes_gravacao}>
                 <textarea
                   name="detalhes_gravacao"
-                  placeholder="Ex: inscrições, códigos, numerações ou marcas de fabricação presentes na peça."
+                  placeholder={t('engravingPlaceholder')}
                   value={formData.detalhes_gravacao}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.detalhes_gravacao, textareaBaseStyle)}
                 />
               </FormGroup>
 
-              <FormGroup label="Histórico de procedência" required error={errors.historico_proveniencia}>
+              <FormGroup label={t('Histórico de procedência')} required error={errors.historico_proveniencia}>
                 <textarea
                   name="historico_proveniencia"
-                  placeholder="Ex: origem da peça, veículo de onde foi retirada, histórico de armazenamento ou restauração."
+                  placeholder={t('provenancePlaceholder')}
                   value={formData.historico_proveniencia}
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.historico_proveniencia, textareaBaseStyle)}
@@ -1214,7 +1217,7 @@ export default function CadastroPecas() {
               onClick={() => navigate('/buscaPecas')}
               style={BUTTON_SECONDARY_STYLE}
             >
-              Voltar ao catálogo
+              {t('backToCatalog')}
             </button>
 
             <button
@@ -1227,7 +1230,7 @@ export default function CadastroPecas() {
                 cursor: loading || loadingOptions ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? 'Cadastrando...' : loadingOptions ? 'Carregando opções...' : 'Cadastrar Peça'}
+              {loading ? t('registering') : loadingOptions ? t('loadingOptions') : t('registerPart')}
             </button>
           </div>
           </form>

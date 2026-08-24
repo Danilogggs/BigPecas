@@ -19,12 +19,14 @@ import {
   SHADOWS,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const MAX_PRICE_FILTER = 50000;
 const SLIDER_MAX = 2000;
 
 export default function BuscaPecas() {
   const [searchParams] = useSearchParams();
+  const { t } = useLanguage();
   const nomeUrl = searchParams.get('nome') || '';
   const categoriaUrl = searchParams.get('categoria_id') || '';
 
@@ -109,7 +111,7 @@ export default function BuscaPecas() {
       } catch { /* wish não é crítico */ }
     } catch (error) {
       if (!append) setPecas([]);
-      setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar as peças no momento.'));
+      setErrorMessage(parseUnexpectedError(error, t('loadError')));
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -164,14 +166,14 @@ export default function BuscaPecas() {
           novoSet.delete(pecaId);
           return novoSet;
         });
-        setFeedbackMessage('Peça removida da sua lista de desejos.');
+        setFeedbackMessage(t('removedWishlist'));
       } else {
         await adicionarPecaWish(peca.id);
         setWishIds((prev) => new Set(prev).add(pecaId));
-        setFeedbackMessage('Peça adicionada à sua lista de desejos.');
+        setFeedbackMessage(t('addedWishlist'));
       }
     } catch (error) {
-      setFeedbackMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua lista de desejos agora.'));
+      setFeedbackMessage(parseUnexpectedError(error, t('wishlistError')));
     } finally {
       setWishLoadingId(null);
     }
@@ -192,7 +194,7 @@ export default function BuscaPecas() {
 
   function buscarNomeCategoria(categoriaId) {
     const categoria = categorias.find((item) => String(item.id) === String(categoriaId));
-    return categoria?.nome || 'Categoria não informada';
+    return categoria?.nome || t('categoryUnknown');
   }
 
   const shouldShowEmptyState = !loading && !errorMessage && pecas.length === 0;
@@ -272,7 +274,7 @@ export default function BuscaPecas() {
           flexWrap: 'wrap',
         }}>
           <span style={{ fontWeight: 'bold', color: COLORS.DARK_TEXT, marginRight: SPACING.SM }}>
-            Ordenar por:
+            {t('sortBy')}
           </span>
 
           <button
@@ -284,7 +286,7 @@ export default function BuscaPecas() {
               padding: '8px 16px',
             }}
           >
-            Preço {sort === 'preco' ? (ordem === 'asc' ? '↑' : '↓') : ''}
+            {t('price')} {sort === 'preco' ? (ordem === 'asc' ? '↑' : '↓') : ''}
           </button>
 
           <button
@@ -296,7 +298,7 @@ export default function BuscaPecas() {
               padding: '8px 16px',
             }}
           >
-            Data de Cadastro {sort === 'data_cadastro' ? (ordem === 'asc' ? '↑' : '↓') : ''}
+            {t('registrationDate')} {sort === 'data_cadastro' ? (ordem === 'asc' ? '↑' : '↓') : ''}
           </button>
         </div>
 
@@ -310,7 +312,7 @@ export default function BuscaPecas() {
             onClick={() => setShowFilters(!showFilters)}
             style={BUTTON_PRIMARY_STYLE}
           >
-            {showFilters ? 'Esconder Filtros' : 'Mostrar Filtros'}
+            {showFilters ? t('hideFilters') : t('showFilters')}
           </button>
         </div>
 
@@ -330,7 +332,7 @@ export default function BuscaPecas() {
             }}>
 
               <div>
-                <label style={LABEL_STYLE}>Nome</label>
+                <label style={LABEL_STYLE}>{t('name')}</label>
                 <input
                   name="nome"
                   value={filters.nome}
@@ -340,7 +342,7 @@ export default function BuscaPecas() {
               </div>
 
               <div>
-                <label style={LABEL_STYLE}>Categoria</label>
+                <label style={LABEL_STYLE}>{t('category')}</label>
                 <select
                   name="categoria_id"
                   value={filters.categoria_id}
@@ -348,7 +350,7 @@ export default function BuscaPecas() {
                   disabled={loadingCategorias}
                   style={INPUT_STYLE}
                 >
-                  <option value="">{loadingCategorias ? 'Carregando...' : 'Todas'}</option>
+                  <option value="">{loadingCategorias ? t('loading') : t('all')}</option>
                   {categorias.map((c) => (
                     <option key={c.id} value={c.id}>{c.nome}</option>
                   ))}
@@ -356,14 +358,14 @@ export default function BuscaPecas() {
               </div>
 
               <div>
-                <label style={LABEL_STYLE}>Condição</label>
+                <label style={LABEL_STYLE}>{t('condition')}</label>
                 <select
                   name="condicao"
                   value={filters.condicao}
                   onChange={handleChange}
                   style={INPUT_STYLE}
                 >
-                  <option value="">Todas</option>
+                  <option value="">{t('all')}</option>
                   <option value="NOS">NOS</option>
                   <option value="EXCELENTE">Excelente</option>
                   <option value="BOM">Bom</option>
@@ -373,7 +375,7 @@ export default function BuscaPecas() {
 
 
               <div style={{ gridColumn: 'span 2', marginTop: SPACING.SM }}>
-  <label style={LABEL_STYLE}>Faixa de Preço</label>
+  <label style={LABEL_STYLE}>{t('priceRange')}</label>
 
   <div
     style={{
@@ -607,13 +609,13 @@ export default function BuscaPecas() {
 
         {loading && (
           <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.DARK_TEXT, fontWeight: 600 }}>
-            Carregando peças...
+            {t('loadingParts')}
           </div>
         )}
 
         {shouldShowEmptyState && (
           <div style={{ padding: `0 ${SPACING.XL}`, color: COLORS.MUTED_TEXT }}>
-            Nenhuma peça foi encontrada com os filtros informados.
+            {t('noParts')}
           </div>
         )}
 
@@ -628,7 +630,7 @@ export default function BuscaPecas() {
               key={item.id}
               to={`/pecas/${item.id}`}
               className="peca-card-link"
-              aria-label={`Ver detalhes de ${item.nome_peca || 'peca sem nome'}`}
+              aria-label={t('viewDetails', { name: item.nome_peca || t('partWithoutName') })}
             >
             <article
               className="peca-card"
@@ -660,7 +662,7 @@ export default function BuscaPecas() {
                   type="button"
                   onClick={(event) => handleWishClick(event, item)}
                   disabled={wishLoadingId === item.id}
-                  title={wishIds.has(String(item.id)) ? 'Remover da lista de desejos' : 'Adicionar à lista de desejos'}
+                  title={wishIds.has(String(item.id)) ? t('removedWishlist') : t('addedWishlist')}
                   style={{
                     position: 'absolute',
                     top: 12,
@@ -685,7 +687,7 @@ export default function BuscaPecas() {
                 {item.imagem ? (
                   <img
                     src={item.imagem}
-                    alt={item.nome_peca || 'Imagem da peça'}
+                    alt={item.nome_peca || t('partWithoutName')}
                     style={{
                       width: '100%',
                       height: '100%',
@@ -709,7 +711,7 @@ export default function BuscaPecas() {
                     }}
                   >
                     <span style={{ fontSize: '2rem', marginBottom: SPACING.SM }}>🔧</span>
-                    <span>Sem imagem</span>
+                    <span>{t('noImage')}</span>
                   </div>
                 )}
               </div>
@@ -724,7 +726,7 @@ export default function BuscaPecas() {
                       lineHeight: 1.3,
                     }}
                   >
-                    {item.nome_peca || 'Peça sem nome'}
+                    {item.nome_peca || t('partWithoutName')}
                   </h2>
 
                   <span
@@ -750,7 +752,7 @@ export default function BuscaPecas() {
                     fontSize: '0.9rem',
                   }}
                 >
-                  Categoria: {buscarNomeCategoria(item.categoria_id)}
+                  {t('category')}: {buscarNomeCategoria(item.categoria_id)}
                 </p>
 
                 {item.sku && (
@@ -761,7 +763,7 @@ export default function BuscaPecas() {
                       fontSize: '0.9rem',
                     }}
                   >
-                    SKU: {item.sku}
+                      {t('sku', { value: item.sku })}
                   </p>
                 )}
 
@@ -773,7 +775,7 @@ export default function BuscaPecas() {
                       fontSize: '0.9rem',
                     }}
                   >
-                    OEM: {item.oem_number}
+                      {t('oem', { value: item.oem_number })}
                   </p>
                 )}
 
@@ -808,7 +810,7 @@ export default function BuscaPecas() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    Estoque: {item.estoque_atual ?? 0}
+                    {t('stock', { value: item.estoque_atual ?? 0 })}
                   </span>
                 </div>
               </div>
@@ -821,7 +823,7 @@ export default function BuscaPecas() {
         {!loading && pecas.length > 0 && (
           <div style={{ padding: `0 ${SPACING.XL} ${SPACING.XL}`, textAlign: 'center' }}>
             <p style={{ fontSize: '0.82rem', color: COLORS.MUTED_TEXT, marginBottom: SPACING.MD }}>
-              Exibindo {pecas.length} de {totalPecas} peças
+              {t('showing', { shown: pecas.length, total: totalPecas })}
             </p>
             {hasMore && (
               <button
@@ -834,7 +836,7 @@ export default function BuscaPecas() {
                   padding: '12px 32px',
                 }}
               >
-                {loadingMore ? 'Carregando...' : 'Carregar mais peças'}
+                {loadingMore ? t('loading') : t('loadMore')}
               </button>
             )}
           </div>

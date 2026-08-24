@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import PrivateRoute from './routes/PrivateRoute';
 import PublicRoute from './routes/PublicRoute';
+import { useLanguage } from './contexts/LanguageContext';
 
 // Carregamento sob demanda — reduz bundle inicial ~60%
 const HomePage            = lazy(() => import('./pages/HomePage'));
@@ -25,11 +26,12 @@ const AdminPage           = lazy(() => import('./pages/AdminPage'));
 const SettingsPage        = lazy(() => import('./pages/SettingsPage'));
 
 function PageLoader() {
+  const { t } = useLanguage();
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDE4CC' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ width: 36, height: 36, border: '3px solid #CFC5A5', borderTopColor: '#152218', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto 12px' }} />
-        <p style={{ color: '#6B7D6E', fontSize: '.875rem' }}>Carregando…</p>
+        <p style={{ color: '#6B7D6E', fontSize: '.875rem' }}>{t('pageLoading')}</p>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

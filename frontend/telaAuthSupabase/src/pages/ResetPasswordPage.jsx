@@ -1,3 +1,4 @@
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -5,6 +6,7 @@ import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../compon
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
 import { getSupabaseClient } from '../services/supabase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const INITIAL_FORM = {
   password: '',
@@ -14,6 +16,7 @@ const INITIAL_FORM = {
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const { updatePassword } = useAuth();
+  const { t } = useLanguage();
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
@@ -131,7 +134,7 @@ export default function ResetPasswordPage() {
       setForm(INITIAL_FORM);
       navigate('/login?senhaRedefinida=1', { replace: true });
     } catch (err) {
-      setError(mapSupabaseAuthError(err, 'updatePassword'));
+      setError(t(mapSupabaseAuthError(err, 'updatePassword')));
     } finally {
       setLoading(false);
     }
@@ -153,6 +156,7 @@ export default function ResetPasswordPage() {
         padding: SPACING.XL,
       }}
     >
+      <LanguageSwitcher className="public-language-switcher" />
       <div
         style={{
           width: '100%',
@@ -180,24 +184,24 @@ export default function ResetPasswordPage() {
           </span>
 
           <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            Redefinir senha
+            {t('Redefinir senha')}
           </h1>
 
           <p style={{ marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
-            Cadastre uma nova senha para acessar sua conta novamente.
+            {t('Cadastre uma nova senha para acessar sua conta novamente.')}
           </p>
         </div>
 
         {checkingLink ? (
-          <p style={{ color: COLORS.MUTED_TEXT, margin: 0 }}>Validando link de recuperação...</p>
+          <p style={{ color: COLORS.MUTED_TEXT, margin: 0 }}>{t('Validando link de recuperação...')}</p>
         ) : (
           <form onSubmit={handleSubmit} noValidate>
             <div style={{ marginBottom: SPACING.LG }}>
-              <Field label="Nova senha" required>
+              <Field label={t('Nova senha')} required>
                 <Input
                   type="password"
                   name="password"
-                  placeholder="Digite sua nova senha"
+                  placeholder={t('Digite sua nova senha')}
                   value={form.password}
                   onChange={handleChange}
                   required
@@ -208,11 +212,11 @@ export default function ResetPasswordPage() {
             </div>
 
             <div style={{ marginBottom: SPACING.LG }}>
-              <Field label="Confirmar nova senha" required>
+              <Field label={t('Confirmar nova senha')} required>
                 <Input
                   type="password"
                   name="confirmPassword"
-                  placeholder="Confirme sua nova senha"
+                  placeholder={t('Confirme sua nova senha')}
                   value={form.confirmPassword}
                   onChange={handleChange}
                   required
@@ -243,7 +247,7 @@ export default function ResetPasswordPage() {
                 boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
               }}
             >
-              {loading ? 'Salvando...' : 'Salvar nova senha'}
+              {loading ? t('Salvando...') : t('Salvar nova senha')}
             </ButtonPrimary>
           </form>
         )}
@@ -257,7 +261,7 @@ export default function ResetPasswordPage() {
               textDecoration: 'none',
             }}
           >
-            Voltar para o login
+            {t('Voltar para o login')}
           </Link>
         </div>
       </div>

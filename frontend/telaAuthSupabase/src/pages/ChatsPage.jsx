@@ -16,14 +16,11 @@ import {
   SPACING,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
-function formatarData(valor) {
+function formatarData(valor, formatDate) {
   if (!valor) return '';
-
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return '';
-
-  return data.toLocaleString('pt-BR', {
+  return formatDate(valor, {
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',
@@ -38,6 +35,7 @@ function getNomeUsuario(usuario) {
 export default function ChatsPage() {
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
+  const { formatDate: formatLocalizedDate, t } = useLanguage();
 
   const [perfilAtual, setPerfilAtual] = useState(null);
   const [conversas, setConversas] = useState([]);
@@ -86,7 +84,7 @@ export default function ChatsPage() {
 
       setConversas(conversasComUsuarios);
     } catch (error) {
-      setErrorMessage(parseUnexpectedError(error, 'Nao foi possivel carregar seus chats agora.'));
+      setErrorMessage(parseUnexpectedError(error, t('chatsLoadFailed')));
     } finally {
       setLoading(false);
     }
@@ -171,21 +169,21 @@ export default function ChatsPage() {
                   margin: 0,
                 }}
               >
-                Chats ativos
+                {t('Chats ativos')}
               </h1>
               <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.6, margin: `${SPACING.SM} 0 0` }}>
-                Conversas iniciadas com vendedores e compradores.
+                {t('Conversas iniciadas com vendedores e compradores.')}
               </p>
             </div>
 
             <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_SECONDARY_STYLE}>
-              Ver pecas
+              {t('Ver pecas')}
             </button>
           </section>
 
           {loading && (
             <div style={{ color: COLORS.DARK_TEXT, fontWeight: 800 }}>
-              Carregando chats...
+              {t('Carregando chats...')}
             </div>
           )}
 
@@ -215,13 +213,13 @@ export default function ChatsPage() {
               }}
             >
               <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.1rem' }}>
-                Voce ainda nao tem chats ativos.
+                {t('Voce ainda nao tem chats ativos.')}
               </strong>
               <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.6, margin: `${SPACING.SM} 0 ${SPACING.LG}` }}>
-                Abra uma peca ou o perfil de um vendedor para iniciar uma conversa.
+                {t('Abra uma peca ou o perfil de um vendedor para iniciar uma conversa.')}
               </p>
               <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_PRIMARY_STYLE}>
-                Procurar pecas
+                {t('Procurar pecas')}
               </button>
             </section>
           )}
@@ -288,7 +286,7 @@ export default function ChatsPage() {
                           {nome}
                         </strong>
                         <span style={{ color: 'var(--bp-text-muted)', fontSize: '0.82rem', fontWeight: 800 }}>
-                          {formatarData(conversa.ultimaMensagem.created_at)}
+                          {formatarData(conversa.ultimaMensagem.created_at, formatLocalizedDate)}
                         </span>
                       </div>
 
@@ -301,7 +299,7 @@ export default function ChatsPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {enviadaPorMim ? 'Voce: ' : ''}
+                        {enviadaPorMim ? t('Voce: ') : ''}
                         {preview}
                       </div>
                     </button>
@@ -311,7 +309,7 @@ export default function ChatsPage() {
                       onClick={() => navigate(`/chat/${conversa.outroUsuarioId}`)}
                       style={BUTTON_PRIMARY_STYLE}
                     >
-                      Abrir
+                      {t('Abrir')}
                     </button>
                   </article>
                 );

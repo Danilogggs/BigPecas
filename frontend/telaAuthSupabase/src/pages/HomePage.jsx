@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useCart } from '../contexts/CartContext';
 import { listarPecas, listarCategorias } from '../services/pecasService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const CATEGORIA_ICONS = {
   Motor: '⚙️', Lataria: '🚗', Elétrica: '🔌', Interior: '🪑',
@@ -16,6 +17,7 @@ const formatBRL = (v) =>
 export default function HomePage() {
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
+  const { t } = useLanguage();
 
   const [pecas, setPecas]           = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -83,16 +85,15 @@ export default function HomePage() {
           {/* Conteúdo esquerdo */}
           <div className="bp-hero__content">
             <div className="bp-hero__tag">
-              <span>◆</span> Marketplace de peças raras
+              <span>◆</span> {t('marketplaceTag')}
             </div>
 
             <h1 className="bp-hero__title">
-              Encontre a peça certa<br />do seu <em style={{ fontStyle: 'italic', color: '#E0C882' }}>clássico</em>.
+              {t('heroTitle')}
             </h1>
 
             <p className="bp-hero__sub">
-              Catálogo segmentado, anúncios verificados e procedência confiável para
-              colecionadores, oficinas e restauradores.
+              {t('heroSubtitle')}
             </p>
 
             <form className="bp-hero__search" onSubmit={handleHeroSearch}>
@@ -100,18 +101,18 @@ export default function HomePage() {
                 type="text"
                 value={heroSearch}
                 onChange={(e) => setHeroSearch(e.target.value)}
-                placeholder="Ex.: carburador Solex, farol Opala, emblema…"
+                placeholder={t('homeSearchPlaceholder')}
               />
-              <button type="submit" aria-label="Explorar catálogo" title="Explorar catálogo">
+              <button type="submit" aria-label={t('exploreCatalog')} title={t('exploreCatalog')}>
                 <SearchIcon />
               </button>
             </form>
 
             <div className="bp-hero__trust">
               {[
-                'Anúncios verificados',
-                'Aprovação administrativa',
-                'Curadoria por nicho',
+                t('verifiedListings'),
+                t('adminApproval'),
+                t('nicheCuration'),
               ].map((t) => (
                 <span key={t} className="bp-hero__trust-item">
                   <span className="bp-hero__trust-dot" aria-hidden="true" /> {t}
@@ -131,7 +132,7 @@ export default function HomePage() {
               </div>
             ) : destaque ? (
               <div className="bp-hero__featured-card" onClick={() => navigate(`/pecas/${destaque.id}`)} style={{ cursor: 'pointer' }}>
-                <div className="bp-hero__featured-label">PEÇA EM DESTAQUE</div>
+                <div className="bp-hero__featured-label">{t('featuredPart')}</div>
                 <div className="bp-hero__featured-img">
                   {destaque.imagem
                     ? <img src={destaque.imagem} alt={destaque.nome_peca} />
@@ -147,15 +148,15 @@ export default function HomePage() {
                 )}
                 <div className="bp-hero__featured-footer">
                   <span className="bp-hero__featured-price">{formatBRL(destaque.preco)}</span>
-                  <span className="badge badge-verified">Verificado</span>
+                  <span className="badge badge-verified">{t('verified')}</span>
                 </div>
               </div>
             ) : (
               <div className="bp-hero__featured-card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: .5 }}><CarIcon /></div>
-                <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.875rem' }}>Sem peças cadastradas</p>
+                <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.875rem' }}>{t('noRegisteredParts')}</p>
                 <button className="btn btn-gold btn-sm" style={{ marginTop: '1rem' }} onClick={() => navigate('/cadastroPecas')}>
-                  Cadastrar peça
+                  {t('registerPart')}
                 </button>
               </div>
             )}
@@ -167,11 +168,11 @@ export default function HomePage() {
           <div className="container">
             <div className="bp-section__header">
               <div>
-                <h2 className="bp-section__title">Categorias</h2>
-                <p className="bp-section__sub">Explore por tipo de peça</p>
+                <h2 className="bp-section__title">{t('categories')}</h2>
+                <p className="bp-section__sub">{t('exploreByType')}</p>
               </div>
               <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas')}>
-                Ver todas →
+                {t('viewAll')}
               </button>
             </div>
 
@@ -200,11 +201,11 @@ export default function HomePage() {
           <div className="container">
             <div className="bp-section__header">
               <div>
-                <h2 className="bp-section__title">Em Destaque no Catálogo</h2>
-                <p className="bp-section__sub">Peças mais recentes</p>
+                <h2 className="bp-section__title">{t('featuredCatalog')}</h2>
+                <p className="bp-section__sub">{t('recentParts')}</p>
               </div>
               <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas?sort=data_cadastro&order=desc')}>
-                Ver todas →
+                {t('viewAll')}
               </button>
             </div>
 
@@ -224,9 +225,9 @@ export default function HomePage() {
                     ))
                   : (
                       <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--bp-text-muted)' }}>
-                        <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Nenhuma peça cadastrada ainda.</p>
+                        <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>{t('noPartsRegistered')}</p>
                         <button className="btn btn-primary" onClick={() => navigate('/cadastroPecas')}>
-                          Cadastrar primeira peça
+                          {t('registerFirstPart')}
                         </button>
                       </div>
                     )
@@ -241,11 +242,11 @@ export default function HomePage() {
             <div className="container">
               <div className="bp-section__header">
                 <div>
-                  <h2 className="bp-section__title">Adicionadas Recentemente</h2>
-                  <p className="bp-section__sub">Últimas peças inseridas no catálogo</p>
+                  <h2 className="bp-section__title">{t('recentlyAdded')}</h2>
+                  <p className="bp-section__sub">{t('latestParts')}</p>
                 </div>
                 <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas')}>
-                  Ver catálogo →
+                  {t('viewCatalog')}
                 </button>
               </div>
 
@@ -271,16 +272,16 @@ export default function HomePage() {
         {/* ── FILTROS RÁPIDOS ── */}
         <section className="bp-section--sm">
           <div className="container">
-            <h2 className="bp-section__title" style={{ marginBottom: '1rem' }}>Filtros rápidos</h2>
+            <h2 className="bp-section__title" style={{ marginBottom: '1rem' }}>{t('quickFilters')}</h2>
             <div className="flex flex-wrap gap-2">
               {[
-                { label: '🔥 Mais baratos',   url: '/buscaPecas?sort=preco&order=asc' },
-                { label: '💰 Mais caros',      url: '/buscaPecas?sort=preco&order=desc' },
-                { label: '🚀 Mais recentes',   url: '/buscaPecas?sort=data_cadastro&order=desc' },
-                { label: '✨ Condição NOS',     url: '/buscaPecas?condicao=NOS' },
-                { label: '🛠️ Restauradas',      url: '/buscaPecas?condicao=Restaurada' },
-                { label: '💵 Até R$ 500',       url: '/buscaPecas?max_preco=500' },
-                { label: '💎 Acima R$ 5.000',   url: '/buscaPecas?min_preco=5000' },
+                { label: t('cheapest'), url: '/buscaPecas?sort=preco&order=asc' },
+                { label: t('mostExpensive'), url: '/buscaPecas?sort=preco&order=desc' },
+                { label: t('mostRecent'), url: '/buscaPecas?sort=data_cadastro&order=desc' },
+                { label: t('nosCondition'), url: '/buscaPecas?condicao=NOS' },
+                { label: t('restoredCondition'), url: '/buscaPecas?condicao=Restaurada' },
+                { label: t('under500'), url: '/buscaPecas?max_preco=500' },
+                { label: t('over5000'), url: '/buscaPecas?min_preco=5000' },
               ].map(({ label, url }) => (
                 <button key={label} className="btn btn-ghost btn-sm" onClick={() => navigate(url)}>
                   {label}
@@ -299,10 +300,10 @@ export default function HomePage() {
               gap: '1.25rem',
             }}>
               {[
-                { value: loading ? '...' : stats.total,       label: 'Peças no catálogo',   icon: '🔩' },
-                { value: loading ? '...' : stats.categorias,  label: 'Categorias',          icon: '📂' },
-                { value: 'Histórico',                          label: 'Pedidos rastreáveis', icon: '📦' },
-                { value: 'Direto',                             label: 'Contato com vendedor', icon: '💬' },
+                { value: loading ? '...' : stats.total, label: t('partsInCatalog'), icon: '🔩' },
+                { value: loading ? '...' : stats.categorias, label: t('categories'), icon: '📂' },
+                { value: t('history'), label: t('trackableOrders'), icon: '📦' },
+                { value: t('direct'), label: t('sellerContact'), icon: '💬' },
               ].map(({ value, label, icon }) => (
                 <div key={label} className="card card-pad" style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '1.75rem', marginBottom: '.5rem' }}>{icon}</div>
@@ -330,20 +331,19 @@ export default function HomePage() {
               }} />
               <div style={{ position: 'relative', zIndex: 2 }}>
                 <p className="label-sm" style={{ color: 'var(--bp-gold)', marginBottom: '.75rem' }}>
-                  ÁREA DO VENDEDOR
+                  {t('sellerArea')}
                 </p>
                 <h2 style={{
                   fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.4rem,3vw,2rem)',
                   color: '#fff', margin: '0 0 .75rem',
                 }}>
-                  Tem peças para vender?
+                  {t('havePartsToSell')}
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,.75)', marginBottom: '1.75rem', maxWidth: 480, margin: '0 auto 1.75rem' }}>
-                  Cadastre suas peças automotivas com fotos, especificações e procedência.
-                  Cada anúncio passa por aprovação administrativa.
+                  {t('sellerCtaDescription')}
                 </p>
                 <button className="btn btn-gold btn-lg" onClick={() => navigate('/cadastroPecas')}>
-                  Cadastrar peça agora →
+                  {t('registerPartNow')}
                 </button>
               </div>
             </div>
@@ -360,6 +360,7 @@ export default function HomePage() {
 /* ── Sub-componentes ── */
 
 function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
+  const { t } = useLanguage();
   const semEstoque = Number(peca.estoque_atual) === 0;
 
   return (
@@ -379,7 +380,7 @@ function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
             position: 'absolute', inset: 0, background: 'rgba(0,0,0,.5)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span className="badge badge-error">Sem estoque</span>
+            <span className="badge badge-error">{t('outOfStock')}</span>
           </div>
         )}
       </div>
@@ -397,13 +398,13 @@ function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
           <span
             className={`badge ${semEstoque ? 'badge-error' : 'badge-verified'}`}
           >
-            {semEstoque ? 'Indisponível' : `${peca.estoque_atual} un.`}
+            {semEstoque ? t('unavailable') : t('units', { value: peca.estoque_atual })}
           </span>
         </div>
 
         <div className="flex gap-2" style={{ marginTop: '.75rem' }}>
           <button className="btn btn-outline btn-sm flex-1" onClick={onDetail}>
-            Ver detalhe
+            {t('viewDetail')}
           </button>
           <button
             className={`btn btn-sm flex-1 ${added ? '' : 'btn-primary'}`}
@@ -411,7 +412,7 @@ function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
             onClick={onAdd}
             disabled={semEstoque || added}
           >
-            {added ? 'Adicionado' : inCart ? 'No carrinho' : '+ Carrinho'}
+            {added ? t('added') : inCart ? t('inCart') : `+ ${t('cart')}`}
           </button>
         </div>
       </div>

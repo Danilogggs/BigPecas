@@ -12,6 +12,7 @@ import { useFormValidation } from '../hooks/useFormValidation';
 import { useImageUpload } from '../hooks/useImageUpload';
 import PecasList from '../components/PecasList';
 import FormEdicaoPeca from '../components/FormEdicaoPeca';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const INITIAL_FORM = {
   nome_peca: '',
@@ -380,6 +381,7 @@ const pageStyles = `
 
 export default function EditarPecas() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [savingPeca, setSavingPeca] = useState(false);
@@ -421,7 +423,7 @@ export default function EditarPecas() {
       } catch (error) {
         setMessage({
           type: 'error',
-          text: error?.message || 'Não foi possível carregar suas peças e opções.',
+          text: error?.message || t('editPartsLoadFailed'),
         });
       } finally {
         setLoading(false);
@@ -502,7 +504,7 @@ export default function EditarPecas() {
       } catch (error) {
         setMessage({
           type: 'error',
-          text: error?.message || 'Não foi possível carregar a peça selecionada.',
+          text: error?.message || t('selectedPartLoadFailed'),
         });
         setSelectedPecaId(null);
       }
@@ -540,7 +542,7 @@ export default function EditarPecas() {
       if (!validate(formData)) {
         setMessage({
           type: 'error',
-          text: 'Corrija os campos destacados antes de salvar.',
+          text: t('fixHighlightedFields'),
         });
         return;
       }
@@ -581,7 +583,7 @@ export default function EditarPecas() {
 
         setMessage({
           type: 'success',
-          text: response.message || 'Peça atualizada com sucesso!',
+          text: response.message || t('partUpdated'),
         });
 
         setPecas((prevPecas) =>
@@ -592,7 +594,7 @@ export default function EditarPecas() {
       } catch (error) {
         setMessage({
           type: 'error',
-          text: error?.message || 'Não foi possível atualizar a peça.',
+          text: error?.message || t('partUpdateFailed'),
         });
       } finally {
         setSavingPeca(false);
@@ -623,7 +625,7 @@ export default function EditarPecas() {
           }}
         >
           <span style={{ color: '#152218', fontWeight: 800 }}>
-            Carregando suas peças...
+            {t('loadingYourParts')}
           </span>
         </div>
       </>
@@ -640,12 +642,12 @@ export default function EditarPecas() {
         <main className="editar-pecas-main">
           <div className="editar-pecas-header">
             <div>
-              <p className="editar-pecas-kicker">Área do vendedor</p>
-              <h1>Editar minhas peças</h1>
-              <p className="editar-pecas-subtitle">Selecione uma peça cadastrada para revisar informações, estoque, preço e imagem.</p>
+              <p className="editar-pecas-kicker">{t('Área do vendedor')}</p>
+              <h1>{t('Editar minhas peças')}</h1>
+              <p className="editar-pecas-subtitle">{t('Selecione uma peça cadastrada para revisar informações, estoque, preço e imagem.')}</p>
             </div>
             <button type="button" onClick={() => navigate('/cadastroPecas')}>
-              + Cadastrar nova peça
+              {t('registerNewPart')}
             </button>
           </div>
 
@@ -680,10 +682,10 @@ export default function EditarPecas() {
               <div className="editar-form-empty">
                 <div>
                   <div className="editar-form-empty-text">
-                    Selecione uma peça para editar
+                    {t('selectPartToEdit')}
                   </div>
                   <div className="editar-form-empty-subtext">
-                    Clique em qualquer peça na lista à esquerda para começar
+                    {t('clickPartToStart')}
                   </div>
                 </div>
               </div>

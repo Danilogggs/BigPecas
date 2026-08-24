@@ -18,14 +18,11 @@ import {
   SPACING,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
-function formatarHorario(valor) {
+function formatarHorario(valor, formatDate) {
   if (!valor) return '';
-
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return '';
-
-  return data.toLocaleString('pt-BR', {
+  return formatDate(valor, {
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',
@@ -37,6 +34,7 @@ export default function ChatPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
+  const { formatDate, t } = useLanguage();
   const fimConversaRef = useRef(null);
 
   const [destinatario, setDestinatario] = useState(null);
@@ -92,7 +90,7 @@ export default function ChatPage() {
 
         setMensagens([]);
       } catch (error) {
-        setErrorMessage(parseUnexpectedError(error, 'Nao foi possivel abrir esta conversa.'));
+        setErrorMessage(parseUnexpectedError(error, t('chatOpenFailed')));
       } finally {
         setLoading(false);
       }
@@ -149,7 +147,7 @@ export default function ChatPage() {
       });
       setTexto('');
     } catch (error) {
-      setErrorMessage(parseUnexpectedError(error, 'Nao foi possivel enviar sua mensagem agora.'));
+      setErrorMessage(parseUnexpectedError(error, t('messageSendFailed')));
     } finally {
       setEnviando(false);
     }
@@ -318,23 +316,23 @@ export default function ChatPage() {
             <div style={{ width: '100%' }}>
               <div className="chat-header-actions">
                 <button type="button" onClick={() => navigate(-1)} style={BUTTON_SECONDARY_STYLE}>
-                  Voltar
+                  {t('Voltar')}
                 </button>
 
                 {!conversaComigoMesmo && (
                   <button type="button" onClick={() => navigate(`/vendedores/${id}`)} style={BUTTON_SECONDARY_STYLE}>
-                    Ver vendedor
+                    {t('Ver vendedor')}
                   </button>
                 )}
               </div>
 
-              <h1 className="chat-title">{loading ? 'Carregando conversa...' : `Chat com ${nomeDestinatario}`}</h1>
+              <h1 className="chat-title">{loading ? t('Carregando conversa...') : `${t('Chat com')} ${nomeDestinatario}`}</h1>
             </div>
           </div>
 
           {conversaComigoMesmo ? (
             <div style={{ padding: SPACING.XL, color: COLORS.BORDEAUX, fontWeight: 800 }}>
-              Voce nao pode abrir um chat com seu proprio usuario.
+              {t('Voce nao pode abrir um chat com seu proprio usuario.')}
             </div>
           ) : (
             <>
@@ -354,11 +352,11 @@ export default function ChatPage() {
               )}
 
               <div className="chat-messages">
-                {loading && <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>Carregando mensagens...</div>}
+                {loading && <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>{t('Carregando mensagens...')}</div>}
 
                 {!loading && mensagens.length === 0 && (
                   <div style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
-                    Ainda nao ha mensagens. Envie a primeira pergunta sobre uma peca.
+                    {t('Ainda nao ha mensagens. Envie a primeira pergunta sobre uma peca.')}
                   </div>
                 )}
 
@@ -390,7 +388,7 @@ export default function ChatPage() {
                           fontWeight: 700,
                         }}
                       >
-                        {formatarHorario(mensagem.created_at)}
+                        {formatarHorario(mensagem.created_at, formatDate)}
                       </div>
                     </div>
                   );
@@ -406,7 +404,7 @@ export default function ChatPage() {
                 <textarea
                   value={texto}
                   onChange={(event) => setTexto(event.target.value)}
-                  placeholder="Escreva sua mensagem..."
+                  placeholder={t('Escreva sua mensagem...')}
                   rows={2}
                   disabled={loading || enviando}
                   style={{
@@ -427,7 +425,7 @@ export default function ChatPage() {
                     cursor: loading || enviando || !texto.trim() ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {enviando ? 'Enviando...' : 'Enviar'}
+                  {enviando ? t('Enviando...') : t('Enviar')}
                 </button>
               </form>
             </>

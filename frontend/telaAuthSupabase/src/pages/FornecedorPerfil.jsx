@@ -12,6 +12,7 @@ import {
   SPACING,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function formatarPreco(valor) {
   const numero = Number(valor);
@@ -55,6 +56,7 @@ function InfoCard({ label, value }) {
 }
 
 function PecaCard({ peca, onClick }) {
+  const { t } = useLanguage();
   return (
     <button
       type="button"
@@ -71,7 +73,7 @@ function PecaCard({ peca, onClick }) {
       {peca.imagem ? (
         <img
           src={peca.imagem}
-          alt={peca.nome_peca || 'Imagem da peça'}
+          alt={peca.nome_peca || t('partImage')}
           style={{
             width: '100%',
             height: 140,
@@ -96,12 +98,12 @@ function PecaCard({ peca, onClick }) {
             textAlign: 'center',
           }}
         >
-          Sem imagem
+          {t('Sem imagem')}
         </div>
       )}
 
       <strong style={{ color: COLORS.DARK_TEXT, display: 'block', marginBottom: 6 }}>
-        {peca.nome_peca || 'Peça sem nome'}
+        {peca.nome_peca || t('Peça sem nome')}
       </strong>
 
       <span style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
@@ -109,7 +111,7 @@ function PecaCard({ peca, onClick }) {
       </span>
 
       <div style={{ marginTop: 8, color: 'var(--bp-text-muted)', fontSize: '0.85rem', fontWeight: 700 }}>
-        Estoque: {peca.estoque_atual ?? 0}
+        {t('Estoque: {value}', { value: peca.estoque_atual ?? 0 })}
       </div>
     </button>
   );
@@ -118,6 +120,7 @@ function PecaCard({ peca, onClick }) {
 export default function FornecedorPerfil() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [fornecedor, setFornecedor] = useState(null);
   const [pecas, setPecas] = useState([]);
@@ -145,7 +148,7 @@ export default function FornecedorPerfil() {
         setPecas([]);
         setAvaliacoes([]);
         setResumoAvaliacoes({ total: 0, media: 0 });
-        setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar o perfil do vendedor.'));
+        setErrorMessage(parseUnexpectedError(error, t('sellerProfileLoadFailed')));
       } finally {
         setLoading(false);
       }
@@ -186,19 +189,19 @@ export default function FornecedorPerfil() {
         >
           <div style={{ display: 'flex', gap: SPACING.SM, flexWrap: 'wrap' }}>
             <button type="button" onClick={() => navigate(-1)} style={BUTTON_SECONDARY_STYLE}>
-              Voltar
+              {t('Voltar')}
             </button>
             <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_SECONDARY_STYLE}>
-              Ver catálogo
+              {t('Ver catálogo')}
             </button>
             <button type="button" onClick={() => navigate(`/chat/${id}`)} style={BUTTON_PRIMARY_STYLE}>
-              Abrir chat
+              {t('Abrir chat')}
             </button>
           </div>
 
           {loading && (
             <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
-              Carregando perfil do vendedor...
+              {t('Carregando perfil do vendedor...')}
             </div>
           )}
 
@@ -247,7 +250,7 @@ export default function FornecedorPerfil() {
                       marginBottom: SPACING.MD,
                     }}
                   >
-                    Vendedor recomendado
+                    {t('Vendedor recomendado')}
                   </span>
 
                   <h1
@@ -264,7 +267,7 @@ export default function FornecedorPerfil() {
 
                   <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.7, marginTop: SPACING.MD }}>
                     {fornecedor.descricao_loja ||
-                      'Este vendedor ainda não adicionou uma descrição pública para a loja.'}
+                      t('Este vendedor ainda não adicionou uma descrição pública para a loja.')}
                   </p>
 
                   <div style={{ display: 'flex', gap: SPACING.SM, flexWrap: 'wrap', marginTop: SPACING.LG }}>
@@ -289,9 +292,9 @@ export default function FornecedorPerfil() {
                     gap: SPACING.MD,
                   }}
                 >
-                  <InfoCard label="Peças cadastradas" value={fornecedor.total_pecas ?? 0} />
-                  <InfoCard label="Peças com estoque" value={fornecedor.pecas_com_estoque ?? 0} />
-                  <InfoCard label="Pontuação" value={`${fornecedor.score_recomendacao ?? 0} pts`} />
+                  <InfoCard label={t('Peças cadastradas')} value={fornecedor.total_pecas ?? 0} />
+                  <InfoCard label={t('Peças com estoque')} value={fornecedor.pecas_com_estoque ?? 0} />
+                  <InfoCard label={t('Pontuação')} value={`${fornecedor.score_recomendacao ?? 0} pts`} />
                 </div>
               </section>
 
@@ -311,16 +314,16 @@ export default function FornecedorPerfil() {
                     margin: `0 0 ${SPACING.SM}`,
                   }}
                 >
-                  Peças deste vendedor
+                  {t('Peças deste vendedor')}
                 </h2>
 
                 <p style={{ marginTop: 0, marginBottom: SPACING.LG, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
-                  Catálogo de peças cadastradas por este fornecedor no BigPeças.
+                  {t('Catálogo de peças cadastradas por este fornecedor no BigPeças.')}
                 </p>
 
                 {pecas.length === 0 ? (
                   <div style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
-                    Este vendedor ainda não possui peças cadastradas.
+                    {t('Este vendedor ainda não possui peças cadastradas.')}
                   </div>
                 ) : (
                   <div
@@ -351,7 +354,7 @@ export default function FornecedorPerfil() {
                 }}
               >
                 <h2 style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
-                  Avaliações do vendedor
+                  {t('Avaliações do vendedor')}
                 </h2>
                 {resumoAvaliacoes.total > 0 ? (
                   <>
@@ -374,7 +377,7 @@ export default function FornecedorPerfil() {
                               {'★'.repeat(avaliacao.nota)}{'☆'.repeat(5 - avaliacao.nota)}
                             </strong>
                             <span style={{ color: '#21734A', fontSize: '0.78rem', fontWeight: 800 }}>
-                              Compra verificada
+                              {t('Compra verificada')}
                             </span>
                           </div>
                           {avaliacao.comentario && (

@@ -1,9 +1,11 @@
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../components/StyledComponents';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, FLEX_CENTER, GRID_TWO_COLUMNS } from '../styles/theme';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const INITIAL_FORM = {
   full_name: '',
@@ -34,6 +36,7 @@ const REGEX = {
 export default function CadastroUsuario() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { t } = useLanguage();
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
@@ -182,7 +185,7 @@ export default function CadastroUsuario() {
       setMessage({ type: 'success', text: 'Conta criada. Verifique seu email para ativar o acesso.' });
       setTimeout(() => navigate('/login'), 3500);
     } catch (error) {
-      setMessage({ type: 'error', text: mapSupabaseAuthError(error, 'register') });
+      setMessage({ type: 'error', text: t(mapSupabaseAuthError(error, 'register')) });
     } finally {
       setLoading(false);
     }
@@ -203,6 +206,7 @@ export default function CadastroUsuario() {
 
   return (
     <div className="auth-layout">
+      <LanguageSwitcher className="auth-language-switcher" />
       {/* Painel esquerdo */}
       <div className="auth-panel-left">
         <div className="auth-panel-left__glow" />
@@ -218,7 +222,7 @@ export default function CadastroUsuario() {
             </span>
           </div>
           <h1 className="auth-panel-left__heading">
-            Faça parte da<br />comunidade clássica.
+            {t('joinClassicCommunity')}<br />{t('communitySubtitle')}
           </h1>
           <p className="auth-panel-left__sub">
             Anuncie peças com selo de verificação, acompanhe pedidos e acesse
@@ -249,8 +253,8 @@ export default function CadastroUsuario() {
         }}
       >
         <div style={{ marginBottom: '1.75rem' }}>
-          <p className="auth-form-tag">NOVA CONTA</p>
-          <h2 className="auth-form-title" style={{ marginBottom: 0 }}>Criar sua conta</h2>
+          <p className="auth-form-tag">{t('NOVA CONTA')}</p>
+          <h2 className="auth-form-title" style={{ marginBottom: 0 }}>{t('Criar sua conta')}</h2>
         </div>
 
         {message.text && (
@@ -268,11 +272,11 @@ export default function CadastroUsuario() {
 
         <form onSubmit={handleSubmit} noValidate>
           <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Nome completo" required>
+            <Field label={t('Nome completo')} required>
               <Input
                 type="text"
                 name="full_name"
-                placeholder="Ex: Maria Aparecida Silva"
+                placeholder={t('fullNamePlaceholder')}
                 value={form.full_name}
                 onChange={handleChange}
                 minLength={3}
@@ -292,7 +296,7 @@ export default function CadastroUsuario() {
                 marginBottom: SPACING.SM,
               }}
             >
-              Gênero
+              {t('Gênero')}
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACING.SM }}>
@@ -325,11 +329,11 @@ export default function CadastroUsuario() {
           </div>
 
           <div style={{ ...GRID_TWO_COLUMNS, marginBottom: SPACING.LG }}>
-            <Field label="Telefone" required>
+            <Field label={t('phone')} required>
               <Input
                 type="text"
                 name="telefone"
-                placeholder="(00) 00000-0000"
+                placeholder={t('phoneMaskPlaceholder')}
                 value={form.telefone}
                 onChange={handleTelefoneChange}
                 maxLength={15}
@@ -338,11 +342,11 @@ export default function CadastroUsuario() {
               {errors.telefone && <div style={fieldErrorStyle}>{errors.telefone}</div>}
             </Field>
 
-            <Field label="CEP" required>
+            <Field label={t('zipCode')} required>
               <Input
                 type="text"
                 name="cep"
-                placeholder="00000-000"
+                placeholder={t('zipPlaceholder')}
                 value={form.cep}
                 onChange={handleCepChange}
                 maxLength={9}
@@ -355,11 +359,11 @@ export default function CadastroUsuario() {
           <hr style={dividerStyle} />
 
           <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Email" required>
+            <Field label={t('email')} required>
               <Input
                 type="email"
                 name="email"
-                placeholder="seuemail@exemplo.com"
+                placeholder={t('emailPlaceholder')}
                 value={form.email}
                 onChange={handleChange}
                 required
@@ -369,11 +373,11 @@ export default function CadastroUsuario() {
           </div>
 
           <div style={{ ...GRID_TWO_COLUMNS, marginBottom: SPACING.XL }}>
-            <Field label="Senha" required>
+            <Field label={t('password')} required>
               <Input
                 type="password"
                 name="password"
-                placeholder="Mínimo de 8 caracteres"
+                placeholder={t('passwordMinPlaceholder')}
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -381,11 +385,11 @@ export default function CadastroUsuario() {
               {errors.password && <div style={fieldErrorStyle}>{errors.password}</div>}
             </Field>
 
-            <Field label="Confirmar senha" required>
+            <Field label={t('Confirmar senha')} required>
               <Input
                 type="password"
                 name="confirmPassword"
-                placeholder="Digite a senha novamente"
+                placeholder={t('confirmPasswordPlaceholder')}
                 value={form.confirmPassword}
                 onChange={handleChange}
                 required

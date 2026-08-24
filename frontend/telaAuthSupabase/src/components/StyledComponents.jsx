@@ -9,6 +9,7 @@ import {
   TEXTAREA_STYLE,
   COLORS,
 } from '../styles/theme';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // ===== BOTÃO PRIMÁRIO =====
 export function ButtonPrimary({ children, onClick, disabled = false, type = 'button', ...props }) {
@@ -57,11 +58,12 @@ export function Input({
   name,
   ...props
 }) {
+  const { t } = useLanguage();
   return (
     <input
       type={type}
       name={name}
-      placeholder={placeholder}
+      placeholder={placeholder ? t(placeholder) : placeholder}
       value={value}
       onChange={onChange}
       required={required}
@@ -96,10 +98,11 @@ export function TextArea({
   name,
   ...props
 }) {
+  const { t } = useLanguage();
   return (
     <textarea
       name={name}
-      placeholder={placeholder}
+      placeholder={placeholder ? t(placeholder) : placeholder}
       value={value}
       onChange={onChange}
       required={required}
@@ -111,9 +114,10 @@ export function TextArea({
 
 // ===== LABEL CUSTOMIZADO =====
 export function Label({ children, required = false }) {
+  const { t } = useLanguage();
   return (
     <label style={LABEL_STYLE}>
-      {children}
+      {typeof children === 'string' ? t(children) : children}
       {required && <span style={{ color: COLORS.BORDEAUX, marginLeft: '0.2rem' }}>*</span>}
     </label>
   );
@@ -131,9 +135,10 @@ export function AlertError({ children }) {
 
 // ===== FIELD (Wrapper Label + Input) =====
 export function Field({ label, required = false, children, ...props }) {
+  const { t } = useLanguage();
   return (
     <div {...props}>
-      <Label required={required}>{label}</Label>
+      <Label required={required}>{t(label)}</Label>
       {children}
     </div>
   );

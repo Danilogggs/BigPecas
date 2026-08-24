@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function useImageUpload() {
+  const { t } = useLanguage();
   const imageInputRef = useRef(null);
   const [imagemPreview, setImagemPreview] = useState('');
   const [imageError, setImageError] = useState('');
@@ -19,7 +21,7 @@ export function useImageUpload() {
     const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
 
     if (!tiposPermitidos.includes(file.type)) {
-      setImageError('Selecione uma imagem nos formatos JPG, PNG ou WEBP.');
+      setImageError(t('Selecione uma imagem nos formatos JPG, PNG ou WEBP.'));
       onImageChange('');
       setImagemPreview('');
 
@@ -34,7 +36,7 @@ export function useImageUpload() {
     const tamanhoMaximoBytes = tamanhoMaximoMB * 1024 * 1024;
 
     if (file.size > tamanhoMaximoBytes) {
-      setImageError(`A imagem deve ter no máximo ${tamanhoMaximoMB}MB.`);
+      setImageError(t('A imagem deve ter no máximo {value}MB.', { value: tamanhoMaximoMB }));
       onImageChange('');
       setImagemPreview('');
 
@@ -54,7 +56,7 @@ export function useImageUpload() {
     };
 
     reader.readAsDataURL(file);
-  }, []);
+  }, [t]);
 
   const removerImagem = useCallback((onImageChange) => {
     onImageChange('');

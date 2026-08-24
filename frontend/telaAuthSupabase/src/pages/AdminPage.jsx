@@ -3,21 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
 import { AUTH_API_URL } from '../services/apiConfig';
+import { useLanguage } from '../contexts/LanguageContext';
 import './AdminPage.css';
 
 const DEFAULT_WIDGETS = ['usuarios', 'pecas', 'pedidos', 'pedidos_pendentes', 'avaliacoes'];
 const WIDGETS = {
-  usuarios: { label: 'Usuários' },
-  administradores: { label: 'Administradores' },
-  pecas: { label: 'Peças' },
-  pedidos: { label: 'Pedidos' },
-  pedidos_pendentes: { label: 'Pendentes' },
-  avaliacoes: { label: 'Avaliações' },
+  usuarios: { label: 'adminUsers' },
+  administradores: { label: 'adminAdministrators' },
+  pecas: { label: 'adminParts' },
+  pedidos: { label: 'adminOrders' },
+  pedidos_pendentes: { label: 'adminPending' },
+  avaliacoes: { label: 'adminReviews' },
 };
 
 export default function AdminPage() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const { t } = useLanguage();
   const [state, setState] = useState({ loading: true, error: '', admin: null, dashboard: null });
   const [widgets, setWidgets] = useState(DEFAULT_WIDGETS);
   const [draftWidgets, setDraftWidgets] = useState(DEFAULT_WIDGETS);
@@ -32,7 +34,7 @@ export default function AdminPage() {
     async function verifyAdmin() {
       try {
         const token = await getToken();
-        if (!token) throw new Error('Sessão não encontrada. Entre novamente.');
+        if (!token) throw new Error(t('sessionRequired'));
 
         const headers = { Authorization: `Bearer ${token}` };
         const [meResponse, dashboardResponse, preferencesResponse] = await Promise.all([
@@ -42,10 +44,10 @@ export default function AdminPage() {
         ]);
 
         if (meResponse.status === 403) {
-          throw new Error('Sua conta não possui permissão de administrador.');
+          throw new Error(t('adminPermissionDenied'));
         }
         if (!meResponse.ok || !dashboardResponse.ok || !preferencesResponse.ok) {
-          throw new Error('Não foi possível acessar a área administrativa. Verifique se o backend está ligado.');
+          throw new Error(t('adminUnavailable'));
         }
 
         const [me, dashboard, preferences] = await Promise.all([
@@ -93,11 +95,11 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ widgets: nextWidgets }),
       });
-      if (!response.ok) throw new Error('Não foi possível salvar a personalização.');
+      if (!response.ok) throw new Error(t('adminSaveFailed'));
       setWidgets(nextWidgets);
       setDraftWidgets(nextWidgets);
       setCustomizing(false);
-      setFeedback('Personalização salva. Ela será mantida no próximo acesso.');
+      setFeedback(t('adminSaved'));
     } catch (error) {
       setFeedback(error.message);
     } finally {
@@ -112,16 +114,16 @@ export default function AdminPage() {
         {state.loading && (
           <section className="admin-card admin-card--center">
             <div className="admin-spinner" />
-            <p>Verificando permissão administrativa…</p>
+            <p>{t('adminChecking')}</p>
           </section>
         )}
 
         {!state.loading && state.error && (
           <section className="admin-card admin-card--center">
-            <div className="admin-status admin-status--error">Acesso não autorizado</div>
-            <h1>Área administrativa</h1>
+            <div className="admin-status admin-status--error">{t('adminUnauthorized')}</div>
+            <h1>{t('administration')}</h1>
             <p>{state.error}</p>
-            <button onClick={() => navigate('/')}>Voltar ao início</button>
+            <button onClick={() => navigate('/')}>{t('backHome')}</button>
           </section>
         )}
 
@@ -129,16 +131,16 @@ export default function AdminPage() {
           <>
             <section className="admin-card admin-hero">
               <div>
-                <span className="admin-status">Permissão confirmada</span>
-                <h1>Painel administrativo</h1>
-                <p>Olá, {state.admin.full_name || state.admin.email}. O acesso de administrador está funcionando.</p>
+                <span className="admin-status">{t('adminPermissionConfirmed')}</span>
+                <h1>{t('adminDashboard')}</h1>
+                <p>{t('adminGreeting', { name: state.admin.full_name || state.admin.email })}</p>
               </div>
-              <div className="admin-check" aria-label="Acesso confirmado">✓</div>
+              <div className="admin-check" aria-label={t('adminAccessConfirmed')}>✓</div>
             </section>
 
             <div className="admin-toolbar">
               <div>
-                <h2>Visão geral</h2>
+                <h2>{t('overview')}</h2>
                 {feedback && <p className="admin-feedback" role="status">{feedback}</p>}
               </div>
               <button
@@ -149,7 +151,7 @@ export default function AdminPage() {
                   setFeedback('');
                 }}
               >
-                {customizing ? 'Cancelar' : 'Personalizar painel'}
+                {customizing ? t('cancel') : t('customizeDashboard')}
               </button>
             </div>
 
@@ -158,10 +160,10 @@ export default function AdminPage() {
                 <div>
                   <div className="admin-customizer__heading">
                     <div>
-                      <h3>Escolha e ordene os widgets</h3>
-                      <p>As mudanças aparecem imediatamente na prévia abaixo.</p>
+                      <h3>{t('chooseWidgets')}</h3>
+                        <p>{t('widgetPreviewHelp')}</p>
                     </div>
-                    <span className="admin-preview-badge">Prévia ao vivo</span>
+                    <span className="admin-preview-badge">{t('livePreview')}</span>
                   </div>
                 </div>
                 <div className="admin-widget-options">
@@ -172,19 +174,19 @@ export default function AdminPage() {
                       <div className={`admin-widget-option ${enabled ? 'is-enabled' : ''}`} key={key}>
                         <label>
                           <input type="checkbox" checked={enabled} onChange={() => toggleWidget(key)} />
-                          {widget.label}
+                          {t(widget.label)}
                         </label>
                         <div className="admin-order-buttons">
-                          <button disabled={!enabled || position === 0} onClick={() => moveWidget(key, -1)} aria-label={`Mover ${widget.label} para esquerda`}>←</button>
-                          <button disabled={!enabled || position === draftWidgets.length - 1} onClick={() => moveWidget(key, 1)} aria-label={`Mover ${widget.label} para direita`}>→</button>
+                          <button disabled={!enabled || position === 0} onClick={() => moveWidget(key, -1)} aria-label={`${t('move')} ${t(widget.label)} ${t('left')}`}>←</button>
+                          <button disabled={!enabled || position === draftWidgets.length - 1} onClick={() => moveWidget(key, 1)} aria-label={`${t('move')} ${t(widget.label)} ${t('right')}`}>→</button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
                 <div className="admin-customizer__actions">
-                  <button className="admin-button-secondary" disabled={saving} onClick={() => savePreferences(DEFAULT_WIDGETS)}>Restaurar padrão</button>
-                  <button className="admin-button-primary" disabled={saving} onClick={() => savePreferences()}>{saving ? 'Salvando…' : 'Salvar personalização'}</button>
+                  <button className="admin-button-secondary" disabled={saving} onClick={() => savePreferences(DEFAULT_WIDGETS)}>{t('restoreDefault')}</button>
+                  <button className="admin-button-primary" disabled={saving} onClick={() => savePreferences()}>{saving ? t('saving') : t('saveCustomization')}</button>
                 </div>
               </section>
             )}
@@ -192,16 +194,16 @@ export default function AdminPage() {
             <section className={`admin-preview ${customizing ? 'is-previewing' : ''}`}>
               {customizing && (
                 <div className="admin-preview__label">
-                  <span>Prévia do painel</span>
-                  <small>{draftWidgets.length} {draftWidgets.length === 1 ? 'widget visível' : 'widgets visíveis'}</small>
+                  <span>{t('dashboardPreview')}</span>
+                  <small>{draftWidgets.length} {draftWidgets.length === 1 ? t('widgetVisible') : t('widgetsVisible')}</small>
                 </div>
               )}
-              <div className="admin-metrics" aria-label="Resumo da plataforma">
+              <div className="admin-metrics" aria-label={t('platformSummary')}>
               {visibleWidgets.map((key, index) => (
                 <article className="admin-card admin-metric" key={key}>
                   {customizing && <span className="admin-metric__position">{index + 1}</span>}
                   <strong>{state.dashboard[key] ?? 0}</strong>
-                  <span>{WIDGETS[key].label}</span>
+                  <span>{t(WIDGETS[key].label)}</span>
                 </article>
               ))}
               </div>

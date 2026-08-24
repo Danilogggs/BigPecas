@@ -8,15 +8,14 @@ import {
   buscarAvaliacoesPedido,
 } from '../services/avaliacoesService';
 import './PedidosPage.css';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const formatBRL = (value) =>
   Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-function formatDate(value) {
-  if (!value) return 'Data não informada';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Data não informada';
-  return date.toLocaleString('pt-BR', {
+function formatOrderDate(value, formatDate) {
+  if (!value) return '';
+  return formatDate(value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -25,14 +24,23 @@ function formatDate(value) {
   });
 }
 
-function getStatusMeta(status) {
+function getStatusMeta(status, t) {
+  const labels = {
+    [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: 'awaitingPayment',
+    [ORDER_STATUS.PAGO]: 'paid',
+    [ORDER_STATUS.ENVIADO]: 'shipped',
+    [ORDER_STATUS.ENTREGUE]: 'delivered',
+    [ORDER_STATUS.CANCELADO]: 'canceled',
+  };
+  const statusMeta = STATUS_META[status];
+  if (statusMeta) return { ...statusMeta, label: t(labels[status]) };
   return STATUS_META[status] || {
-    label: 'Status não informado',
+    label: t('unknownStatus'),
     color: '#4B5563',
     bg: '#F3F4F6',
     border: '#D1D5DB',
     icone: '•',
-    descricao: 'Não há informações adicionais sobre este status.',
+    descricao: t('unknownStatusDescription'),
     ordem: 99,
   };
 }
@@ -53,6 +61,7 @@ export default function PedidosPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { formatDate, t } = useLanguage();
   const {
     compras,
     vendas,
@@ -97,9 +106,9 @@ export default function PedidosPage() {
     return (
       <PageShell>
         <EmptyState
-          title="Registro não encontrado"
-          description="Este pedido não existe ou não pertence ao histórico selecionado."
-          actionLabel="Voltar ao histórico"
+          title={t('orderNotFound')}
+          description={t('orderNotFoundDescription')}
+          actionLabel={t('backToHistory')}
           onAction={() => navigate(visao === 'venda' ? '/pedidos?visao=vendas' : '/pedidos')}
         />
       </PageShell>
@@ -124,29 +133,29 @@ export default function PedidosPage() {
       <div className="history-heading">
         <div>
           <div className="history-breadcrumb">
-            <button type="button" onClick={() => navigate('/')}>Início</button>
+            <button type="button" onClick={() => navigate('/')}>{t('home')}</button>
             <span>›</span>
-            <span>Histórico</span>
+            <span>{t('history')}</span>
           </div>
-          <h1>Histórico de compras e vendas</h1>
-          <p>Consulte produtos, valores, datas e o andamento de cada negociação.</p>
+          <h1>{t('ordersHistory')}</h1>
+          <p>{t('ordersHistoryDescription')}</p>
         </div>
         <button type="button" className="history-refresh" onClick={carregarPedidos} disabled={loadingOrders}>
-          {loadingOrders ? 'Atualizando...' : 'Atualizar histórico'}
+          {loadingOrders ? t('updating') : t('refreshHistory')}
         </button>
       </div>
 
-      <div className="history-tabs" role="tablist" aria-label="Tipo de histórico">
+      <div className="history-tabs" role="tablist" aria-label={t('historyType')}>
         <TabButton
           active={visao === 'compra'}
-          label="Minhas compras"
+          label={t('myPurchases')}
           count={compras.length}
           onClick={() => navigate('/pedidos')}
         />
         {podeVender && (
           <TabButton
             active={visao === 'venda'}
-            label="Minhas vendas"
+            label={t('mySales')}
             count={vendas.length}
             onClick={() => navigate('/pedidos?visao=vendas')}
           />
@@ -154,18 +163,18 @@ export default function PedidosPage() {
       </div>
 
       <div className="history-summary">
-        <SummaryCard label={visao === 'venda' ? 'Vendas realizadas' : 'Compras realizadas'} value={resumo.quantidade} />
-        <SummaryCard label={visao === 'venda' ? 'Valor vendido' : 'Valor comprado'} value={formatBRL(resumo.valor)} />
-        <SummaryCard label="Pedidos entregues" value={resumo.concluidos} />
+        <SummaryCard label={visao === 'venda' ? t('completedSales') : t('completedPurchases')} value={resumo.quantidade} />
+        <SummaryCard label={visao === 'venda' ? t('soldValue') : t('purchasedValue')} value={formatBRL(resumo.valor)} />
+        <SummaryCard label={t('deliveredOrders')} value={resumo.concluidos} />
       </div>
 
       <div className="history-section-heading">
         <div>
-          <h2>{visao === 'venda' ? 'Vendas realizadas' : 'Compras anteriores'}</h2>
+          <h2>{visao === 'venda' ? t('completedSales') : t('previousPurchases')}</h2>
           <p>
             {visao === 'venda'
-              ? 'Acompanhe as peças vendidas e atualize o andamento dos pedidos.'
-              : 'Acompanhe suas compras anteriores e o status de entrega.'}
+              ? t('salesDescription')
+              : t('purchasesDescription')}
           </p>
         </div>
       </div>
@@ -181,23 +190,23 @@ export default function PedidosPage() {
       {ordersError && historicoCarregado && !loadingOrders && (
         <div className="history-error" role="alert">
           <span>{ordersError}</span>
-          <button type="button" onClick={carregarPedidos}>Tentar novamente</button>
+          <button type="button" onClick={carregarPedidos}>{t('tryAgain')}</button>
         </div>
       )}
 
       {historicoCarregado && !loadingOrders && !ordersError && registrosFiltrados.length === 0 && (
         <EmptyState
           title={filtroStatus !== 'todos'
-            ? 'Nenhum registro com este status'
+            ? t('noOrderStatus')
             : visao === 'venda'
-              ? 'Nenhuma venda realizada ainda'
-              : 'Você ainda não fez nenhuma compra'}
+              ? t('noSales')
+              : t('noPurchases')}
           description={filtroStatus !== 'todos'
-            ? 'Selecione outro status para consultar o histórico.'
+            ? t('selectAnotherStatus')
             : visao === 'venda'
-              ? 'As vendas aparecerão aqui quando clientes comprarem suas peças.'
-              : 'Explore o catálogo para realizar sua primeira compra.'}
-          actionLabel={visao === 'compra' && filtroStatus === 'todos' ? 'Explorar peças' : ''}
+              ? t('salesWillAppear')
+              : t('firstPurchase')}
+          actionLabel={visao === 'compra' && filtroStatus === 'todos' ? t('exploreParts') : ''}
           onAction={() => navigate('/buscaPecas')}
         />
       )}
@@ -250,10 +259,11 @@ function SummaryCard({ label, value }) {
 }
 
 function StatusFilters({ orders, selected, onChange }) {
+  const { t } = useLanguage();
   return (
-    <div className="status-filters" aria-label="Filtrar por status">
+    <div className="status-filters" aria-label={t('filterByStatus')}>
       <FilterButton
-        label="Todos"
+        label={t('all')}
         count={orders.length}
         active={selected === 'todos'}
         onClick={() => onChange('todos')}
@@ -263,7 +273,7 @@ function StatusFilters({ orders, selected, onChange }) {
         .map(([status, meta]) => (
           <FilterButton
             key={status}
-            label={meta.label}
+            label={getStatusMeta(status, t).label}
             count={orders.filter((order) => order.status === status).length}
             active={selected === status}
             onClick={() => onChange(status)}
@@ -282,7 +292,8 @@ function FilterButton({ label, count, active, onClick }) {
 }
 
 function StatusBadge({ status }) {
-  const meta = getStatusMeta(status);
+  const { t } = useLanguage();
+  const meta = getStatusMeta(status, t);
   return (
     <span
       className="status-badge"
@@ -294,39 +305,41 @@ function StatusBadge({ status }) {
 }
 
 function OrderCard({ order, view, onClick }) {
+  const { t, formatDate } = useLanguage();
   const names = order.itens.map(getItemName);
   const counterpart = view === 'venda'
-    ? `Cliente: ${order.comprador?.nome || 'Cliente BigPeças'}`
-    : `Vendedor: ${[...new Set(order.itens.map((item) => item.fornecedor_nome).filter(Boolean))].join(', ') || 'BigPeças'}`;
+    ? `${t('client')}: ${order.comprador?.nome || t('bigPecasCustomer')}`
+    : `${t('seller')}: ${[...new Set(order.itens.map((item) => item.fornecedor_nome).filter(Boolean))].join(', ') || 'BigPeças'}`;
 
   return (
     <button type="button" className="order-card" onClick={onClick}>
       <div className="order-card-main">
         <div className="order-card-topline">
           <StatusBadge status={order.status} />
-          <span>{view === 'venda' ? 'Venda' : 'Pedido'} #{order.id}</span>
+          <span>{view === 'venda' ? t('sale') : t('order')} #{order.id}</span>
         </div>
         <h3>{names.slice(0, 2).join(', ')}{names.length > 2 ? ` e mais ${names.length - 2}` : ''}</h3>
         <div className="order-card-meta">
-          <span>{order.itens.length} {order.itens.length === 1 ? 'produto' : 'produtos'}</span>
+          <span>{order.itens.length} {order.itens.length === 1 ? t('product') : t('products')}</span>
           <span>{counterpart}</span>
-          <span>{formatDate(getOrderDate(order))}</span>
+          <span>{formatOrderDate(getOrderDate(order), formatDate)}</span>
         </div>
       </div>
       <div className="order-card-value">
-        <span>{view === 'venda' ? 'Valor da venda' : 'Valor do pedido'}</span>
+        <span>{view === 'venda' ? t('saleValue') : t('orderValue')}</span>
         <strong>{formatBRL(getOrderValue(order))}</strong>
-        <small>Ver detalhes →</small>
+        <small>{t('viewDetailsArrow')}</small>
       </div>
     </button>
   );
 }
 
 function LoadingState() {
+  const { t } = useLanguage();
   return (
     <div className="history-loading" role="status">
       <span className="history-spinner" />
-      <p>Carregando histórico...</p>
+      <p>{t('loadingHistory')}</p>
     </div>
   );
 }
@@ -343,17 +356,18 @@ function EmptyState({ title, description, actionLabel, onAction }) {
 }
 
 function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, onExplore }) {
+  const { t, formatDate } = useLanguage();
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState('');
-  const meta = getStatusMeta(order.status);
+  const meta = getStatusMeta(order.status, t);
   const isSale = view === 'venda';
   const nextStatus = {
     [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: ORDER_STATUS.PAGO,
     [ORDER_STATUS.PAGO]: ORDER_STATUS.ENVIADO,
   }[order.status];
   const nextLabel = {
-    [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: 'Confirmar pagamento',
-    [ORDER_STATUS.PAGO]: 'Marcar como enviado',
+    [ORDER_STATUS.AGUARDANDO_PAGAMENTO]: 'confirmPayment',
+    [ORDER_STATUS.PAGO]: 'markAsShipped',
   }[order.status];
   const podeConfirmarRecebimento = !isSale && order.status === ORDER_STATUS.ENVIADO;
 
@@ -364,7 +378,7 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
     try {
       await onStatusChange(order.id, nextStatus);
     } catch (error) {
-      setUpdateError(error?.message || 'Não foi possível atualizar o status deste pedido.');
+      setUpdateError(error?.message || t('updateOrderStatusFailed'));
     } finally {
       setUpdating(false);
     }
@@ -377,7 +391,7 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
     try {
       await onConfirmReceipt(order.id);
     } catch (error) {
-      setUpdateError(error?.message || 'Não foi possível confirmar o recebimento deste pedido.');
+      setUpdateError(error?.message || t('confirmReceiptFailed'));
     } finally {
       setUpdating(false);
     }
@@ -385,13 +399,13 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
 
   return (
     <PageShell>
-      <button type="button" className="detail-back" onClick={onBack}>← Voltar ao histórico</button>
+      <button type="button" className="detail-back" onClick={onBack}>← {t('backToHistory')}</button>
 
       <div className="detail-header">
         <div>
-          <span>{isSale ? 'Venda realizada' : 'Compra realizada'}</span>
-          <h1>{isSale ? 'Venda' : 'Pedido'} #{order.id}</h1>
-          <p>{formatDate(getOrderDate(order))}</p>
+          <span>{isSale ? t('completedSale') : t('completedPurchase')}</span>
+          <h1>{isSale ? t('sale') : t('order')} #{order.id}</h1>
+          <p>{formatOrderDate(getOrderDate(order), formatDate)}</p>
         </div>
         <StatusBadge status={order.status} />
       </div>
@@ -403,12 +417,12 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
         </div>
         {isSale && order.pode_atualizar_status && nextStatus && (
           <button type="button" onClick={updateStatus} disabled={updating}>
-            {updating ? 'Atualizando...' : nextLabel}
+            {updating ? t('updating') : t(nextLabel)}
           </button>
         )}
         {podeConfirmarRecebimento && (
           <button type="button" onClick={confirmReceipt} disabled={updating}>
-            {updating ? 'Confirmando...' : 'Confirmar recebimento'}
+            {updating ? t('confirming') : t('confirmReceipt')}
           </button>
         )}
       </section>
@@ -416,7 +430,7 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
 
       <div className="detail-grid">
         <div className="detail-column">
-          <DetailCard title={isSale ? `Produtos vendidos (${order.itens.length})` : `Produtos comprados (${order.itens.length})`}>
+          <DetailCard title={isSale ? `${t('soldProducts')} (${order.itens.length})` : `${t('boughtProducts')} (${order.itens.length})`}>
             <div className="detail-items">
               {order.itens.map((item) => (
                 <div className="detail-item" key={`${order.id}-${item.id}`}>
@@ -425,8 +439,8 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
                   </div>
                   <div>
                     <strong>{getItemName(item)}</strong>
-                    <span>Quantidade: {item.quantidade} × {formatBRL(item.preco)}</span>
-                    {!isSale && item.fornecedor_nome && <small>Vendido por {item.fornecedor_nome}</small>}
+                    <span>{t('quantity')}: {item.quantidade} × {formatBRL(item.preco)}</span>
+                    {!isSale && item.fornecedor_nome && <small>{t('soldBy')} {item.fornecedor_nome}</small>}
                   </div>
                   <b>{formatBRL(Number(item.preco || 0) * Number(item.quantidade || 1))}</b>
                 </div>
@@ -434,14 +448,14 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
             </div>
           </DetailCard>
 
-          <DetailCard title="Andamento">
+          <DetailCard title={t('progress')}>
             <div className="detail-timeline">
               {(order.historico.length ? order.historico : [{ status: order.status, data: getOrderDate(order) }]).map((event, index) => {
-                const eventMeta = getStatusMeta(event.status);
+                const eventMeta = getStatusMeta(event.status, t);
                 return (
                   <div key={`${event.status}-${event.data}-${index}`}>
                     <span style={{ backgroundColor: eventMeta.color }}>{eventMeta.icone}</span>
-                    <div><strong>{eventMeta.label}</strong><small>{formatDate(event.data)}</small></div>
+                    <div><strong>{eventMeta.label}</strong><small>{formatOrderDate(event.data, formatDate)}</small></div>
                   </div>
                 );
               })}
@@ -449,17 +463,17 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
           </DetailCard>
 
           {order.endereco && (
-            <DetailCard title="Entrega">
-              {isSale && <p className="detail-counterpart"><strong>Cliente:</strong> {order.comprador?.nome || 'Cliente BigPeças'}</p>}
+            <DetailCard title={t('delivery')}>
+              {isSale && <p className="detail-counterpart"><strong>{t('customer')}:</strong> {order.comprador?.nome || t('bigPecasCustomer')}</p>}
               <address>
                 {order.endereco.nome && <strong>{order.endereco.nome}<br /></strong>}
                 {order.endereco.logradouro}{order.endereco.numero ? `, ${order.endereco.numero}` : ''}
                 {order.endereco.complemento ? ` - ${order.endereco.complemento}` : ''}<br />
                 {order.endereco.bairro}{order.endereco.cidade ? ` - ${order.endereco.cidade}` : ''}
                 {order.endereco.uf ? `/${order.endereco.uf}` : ''}<br />
-                {order.endereco.cep && <>CEP {order.endereco.cep}</>}
+                {order.endereco.cep && <>{t('zipCode')} {order.endereco.cep}</>}
               </address>
-              {order.codigoRastreio && <p className="tracking-code">Rastreio: <strong>{order.codigoRastreio}</strong></p>}
+              {order.codigoRastreio && <p className="tracking-code">{t('tracking')}: <strong>{order.codigoRastreio}</strong></p>}
             </DetailCard>
           )}
 
@@ -467,31 +481,31 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
         </div>
 
         <aside className="detail-sidebar">
-          <DetailCard title={isSale ? 'Resumo da venda' : 'Resumo da compra'}>
+          <DetailCard title={isSale ? t('saleSummary') : t('purchaseSummary')}>
             {isSale ? (
               <>
-                <ValueRow label="Produtos vendidos" value={formatBRL(getOrderValue(order))} />
-                <div className="detail-total"><span>Total da venda</span><strong>{formatBRL(getOrderValue(order))}</strong></div>
-                <p className="detail-note">O valor considera somente as suas peças neste pedido.</p>
+                <ValueRow label={t('soldProducts')} value={formatBRL(getOrderValue(order))} />
+                <div className="detail-total"><span>{t('saleTotal')}</span><strong>{formatBRL(getOrderValue(order))}</strong></div>
+                <p className="detail-note">{t('sellerPartsOnly')}</p>
               </>
             ) : (
               <>
                 <ValueRow label="Subtotal" value={formatBRL(order.subtotal)} />
                 {Number(order.desconto || 0) > 0 && <ValueRow label="Desconto" value={`- ${formatBRL(order.desconto)}`} />}
-                <ValueRow label="Frete" value={Number(order.valorFrete) === 0 ? 'Grátis' : formatBRL(order.valorFrete)} />
-                <div className="detail-total"><span>Total do pedido</span><strong>{formatBRL(order.total)}</strong></div>
-                {order.forma_pagamento?.nome && <p className="detail-payment">Pagamento: <strong>{order.forma_pagamento.nome}</strong></p>}
+                <ValueRow label={t('shipping')} value={Number(order.valorFrete) === 0 ? t('free') : formatBRL(order.valorFrete)} />
+                <div className="detail-total"><span>{t('purchaseTotal')}</span><strong>{formatBRL(order.total)}</strong></div>
+                {order.forma_pagamento?.nome && <p className="detail-payment">{t('payment')}: <strong>{order.forma_pagamento.nome}</strong></p>}
               </>
             )}
           </DetailCard>
 
           {!isSale && (
-            <button type="button" className="detail-primary-action" onClick={onExplore}>
-              Comprar novamente
+              <button type="button" className="detail-primary-action" onClick={onExplore}>
+                {t('buyAgain')}
             </button>
           )}
           <button type="button" className="detail-secondary-action" onClick={onBack}>
-            Voltar ao histórico
+            {t('backToHistory')}
           </button>
         </aside>
       </div>
@@ -500,6 +514,7 @@ function OrderDetail({ order, view, onBack, onStatusChange, onConfirmReceipt, on
 }
 
 function PostPurchaseReviews({ order }) {
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -513,7 +528,7 @@ function PostPurchaseReviews({ order }) {
     try {
       setReviews(await buscarAvaliacoesPedido(order.id));
     } catch (loadError) {
-      setError(loadError?.message || 'Não foi possível carregar as avaliações desta compra.');
+      setError(loadError?.message || t('ordersHistoryLoadFailed'));
     } finally {
       setLoading(false);
     }
@@ -552,12 +567,12 @@ function PostPurchaseReviews({ order }) {
 
   if (!liberada) {
     return (
-      <DetailCard title="Avaliações pós-compra">
+      <DetailCard title={t('postPurchaseReviews')}>
         <div className="review-locked">
           <span aria-hidden="true">🔒</span>
           <div>
-            <strong>Avaliações ainda bloqueadas</strong>
-            <p>Após receber o pedido, use “Confirmar recebimento”. Só então será possível avaliar o vendedor e os produtos.</p>
+            <strong>{t('reviewsLocked')}</strong>
+            <p>{t('reviewsLockedDescription')}</p>
           </div>
         </div>
       </DetailCard>
@@ -565,29 +580,29 @@ function PostPurchaseReviews({ order }) {
   }
 
   return (
-    <DetailCard title="Avalie sua compra">
+    <DetailCard title={t('ratePurchase')}>
       <p className="review-intro">
-        Suas avaliações são marcadas como compra verificada e ajudam outros compradores.
+        {t('reviewIntro')}
       </p>
 
-      {loading && !reviews && <div className="review-loading">Carregando avaliações...</div>}
+      {loading && !reviews && <div className="review-loading">{t('loadingReviews')}</div>}
       {error && (
         <div className="history-error" role="alert">
           <span>{error}</span>
-          <button type="button" onClick={loadReviews}>Tentar novamente</button>
+          <button type="button" onClick={loadReviews}>{t('tryAgain')}</button>
         </div>
       )}
 
       {reviews && (
         <div className="review-groups">
-          <ReviewGroup title="Vendedores">
+          <ReviewGroup title={t('sellers')}>
             {reviews.fornecedores.map((target) => {
               const formKey = `fornecedor-${target.fornecedor_id}`;
               return (
                 <ReviewTarget
                   key={formKey}
                   title={target.fornecedor_nome}
-                  subtitle="Avaliação do atendimento, envio e embalagem"
+                  subtitle={t('sellerReviewSubtitle')}
                   review={target.avaliacao}
                   open={openForm === formKey}
                   onToggle={() => setOpenForm(openForm === formKey ? '' : formKey)}
@@ -602,14 +617,14 @@ function PostPurchaseReviews({ order }) {
             })}
           </ReviewGroup>
 
-          <ReviewGroup title="Produtos">
+          <ReviewGroup title={t('productsLabel')}>
             {reviews.produtos.map((target) => {
               const formKey = `produto-${target.venda_id}`;
               return (
                 <ReviewTarget
                   key={formKey}
                   title={target.nome}
-                  subtitle={`Vendido por ${target.fornecedor_nome}`}
+                  subtitle={`${t('soldBy')} ${target.fornecedor_nome}`}
                   image={target.imagem}
                   review={target.avaliacao}
                   open={openForm === formKey}
@@ -640,6 +655,7 @@ function ReviewGroup({ title, children }) {
 }
 
 function ReviewTarget({ title, subtitle, image, review, open, onToggle, children }) {
+  const { t } = useLanguage();
   return (
     <article className={`review-target${review ? ' is-reviewed' : ''}`}>
       <div className="review-target-header">
@@ -649,9 +665,9 @@ function ReviewTarget({ title, subtitle, image, review, open, onToggle, children
           <span>{subtitle}</span>
         </div>
         {review ? (
-          <span className="review-verified">Compra verificada</span>
+          <span className="review-verified">{t('verifiedPurchase')}</span>
         ) : (
-          <button type="button" onClick={onToggle}>{open ? 'Fechar' : 'Avaliar'}</button>
+          <button type="button" onClick={onToggle}>{open ? t('close') : t('rate')}</button>
         )}
       </div>
 
@@ -667,6 +683,7 @@ function ReviewTarget({ title, subtitle, image, review, open, onToggle, children
 }
 
 function ReviewForm({ type, onSubmit, onCancel }) {
+  const { t } = useLanguage();
   const [values, setValues] = useState({
     nota: 5,
     comentario: '',
@@ -687,7 +704,7 @@ function ReviewForm({ type, onSubmit, onCancel }) {
     try {
       await onSubmit(values);
     } catch (error) {
-      setSubmitError(error?.message || 'Não foi possível enviar sua avaliação.');
+      setSubmitError(error?.message || t('sendReviewFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -696,41 +713,42 @@ function ReviewForm({ type, onSubmit, onCancel }) {
   return (
     <form className="review-form" onSubmit={handleSubmit}>
       <RatingInput
-        label={type === 'fornecedor' ? 'Nota geral do vendedor' : 'Nota do produto'}
+        label={type === 'fornecedor' ? t('sellerOverallRating') : t('productRating')}
         value={values.nota}
         onChange={(value) => update('nota', value)}
       />
 
       {type === 'fornecedor' && (
         <div className="review-criteria">
-          <RatingInput label="Qualidade das peças" value={values.qualidade_peca} onChange={(value) => update('qualidade_peca', value)} />
-          <RatingInput label="Comunicação" value={values.comunicacao} onChange={(value) => update('comunicacao', value)} />
-          <RatingInput label="Rapidez da entrega" value={values.rapidez_entrega} onChange={(value) => update('rapidez_entrega', value)} />
-          <RatingInput label="Embalagem" value={values.embalagem} onChange={(value) => update('embalagem', value)} />
+          <RatingInput label={t('quality')} value={values.qualidade_peca} onChange={(value) => update('qualidade_peca', value)} />
+          <RatingInput label={t('communication')} value={values.comunicacao} onChange={(value) => update('comunicacao', value)} />
+          <RatingInput label={t('deliverySpeed')} value={values.rapidez_entrega} onChange={(value) => update('rapidez_entrega', value)} />
+          <RatingInput label={t('packaging')} value={values.embalagem} onChange={(value) => update('embalagem', value)} />
         </div>
       )}
 
       <label className="review-comment">
-        <span>Comentário <small>(opcional)</small></span>
+        <span>{t('comment')} <small>({t('optional')})</small></span>
         <textarea
           value={values.comentario}
           onChange={(event) => update('comentario', event.target.value)}
           maxLength={1000}
           rows={3}
-          placeholder="Conte como foi sua experiência"
+          placeholder={t('experiencePlaceholder')}
         />
       </label>
 
       {submitError && <div className="review-submit-error" role="alert">{submitError}</div>}
       <div className="review-form-actions">
-        <button type="button" className="secondary" onClick={onCancel} disabled={submitting}>Cancelar</button>
-        <button type="submit" disabled={submitting}>{submitting ? 'Enviando...' : 'Publicar avaliação'}</button>
+        <button type="button" className="secondary" onClick={onCancel} disabled={submitting}>{t('cancel')}</button>
+        <button type="submit" disabled={submitting}>{submitting ? t('sending') : t('publishReview')}</button>
       </div>
     </form>
   );
 }
 
 function RatingInput({ label, value, onChange }) {
+  const { t } = useLanguage();
   return (
     <fieldset className="rating-input">
       <legend>{label}</legend>
@@ -741,7 +759,7 @@ function RatingInput({ label, value, onChange }) {
             type="button"
             className={rating <= value ? 'active' : ''}
             onClick={() => onChange(rating)}
-            aria-label={`${rating} ${rating === 1 ? 'estrela' : 'estrelas'}`}
+            aria-label={`${rating} ${rating === 1 ? t('star') : t('stars')}`}
             aria-pressed={rating === value}
           >
             ★

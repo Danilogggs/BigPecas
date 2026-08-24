@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../components/StyledComponents';
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, BORDER_RADIUS, FLEX_CENTER } from '../styles/theme';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const REGEX = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -11,6 +13,7 @@ const REGEX = {
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({});
@@ -57,7 +60,7 @@ export default function ForgotPasswordPage() {
       await resetPassword(email.trim().toLowerCase());
       setSuccess('Enviamos um link de recuperação para o seu email.');
     } catch (err) {
-      setError(mapSupabaseAuthError(err, 'resetPassword'));
+      setError(t(mapSupabaseAuthError(err, 'resetPassword')));
     } finally {
       setLoading(false);
     }
@@ -79,6 +82,7 @@ export default function ForgotPasswordPage() {
         padding: SPACING.XL,
       }}
     >
+      <LanguageSwitcher className="public-language-switcher" />
       <div
         style={{
           width: '100%',
@@ -106,20 +110,20 @@ export default function ForgotPasswordPage() {
           </span>
 
           <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            Recuperar senha
+            {t('Recuperar senha')}
           </h1>
 
           <p style={{ marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
-            Informe seu email para receber o link de redefinição.
+            {t('Informe seu email para receber o link de redefinição.')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div style={{ marginBottom: SPACING.LG }}>
-            <Field label="Email" required>
+            <Field label={t('Email')} required>
               <Input
                 type="email"
-                placeholder="seuemail@exemplo.com"
+                placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={handleChange}
                 required
@@ -149,7 +153,7 @@ export default function ForgotPasswordPage() {
               boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
             }}
           >
-            {loading ? 'Enviando...' : 'Enviar email'}
+            {loading ? t('Enviando...') : t('Enviar email')}
           </ButtonPrimary>
         </form>
 
@@ -162,7 +166,7 @@ export default function ForgotPasswordPage() {
               textDecoration: 'none',
             }}
           >
-            Voltar para o login
+            {t('Voltar para o login')}
           </Link>
         </div>
       </div>

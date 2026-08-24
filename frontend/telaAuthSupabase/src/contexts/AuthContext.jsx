@@ -2,10 +2,12 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getSupabaseClient, hasSupabaseConfig } from '../services/supabase';
 import { AUTH_API_URL } from '../services/apiConfig';
 import { createFriendlyError, parseErrorResponse, parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from './LanguageContext';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export function AuthProvider({ children }) {
       if (!response.ok) {
         const mensagem = await parseErrorResponse(
           response,
-          'Não foi possível criar sua conta agora. Revise os dados e tente novamente.'
+          t('Não foi possível criar sua conta agora. Revise os dados e tente novamente.')
         );
         throw createFriendlyError(mensagem);
       }
@@ -77,7 +79,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Erro ao cadastrar usuário:', error);
       throw createFriendlyError(
-        parseUnexpectedError(error, 'Não foi possível criar sua conta agora. Tente novamente.')
+        parseUnexpectedError(error, t('Não foi possível criar sua conta agora. Tente novamente.'))
       );
     }
   }
