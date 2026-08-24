@@ -1,0 +1,15 @@
+{
+  "name": "bigpecas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts de conveniencia para rodar os testes do backend e do frontend do BigPecas",
+  "scripts": {
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "npm test --prefix backend",
+    "test:frontend": "npm test --prefix frontend/telaAuthSupabase",
+    "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
+    "test:coverage:backend": "npm run test:coverage --prefix backend",
+    "test:coverage:frontend": "npm run test:coverage --prefix frontend/telaAuthSupabase"
+  },
+  "license": "ISC"
+}

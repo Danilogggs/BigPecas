@@ -16,6 +16,9 @@ pnpm-debug.log*
 dist/
 build/
 
+# Testes
+coverage/
+
 # OS
 .DS_Store
 Thumbs.db
