@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/authRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
@@ -15,35 +14,23 @@ const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
 const verifyToken = require('./middlewares/verifyToken');
 const verifyAdmin = require('./middlewares/verifyAdmin');
+const {
+  apiLimiter,
+  authLimiter,
+  registroLimiter,
+  freteLimiter,
+  configurarConfiancaNoProxy,
+} = require('./middlewares/rateLimiter');
 
 const app = express();
+
+configurarConfiancaNoProxy(app);
 
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 
-app.use(rateLimit({
-  windowMs: 60 * 1000,
-  max: 250,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Muitas requisicoes. Aguarde um momento e tente novamente.' },
-}));
-
-const authLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Muitas tentativas de autenticacao. Aguarde um momento e tente novamente.' },
-});
-
-const freteLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Limite de calculos de frete atingido. Aguarde um momento.' },
-});
+// Antes do parser de corpo: requisicao bloqueada nao gasta CPU lendo o payload.
+app.use(apiLimiter);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -56,6 +43,7 @@ app.get('/api/health', (req, res) => {
   return res.json({ status: 'ok', message: 'BigPecas API conectada ao Supabase.' });
 });
 
+app.use('/api/auth/register', registroLimiter);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/pecas', verifyToken, pecasRoutes);
 app.use('/api/wish', verifyToken, wishRoutes);
