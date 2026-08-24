@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const REGEX = {
   nome_peca: /^[A-Za-zÀ-ÿ0-9\s.,ºª°/()-]{3,150}$/,
@@ -10,93 +11,94 @@ const REGEX = {
 
 export function useFormValidation() {
   const [errors, setErrors] = useState({});
+  const { t } = useLanguage();
 
   const clearFieldError = useCallback((fieldName) => {
     setErrors((prev) => ({
       ...prev,
       [fieldName]: '',
     }));
-  }, []);
+  }, [t]);
 
   const validate = useCallback((formData) => {
     const newErrors = {};
 
     if (!formData.nome_peca.trim()) {
-      newErrors.nome_peca = 'Informe o nome da peça.';
+      newErrors.nome_peca = t('partNameRequired');
     } else if (!REGEX.nome_peca.test(formData.nome_peca.trim())) {
-      newErrors.nome_peca = 'Use pelo menos 3 caracteres. Evite símbolos especiais.';
+      newErrors.nome_peca = t('partNameInvalid');
     }
 
     if (!formData.sku.trim()) {
-      newErrors.sku = 'Informe o SKU da peça.';
+      newErrors.sku = t('skuRequired');
     } else if (!REGEX.sku.test(formData.sku.trim())) {
-      newErrors.sku = 'SKU inválido. Use letras maiúsculas, números e hífen. Ex: OPALA-FRISO-001.';
+      newErrors.sku = t('skuInvalid');
     }
 
     if (!formData.oem_number.trim()) {
-      newErrors.oem_number = 'Informe o número OEM.';
+      newErrors.oem_number = t('oemRequired');
     } else if (!REGEX.codigoOpcional.test(formData.oem_number.trim())) {
-      newErrors.oem_number = 'Número OEM inválido. Use letras, números e hífen.';
+      newErrors.oem_number = t('oemInvalid');
     }
 
     if (!formData.num_serie.trim()) {
-      newErrors.num_serie = 'Informe o número de série.';
+      newErrors.num_serie = t('serialRequired');
     } else if (!REGEX.codigoOpcional.test(formData.num_serie.trim())) {
-      newErrors.num_serie = 'Número de série inválido. Use letras, números e hífen.';
+      newErrors.num_serie = t('serialInvalid');
     }
 
     if (!formData.categoria_id) {
-      newErrors.categoria_id = 'Selecione a categoria da peça.';
+      newErrors.categoria_id = t('categoryRequired');
     }
 
     if (!formData.material_id) {
-      newErrors.material_id = 'Selecione o material da peça.';
+      newErrors.material_id = t('materialRequired');
     }
 
     if (!formData.preco.trim()) {
-      newErrors.preco = 'Informe o preço da peça.';
+      newErrors.preco = t('priceRequired');
     } else if (!REGEX.preco.test(formData.preco.trim())) {
-      newErrors.preco = 'Preço inválido. Ex: 3490.00 ou 3490,00.';
+      newErrors.preco = t('priceInvalid');
     } else if (Number(formData.preco.replace(',', '.')) <= 0) {
-      newErrors.preco = 'O preço deve ser maior que zero.';
+      newErrors.preco = t('pricePositive');
     }
 
     if (!formData.estoque_atual.trim()) {
-      newErrors.estoque_atual = 'Informe o estoque atual.';
+      newErrors.estoque_atual = t('stockRequired');
     } else if (!REGEX.numeroInteiro.test(formData.estoque_atual.trim())) {
-      newErrors.estoque_atual = 'O estoque deve ser um número inteiro.';
+      newErrors.estoque_atual = t('stockInteger');
     }
 
     if (!formData.comprimento_mm.trim()) {
-      newErrors.comprimento_mm = 'Informe o comprimento.';
+      newErrors.comprimento_mm = t('lengthRequired');
     } else if (!REGEX.numeroInteiro.test(formData.comprimento_mm.trim())) {
-      newErrors.comprimento_mm = 'O comprimento deve ser um número inteiro.';
+      newErrors.comprimento_mm = t('lengthInteger');
     }
 
     if (!formData.largura_mm.trim()) {
-      newErrors.largura_mm = 'Informe a largura.';
+      newErrors.largura_mm = t('widthRequired');
     } else if (!REGEX.numeroInteiro.test(formData.largura_mm.trim())) {
-      newErrors.largura_mm = 'A largura deve ser um número inteiro.';
+      newErrors.largura_mm = t('widthInteger');
     }
 
     if (!formData.altura_mm.trim()) {
-      newErrors.altura_mm = 'Informe a altura.';
+      newErrors.altura_mm = t('heightRequired');
     } else if (!REGEX.numeroInteiro.test(formData.altura_mm.trim())) {
-      newErrors.altura_mm = 'A altura deve ser um número inteiro.';
+      newErrors.altura_mm = t('heightInteger');
     }
 
     if (!formData.peso_gramas.trim()) {
-      newErrors.peso_gramas = 'Informe o peso da peça.';
+      newErrors.peso_gramas = t('weightRequired');
     } else if (!REGEX.numeroInteiro.test(formData.peso_gramas.trim())) {
-      newErrors.peso_gramas = 'O peso deve ser informado apenas em números inteiros.';
+      newErrors.peso_gramas = t('weightInteger');
     }
 
     if (!formData.detalhes_gravacao.trim()) {
-      newErrors.detalhes_gravacao = 'Informe os detalhes de gravação.';
+      newErrors.detalhes_gravacao = t('engravingRequired');
     }
 
     if (!formData.historico_proveniencia.trim()) {
-      newErrors.historico_proveniencia = 'Informe o histórico de procedência.';
+      newErrors.historico_proveniencia = t('provenanceRequired');
     }
 
     setErrors(newErrors);

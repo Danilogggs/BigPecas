@@ -6,6 +6,7 @@ import {
   atualizarStatusPedidoAPI,
 } from '../services/pedidosService';
 import { useAuth } from './AuthContext';
+import { useLanguage } from './LanguageContext';
 
 const OrderContext = createContext();
 
@@ -81,6 +82,7 @@ function normalizeOrder(order, visaoPadrao = 'compra') {
 
 export const OrderProvider = ({ children }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [compras, setCompras] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [perfilHistorico, setPerfilHistorico] = useState(null);
@@ -109,12 +111,12 @@ export const OrderProvider = ({ children }) => {
     } catch (error) {
       setCompras([]);
       setVendas([]);
-      setOrdersError(error?.message || 'Não foi possível carregar o histórico de compras e vendas.');
+      setOrdersError(error?.message || t('ordersHistoryLoadFailed'));
     } finally {
       setLoadingOrders(false);
       setHistoricoCarregado(true);
     }
-  }, [user]);
+  }, [t, user]);
 
   useEffect(() => {
     carregarPedidos();

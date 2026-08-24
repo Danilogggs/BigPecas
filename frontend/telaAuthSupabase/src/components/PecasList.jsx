@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const PecasList = memo(function PecasList({
   pecas,
@@ -8,13 +9,14 @@ const PecasList = memo(function PecasList({
   selectedPecaId,
   onSelectPeca,
 }) {
+  const { t } = useLanguage();
   return (
     <div className="pecas-list-container">
       <div className="pecas-list-header">
-        <h2>Suas Peças ({filteredPecas.length})</h2>
+        <h2>{t('yourParts')} ({filteredPecas.length})</h2>
         <input
           type="text"
-          placeholder="Buscar por nome ou SKU..."
+          placeholder={t('searchByNameSku')}
           value={pecasSearchQuery}
           onChange={(e) => setPecasSearchQuery(e.target.value)}
           className="form-input"
@@ -25,8 +27,8 @@ const PecasList = memo(function PecasList({
         {filteredPecas.length === 0 ? (
           <div className="pecas-list-empty">
             {pecas.length === 0
-              ? 'Você não tem peças cadastradas ainda.'
-              : 'Nenhuma peça encontrada com esses critérios.'}
+              ? t('noPartsRegistered')
+              : t('noPartsCriteria')}
           </div>
         ) : (
           filteredPecas.map((peca) => (
@@ -36,7 +38,7 @@ const PecasList = memo(function PecasList({
               className={`peca-item ${selectedPecaId === peca.id ? 'active' : ''}`}
             >
               <div className="peca-item-nome">{peca.nome_peca}</div>
-              <div className="peca-item-sku">SKU: {peca.sku}</div>
+              <div className="peca-item-sku">{t('sku', { value: peca.sku })}</div>
               <div className="peca-item-preco">
                 R$ {typeof peca.preco === 'number' ? peca.preco.toFixed(2) : peca.preco}
               </div>

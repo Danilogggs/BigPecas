@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const THEME_OPTIONS = [
   {
@@ -18,6 +19,7 @@ const THEME_OPTIONS = [
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div className="settings-page">
@@ -26,12 +28,12 @@ export default function SettingsPage() {
       <main className="settings-page__main">
         <section className="settings-card" aria-labelledby="settings-title">
           <div className="settings-card__heading">
-            <span className="settings-card__eyebrow">Preferências</span>
-            <h1 id="settings-title">Configurações</h1>
+            <span className="settings-card__eyebrow">{t('Preferências')}</span>
+            <h1 id="settings-title">{t('Configurações')}</h1>
           </div>
 
           <fieldset className="theme-picker">
-            <legend>Tema de cores</legend>
+            <legend>{t('Tema de cores')}</legend>
             <div className="theme-picker__grid">
               {THEME_OPTIONS.map((option) => {
                 const selected = theme === option.id;
@@ -50,9 +52,9 @@ export default function SettingsPage() {
                     />
                     <span className="theme-option__content">
                       <span className="theme-option__title-row">
-                        <strong>{option.name}</strong>
+                        <strong>{t(option.name)}</strong>
                         <span className="theme-option__state">
-                          {selected ? 'Selecionado' : 'Selecionar'}
+                          {selected ? t('Selecionado') : t('Selecionar')}
                         </span>
                       </span>
                       {/* <span className="theme-option__description">{option.description}</span> */}

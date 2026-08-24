@@ -11,6 +11,7 @@ import {
   SPACING,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function formatarPreco(valor) {
   const numero = Number(valor);
@@ -27,6 +28,7 @@ function formatarPreco(valor) {
 
 export default function WishPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [pecas, setPecas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState(null);
@@ -42,7 +44,7 @@ export default function WishPage() {
       setPecas(Array.isArray(data?.pecas) ? data.pecas : []);
     } catch (error) {
       setPecas([]);
-      setErrorMessage(parseUnexpectedError(error, 'Não foi possível carregar sua lista de desejos agora.'));
+      setErrorMessage(parseUnexpectedError(error, t('wishlistLoadFailed')));
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,7 @@ export default function WishPage() {
       setPecas((prev) => prev.filter((peca) => String(peca.id) !== String(pecaId)));
       setSuccessMessage('Peça removida da sua lista de desejos.');
     } catch (error) {
-      setErrorMessage(parseUnexpectedError(error, 'Não foi possível remover a peça da lista de desejos.'));
+      setErrorMessage(parseUnexpectedError(error, t('wishlistRemoveFailed')));
     } finally {
       setRemovingId(null);
     }
@@ -137,7 +139,7 @@ export default function WishPage() {
                   marginBottom: SPACING.MD,
                 }}
               >
-                Área pessoal
+                {t('Área pessoal')}
               </span>
 
               <h1
@@ -148,11 +150,11 @@ export default function WishPage() {
                   lineHeight: 1.15,
                 }}
               >
-                Minha lista de desejos
+                {t('Minha lista de desejos')}
               </h1>
 
               <p style={{ margin: `${SPACING.MD} 0 0`, lineHeight: 1.65, color: '#F8E9C5' }}>
-                Salve as peças que você quer acompanhar, compare opções com calma e volte para o anúncio original com um clique.
+                {t('Salve as peças que você quer acompanhar, compare opções com calma e volte para o anúncio original com um clique.')}
               </p>
             </div>
 
@@ -171,10 +173,10 @@ export default function WishPage() {
             >
               <strong style={{ color: COLORS.DARK_TEXT, fontSize: '2rem' }}>{pecas.length}</strong>
               <span style={{ color: COLORS.MUTED_TEXT, fontWeight: 700 }}>
-                {pecas.length === 1 ? 'peça salva' : 'peças salvas'} na sua lista de desejos
+                {pecas.length === 1 ? t('peça salva') : t('peças salvas')} {t('na sua lista de desejos')}
               </span>
               <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_PRIMARY_STYLE}>
-                Explorar catálogo
+                {t('Explorar catálogo')}
               </button>
             </div>
           </section>
@@ -210,7 +212,7 @@ export default function WishPage() {
 
           {loading && (
             <div style={{ color: COLORS.DARK_TEXT, fontWeight: 800 }}>
-              Carregando sua lista de desejos...
+              {t('Carregando sua lista de desejos...')}
             </div>
           )}
 
@@ -226,12 +228,12 @@ export default function WishPage() {
               }}
             >
               <div style={{ fontSize: '3rem', marginBottom: SPACING.MD }}>♡</div>
-              <h2 style={{ margin: 0, color: COLORS.DARK_TEXT }}>Sua lista de desejos ainda está vazia</h2>
+              <h2 style={{ margin: 0, color: COLORS.DARK_TEXT }}>{t('Sua lista de desejos ainda está vazia')}</h2>
               <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>
-                Abra o catálogo e clique no coração das peças que deseja guardar.
+                {t('Abra o catálogo e clique no coração das peças que deseja guardar.')}
               </p>
               <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_PRIMARY_STYLE}>
-                Ver peças disponíveis
+                {t('Ver peças disponíveis')}
               </button>
             </section>
           )}
@@ -268,11 +270,11 @@ export default function WishPage() {
                     {peca.imagem ? (
                       <img
                         src={peca.imagem}
-                        alt={peca.nome_peca || 'Imagem da peça'}
+                        alt={peca.nome_peca || t('partImage')}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
                     ) : (
-                      <span style={{ color: 'var(--bp-on-light)', fontWeight: 800 }}>Sem imagem</span>
+                      <span style={{ color: 'var(--bp-on-light)', fontWeight: 800 }}>{t('noImage')}</span>
                     )}
                   </div>
 
@@ -325,7 +327,7 @@ export default function WishPage() {
                         cursor: removingId === peca.id ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      Remover
+                      {t('Remover')}
                     </button>
                   </div>
                 </article>

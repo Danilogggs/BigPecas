@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Footer() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const year = new Date().getFullYear();
 
   return (
@@ -12,19 +14,19 @@ export default function Footer() {
           <div>
             <div className="bp-footer__brand-name">Big<span>Peças</span></div>
             <p className="bp-footer__tagline">
-              Marketplace de peças raras para carros clássicos.<br />
-              Catálogo verificado, anúncios curados e procedência garantida.
+              {t('marketplaceTag')} para carros clássicos.<br />
+              {t('verifiedListings')}, anúncios curados e procedência garantida.
             </p>
           </div>
 
           {/* Navegação */}
           <div>
-            <div className="bp-footer__col-title">Explorar</div>
+            <div className="bp-footer__col-title">{t('explore')}</div>
             {[
-              { label: 'Catálogo de peças', action: () => navigate('/buscaPecas') },
-              { label: 'Vender peça',       action: () => navigate('/cadastroPecas') },
-              { label: 'Minha conta',       action: () => navigate('/perfil') },
-              { label: 'Lista de Desejos',  action: () => navigate('/wish') },
+              { label: t('catalog'), action: () => navigate('/buscaPecas') },
+              { label: t('sellPart'), action: () => navigate('/cadastroPecas') },
+              { label: t('myAccount'), action: () => navigate('/perfil') },
+              { label: t('wishlist'), action: () => navigate('/wish') },
             ].map(({ label, action }) => (
               <button key={label} className="bp-footer__link" onClick={action}>{label}</button>
             ))}
@@ -32,11 +34,11 @@ export default function Footer() {
 
           {/* Compras */}
           <div>
-            <div className="bp-footer__col-title">Compras</div>
+            <div className="bp-footer__col-title">{t('purchases')}</div>
             {[
-              { label: 'Carrinho',         action: () => navigate('/carrinho') },
-              { label: 'Meus Pedidos',     action: () => navigate('/pedidos') },
-              { label: 'Cálculo de Frete', action: () => navigate('/carrinho') },
+              { label: t('cart'), action: () => navigate('/carrinho') },
+              { label: t('myOrders'), action: () => navigate('/pedidos') },
+              { label: t('shippingCalculation'), action: () => navigate('/carrinho') },
             ].map(({ label, action }) => (
               <button key={label} className="bp-footer__link" onClick={action}>{label}</button>
             ))}
@@ -44,10 +46,10 @@ export default function Footer() {
 
           {/* Suporte */}
           <div>
-            <div className="bp-footer__col-title">Suporte</div>
-            <span className="bp-footer__link">Sobre o BigPeças</span>
-            <span className="bp-footer__link">Política de Privacidade</span>
-            <span className="bp-footer__link">Termos de Uso</span>
+            <div className="bp-footer__col-title">{t('support')}</div>
+            <span className="bp-footer__link">{t('about')}</span>
+            <span className="bp-footer__link">{t('privacy')}</span>
+            <span className="bp-footer__link">{t('terms')}</span>
           </div>
         </div>
 

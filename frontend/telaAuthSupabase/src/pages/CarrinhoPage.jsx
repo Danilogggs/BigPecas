@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useCart } from '../contexts/CartContext';
 import { TrashIcon } from '../components/Icons';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   calcularFrete,
   aplicarCupom,
@@ -31,6 +32,7 @@ const formatBRL = (valor) =>
 export default function CarrinhoPage() {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getTotal } = useCart();
+  const { t } = useLanguage();
 
   const [cep, setCep] = useState('');
   const [cepError, setCepError] = useState('');
@@ -72,12 +74,12 @@ export default function CarrinhoPage() {
     setCepError('');
 
     if (!validarCep(cep)) {
-      setCepError('Informe um CEP válido com 8 dígitos.');
+      setCepError(t('cepRequired'));
       return;
     }
 
     if (cartItems.length === 0) {
-      setCepError('Adicione itens ao carrinho antes de calcular.');
+      setCepError(t('addCartBeforeShipping'));
       return;
     }
 
@@ -92,7 +94,7 @@ export default function CarrinhoPage() {
         setOpcaoSelecionada(resultado.opcoes[0]);
       }
     } catch (error) {
-      setCepError(error?.message || 'Não foi possível calcular o frete agora.');
+      setCepError(error?.message || t('shippingCalculationFailed'));
     } finally {
       setCalculando(false);
     }
@@ -102,7 +104,7 @@ export default function CarrinhoPage() {
     setCupomError('');
 
     if (!codigoCupom.trim()) {
-      setCupomError('Informe um código de cupom.');
+      setCupomError(t('couponRequired'));
       return;
     }
 
@@ -113,7 +115,7 @@ export default function CarrinhoPage() {
       setCupomError('');
     } catch (error) {
       setCupomAtivo(null);
-      setCupomError(error?.message || 'Cupom inválido.');
+      setCupomError(error?.message || t('invalidCoupon'));
     } finally {
       setAplicandoCupom(false);
     }
@@ -134,7 +136,7 @@ export default function CarrinhoPage() {
   const handleIrParaCheckout = () => {
     if (cartItems.length === 0) return;
     if (!opcaoSelecionada) {
-      setCepError('Selecione uma opção de frete antes de finalizar.');
+      setCepError(t('shippingChoiceRequired'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -233,16 +235,16 @@ export default function CarrinhoPage() {
               style={{ cursor: 'pointer' }}
               onClick={() => navigate('/')}
             >
-              Início
+              {t('home')}
             </span>{' '}
             ›{' '}
             <span
               style={{ cursor: 'pointer' }}
               onClick={() => navigate('/buscaPecas')}
             >
-              Peças
+              {t('parts')}
             </span>{' '}
-            › <span style={{ color: 'var(--bp-action-text)', fontWeight: 600 }}>Carrinho</span>
+            › <span style={{ color: 'var(--bp-action-text)', fontWeight: 600 }}>{t('cart')}</span>
           </div>
           <h1
             className="pagina-titulo"
@@ -254,12 +256,12 @@ export default function CarrinhoPage() {
               fontFamily: "'Playfair Display', Georgia, serif",
             }}
           >
-            Meu Carrinho
+            {t('myCartTitle')}
           </h1>
           <p style={{ color: MUTED, margin: '6px 0 0', fontSize: '0.95rem' }}>
             {totalItens === 0
-              ? 'Nenhum item adicionado ainda.'
-              : `${totalItens} ${totalItens === 1 ? 'item' : 'itens'} no carrinho`}
+              ? t('emptyCart')
+              : `${totalItens} ${totalItens === 1 ? t('item') : t('items')} ${t('inCart')}`}
           </p>
         </div>
 
@@ -278,7 +280,7 @@ export default function CarrinhoPage() {
             {/* COLUNA ESQUERDA */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Lista de itens */}
-              <Card title="Itens do Pedido">
+              <Card title={t('orderItems')}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {cartItems.map((item, index) => (
                     <CartItem
@@ -316,12 +318,12 @@ export default function CarrinhoPage() {
                     e.currentTarget.style.borderStyle = 'dashed';
                   }}
                 >
-                  + Adicionar mais peças
+                  {t('addMoreParts')}
                 </button>
               </Card>
 
               {/* Cálculo de frete */}
-              <Card title="Cálculo de Frete" subtitle="Informe o CEP de entrega">
+              <Card title={t('shippingCalculation')} subtitle={t('enterDeliveryZip')}>
                 <div
                   style={{
                     display: 'flex',
@@ -334,7 +336,7 @@ export default function CarrinhoPage() {
                     <input
                       className="input-clean"
                       type="text"
-                      placeholder="00000-000"
+                      placeholder={t('zipPlaceholder')}
                       value={cep}
                       onChange={handleCepChange}
                       maxLength={9}
@@ -360,7 +362,7 @@ export default function CarrinhoPage() {
                         textDecoration: 'underline',
                       }}
                     >
-                      Não sei meu CEP
+                      {t('dontKnowZip')}
                     </button>
                   </div>
                   <button
@@ -383,10 +385,10 @@ export default function CarrinhoPage() {
                   >
                     {calculando ? (
                       <>
-                        <span className="spinner" /> Calculando...
+                        <span className="spinner" /> {t('calculating')}
                       </>
                     ) : (
-                      'Calcular Frete'
+                      t('calculateShipping')
                     )}
                   </button>
                 </div>
@@ -428,7 +430,7 @@ export default function CarrinhoPage() {
                         marginBottom: 12,
                       }}
                     >
-                      Entrega para{' '}
+                      {t('deliveryTo')}{' '}
                       <strong style={{ color: DARK }}>
                         {freteResultado.cep}
                       </strong>
@@ -537,13 +539,13 @@ export default function CarrinhoPage() {
               </Card>
 
               {/* Cupom */}
-              <Card title="Cupom de Desconto" subtitle="Use BIGPECAS10, FRETE0 ou PRIMEIRA20">
+              <Card title={t('discountCoupon')} subtitle={t('couponHint')}>
                 {!cupomAtivo ? (
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <input
                       className="input-clean"
                       type="text"
-                      placeholder="Digite o código"
+                      placeholder={t('enterCoupon')}
                       value={codigoCupom}
                       onChange={(e) => {
                         setCodigoCupom(e.target.value.toUpperCase());
@@ -574,10 +576,10 @@ export default function CarrinhoPage() {
                     >
                       {aplicandoCupom ? (
                         <>
-                          <span className="spinner" /> Aplicando...
+                          <span className="spinner" /> {t('applying')}
                         </>
                       ) : (
-                        'Aplicar'
+                        t('apply')
                       )}
                     </button>
                   </div>
@@ -620,7 +622,7 @@ export default function CarrinhoPage() {
                         fontWeight: 600,
                       }}
                     >
-                      Remover
+                      {t('remove')}
                     </button>
                   </div>
                 )}
@@ -645,7 +647,7 @@ export default function CarrinhoPage() {
 
             {/* COLUNA DIREITA - Resumo */}
             <div style={{ position: 'sticky', top: 20 }}>
-              <Card title="Resumo Financeiro">
+              <Card title={t('financialSummary')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <Linha
                     label={`Subtotal (${totalItens} ${
@@ -654,7 +656,7 @@ export default function CarrinhoPage() {
                     valor={formatBRL(subtotal)}
                   />
                   <Linha
-                    label="Desconto"
+                    label={t('discount')}
                     valor={
                       totais.desconto > 0
                         ? `- ${formatBRL(totais.desconto)}`
@@ -663,13 +665,13 @@ export default function CarrinhoPage() {
                     cor={totais.desconto > 0 ? SUCCESS : MUTED}
                   />
                   <Linha
-                    label="Frete"
+                    label={t('shipping')}
                     valor={
                       opcaoSelecionada
                         ? totais.valorFrete === 0 && cupomAtivo?.tipo === 'frete_gratis'
-                          ? 'Grátis'
-                          : formatBRL(totais.valorFrete)
-                        : 'A calcular'
+                          ? t('free')
+                              : formatBRL(totais.valorFrete)
+                            : t('toCalculate')
                     }
                     cor={
                       totais.valorFrete === 0 && opcaoSelecionada
@@ -715,7 +717,7 @@ export default function CarrinhoPage() {
                           letterSpacing: 0.5,
                         }}
                       >
-                        Total
+                        {t('Total')}
                       </div>
                       <div
                         style={{
@@ -770,7 +772,7 @@ export default function CarrinhoPage() {
                       e.currentTarget.style.backgroundColor = BORDEAUX;
                   }}
                 >
-                  Finalizar Compra →
+                  {t('Finalizar Compra →')}
                 </button>
 
                 <div
@@ -1003,7 +1005,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
       {/* Remover */}
       <button
         onClick={() => onRemove(item.id)}
-        title="Remover item"
+        title={t('removeItem')}
         style={{
           width: 36,
           height: 36,

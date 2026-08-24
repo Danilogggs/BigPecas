@@ -4,12 +4,14 @@
  */
 
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const PRIMARY_ACTION = 'var(--bp-primary-action)';
 const ON_PRIMARY = 'var(--bp-on-primary)';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <div
@@ -38,14 +40,14 @@ export default function ProductCard({ product }) {
       <div style={{ position: 'relative', height: 160 }}>
         <img
           src={product.image}
-          alt={product.name}
+          alt={product.name || t('partWithoutName')}
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
           }}
           onError={(e) => {
-            e.currentTarget.src = 'https://via.placeholder.com/280x160?text=Imagem+Indisponível';
+            e.currentTarget.src = `https://via.placeholder.com/280x160?text=${encodeURIComponent(t('Imagem indisponível'))}`;
           }}
         />
         <span
@@ -138,7 +140,7 @@ export default function ProductCard({ product }) {
               navigate('/buscaPecas');
             }}
           >
-            Ver catálogo
+            {t('viewCatalog')}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrderContext';
 import { formatarCep, validarCep, sanitizarCep } from '../services/freteService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const BORDEAUX = 'var(--bp-green-800)';
 const CREAM = 'var(--bp-cream)';
@@ -46,6 +47,7 @@ export default function CheckoutPage() {
   const location = useLocation();
   const { cartItems, getTotal, clearCart } = useCart();
   const { criarPedido, confirmarPagamentoPedido } = useOrders();
+  const { t } = useLanguage();
 
   const dadosCarrinho = location.state || {};
 
@@ -105,16 +107,16 @@ export default function CheckoutPage() {
 
   const validarEnderecoStep = () => {
     const newErrors = {};
-    if (!endereco.nome.trim()) newErrors.nome = 'Informe o nome do destinatário.';
-    if (!validarCep(endereco.cep)) newErrors.cep = 'CEP inválido.';
+    if (!endereco.nome.trim()) newErrors.nome = t('recipientName');
+    if (!validarCep(endereco.cep)) newErrors.cep = t('cepRequired');
     if (!endereco.logradouro.trim())
-      newErrors.logradouro = 'Informe o endereço.';
-    if (!endereco.numero.trim()) newErrors.numero = 'Informe o número.';
-    if (!endereco.bairro.trim()) newErrors.bairro = 'Informe o bairro.';
-    if (!endereco.cidade.trim()) newErrors.cidade = 'Informe a cidade.';
-    if (!endereco.uf.trim()) newErrors.uf = 'Informe o UF.';
+      newErrors.logradouro = t('address');
+    if (!endereco.numero.trim()) newErrors.numero = t('number');
+    if (!endereco.bairro.trim()) newErrors.bairro = t('neighborhood');
+    if (!endereco.cidade.trim()) newErrors.cidade = t('city');
+    if (!endereco.uf.trim()) newErrors.uf = 'UF';
     if (!endereco.telefone.trim() || endereco.telefone.length < 10)
-      newErrors.telefone = 'Telefone inválido.';
+      newErrors.telefone = t('phone');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -126,12 +128,12 @@ export default function CheckoutPage() {
     const newErrors = {};
     const numLimpo = dadosCartao.numero.replace(/\D/g, '');
     if (numLimpo.length < 13 || numLimpo.length > 19)
-      newErrors.cardNumero = 'Número de cartão inválido.';
-    if (!dadosCartao.nome.trim()) newErrors.cardNome = 'Informe o nome impresso.';
+      newErrors.cardNumero = t('cardNumber');
+    if (!dadosCartao.nome.trim()) newErrors.cardNome = t('printedName');
     if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(dadosCartao.validade))
-      newErrors.cardValidade = 'Validade no formato MM/AA.';
+      newErrors.cardValidade = t('expiry');
     if (!/^\d{3,4}$/.test(dadosCartao.cvv))
-      newErrors.cardCvv = 'CVV inválido.';
+      newErrors.cardCvv = t('cardCvvPlaceholder');
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -174,7 +176,7 @@ export default function CheckoutPage() {
       setEtapa(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      setErroFinal(error?.message || 'Não foi possível concluir o pedido. Tente novamente.');
+      setErroFinal(error?.message || t('orderCompletionFailed'));
     } finally {
       setProcessando(false);
     }
@@ -196,10 +198,10 @@ export default function CheckoutPage() {
           }}
         >
           <h2 style={{ color: BORDEAUX, marginTop: 0 }}>
-            Carrinho vazio
+            {t('Carrinho vazio')}
           </h2>
           <p style={{ color: MUTED }}>
-            Adicione peças ao carrinho antes de finalizar a compra.
+            {t('Adicione peças ao carrinho antes de finalizar a compra.')}
           </p>
           <button
             onClick={() => navigate('/buscaPecas')}
@@ -214,7 +216,7 @@ export default function CheckoutPage() {
               marginTop: 12,
             }}
           >
-            Explorar Peças
+            {t('Explorar Peças')}
           </button>
         </div>
       </div>
@@ -237,10 +239,10 @@ export default function CheckoutPage() {
           }}
         >
           <h2 style={{ color: BORDEAUX, marginTop: 0 }}>
-            Calcule o frete primeiro
+            {t('Calcule o frete primeiro')}
           </h2>
           <p style={{ color: MUTED }}>
-            Volte ao carrinho e selecione uma opção de entrega.
+            {t('Volte ao carrinho e selecione uma opção de entrega.')}
           </p>
           <button
             onClick={() => navigate('/carrinho')}
@@ -255,7 +257,7 @@ export default function CheckoutPage() {
               marginTop: 12,
             }}
           >
-            Voltar ao Carrinho
+            {t('Voltar ao Carrinho')}
           </button>
         </div>
       </div>
@@ -333,11 +335,11 @@ export default function CheckoutPage() {
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ fontSize: '0.8rem', color: MUTED, marginBottom: 6 }}>
             <span style={{ cursor: 'pointer' }} onClick={() => navigate('/carrinho')}>
-              Carrinho
+              {t('Carrinho')}
             </span>{' '}
             ›{' '}
             <span style={{ color: BORDEAUX, fontWeight: 600 }}>
-              Finalizar Compra
+              {t('Finalizar Compra')}
             </span>
           </div>
           <h1
@@ -349,7 +351,7 @@ export default function CheckoutPage() {
               fontFamily: "'Playfair Display', Georgia, serif",
             }}
           >
-            {etapa === 4 ? 'Compra completa' : 'Finalizar Compra'}
+            {etapa === 4 ? t('Compra completa') : t('Finalizar Compra')}
           </h1>
         </div>
 
@@ -476,10 +478,10 @@ export default function CheckoutPage() {
                 >
                   {processando ? (
                     <>
-                      <span className="spinner-lg" /> Processando...
+                      <span className="spinner-lg" /> {t('processing')}
                     </>
                   ) : (
-                    'Confirmar pagamento e concluir compra'
+                    t('confirmPaymentAndComplete')
                   )}
                 </button>
               )}
@@ -505,6 +507,7 @@ export default function CheckoutPage() {
 }
 
 function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
+  const { t } = useLanguage();
   return (
     <section
       style={{
@@ -543,7 +546,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
           letterSpacing: 0.8,
         }}
       >
-        Pagamento confirmado
+        {t('Pagamento confirmado')}
       </span>
       <h2
         style={{
@@ -553,10 +556,10 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
           fontSize: '2rem',
         }}
       >
-        Compra concluída com sucesso
+        {t('Compra concluída com sucesso')}
       </h2>
       <p style={{ margin: '0 auto', maxWidth: 520, color: MUTED, lineHeight: 1.65 }}>
-        Seu pedido <strong style={{ color: DARK }}>#{pedido?.id}</strong> foi confirmado e já está disponível para acompanhamento.
+        {t('orderConfirmed', { id: pedido?.id })}
       </p>
       <div
         style={{
@@ -580,7 +583,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
             cursor: 'pointer',
           }}
         >
-          Acompanhar pedido
+          {t('Acompanhar pedido')}
         </button>
         <button
           type="button"
@@ -595,7 +598,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
             cursor: 'pointer',
           }}
         >
-          Continuar comprando
+          {t('Continuar comprando')}
         </button>
       </div>
     </section>
@@ -603,7 +606,8 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
 }
 
 function Stepper({ etapa }) {
-  const steps = ['Endereço', 'Pagamento', 'Revisão', 'Compra completa'];
+  const { t } = useLanguage();
+  const steps = ['deliveryAddress', 'payment', 'reviewOrder', 'completePurchase'];
   return (
     <div
       style={{
@@ -650,7 +654,7 @@ function Stepper({ etapa }) {
                   letterSpacing: 0.4,
                 }}
               >
-                Etapa {numero}
+                {t('Etapa')} {numero}
               </div>
               <div
                 style={{
@@ -659,7 +663,7 @@ function Stepper({ etapa }) {
                   color: ativo || concluido ? DARK : MUTED,
                 }}
               >
-                {label}
+                {t(label)}
               </div>
             </div>
             {i < steps.length - 1 && (
@@ -694,6 +698,7 @@ function Field({ label, error, children, span = 1 }) {
 }
 
 function EnderecoForm({ endereco, setEndereco, errors }) {
+  const { t } = useLanguage();
   const handleChange = (campo, valor) =>
     setEndereco((prev) => ({ ...prev, [campo]: valor }));
 
@@ -707,10 +712,10 @@ function EnderecoForm({ endereco, setEndereco, errors }) {
       }}
     >
       <h2 style={{ margin: '0 0 4px', color: BORDEAUX, fontSize: '1.15rem' }}>
-        Endereço de Entrega
+        {t('deliveryAddress')}
       </h2>
       <p style={{ margin: '0 0 1.5rem', color: MUTED, fontSize: '0.88rem' }}>
-        Informe o local onde deseja receber as peças.
+        {t('deliveryAddressDescription')}
       </p>
 
       <div
@@ -720,32 +725,32 @@ function EnderecoForm({ endereco, setEndereco, errors }) {
           gap: '1rem',
         }}
       >
-        <Field label="Nome completo do destinatário" error={errors.nome} span={6}>
+        <Field label={t('recipientName')} error={errors.nome} span={6}>
           <input
             className={`input-clean ${errors.nome ? 'input-error' : ''}`}
             value={endereco.nome}
             onChange={(e) => handleChange('nome', e.target.value)}
-            placeholder="João da Silva"
+            placeholder={t('fullNamePlaceholder')}
           />
         </Field>
 
-        <Field label="CEP" error={errors.cep} span={2}>
+        <Field label={t('zipCode')} error={errors.cep} span={2}>
           <input
             className={`input-clean ${errors.cep ? 'input-error' : ''}`}
             value={endereco.cep}
             onChange={(e) => handleChange('cep', formatarCep(e.target.value))}
-            placeholder="00000-000"
+            placeholder={t('zipPlaceholder')}
             maxLength={9}
           />
         </Field>
-        <Field label="Telefone" error={errors.telefone} span={2}>
+        <Field label={t('phone')} error={errors.telefone} span={2}>
           <input
             className={`input-clean ${errors.telefone ? 'input-error' : ''}`}
             value={endereco.telefone}
             onChange={(e) =>
               handleChange('telefone', e.target.value.replace(/\D/g, '').slice(0, 11))
             }
-            placeholder="11999998888"
+            placeholder={t('phonePlaceholder')}
           />
         </Field>
         <Field label="UF" error={errors.uf} span={2}>
@@ -755,51 +760,51 @@ function EnderecoForm({ endereco, setEndereco, errors }) {
             onChange={(e) =>
               handleChange('uf', e.target.value.toUpperCase().slice(0, 2))
             }
-            placeholder="SP"
+            placeholder={t('statePlaceholder')}
             maxLength={2}
           />
         </Field>
 
-        <Field label="Endereço" error={errors.logradouro} span={4}>
+        <Field label={t('address')} error={errors.logradouro} span={4}>
           <input
             className={`input-clean ${errors.logradouro ? 'input-error' : ''}`}
             value={endereco.logradouro}
             onChange={(e) => handleChange('logradouro', e.target.value)}
-            placeholder="Rua das Peças"
+            placeholder={t('streetPlaceholder')}
           />
         </Field>
-        <Field label="Número" error={errors.numero} span={2}>
+        <Field label={t('number')} error={errors.numero} span={2}>
           <input
             className={`input-clean ${errors.numero ? 'input-error' : ''}`}
             value={endereco.numero}
             onChange={(e) => handleChange('numero', e.target.value)}
-            placeholder="123"
+            placeholder={t('numberPlaceholder')}
           />
         </Field>
 
-        <Field label="Complemento (opcional)" span={3}>
+        <Field label={t('complementOptional')} span={3}>
           <input
             className="input-clean"
             value={endereco.complemento}
             onChange={(e) => handleChange('complemento', e.target.value)}
-            placeholder="Apto, bloco, etc."
+            placeholder={t('complementPlaceholder')}
           />
         </Field>
-        <Field label="Bairro" error={errors.bairro} span={3}>
+        <Field label={t('neighborhood')} error={errors.bairro} span={3}>
           <input
             className={`input-clean ${errors.bairro ? 'input-error' : ''}`}
             value={endereco.bairro}
             onChange={(e) => handleChange('bairro', e.target.value)}
-            placeholder="Centro"
+            placeholder={t('neighborhoodPlaceholder')}
           />
         </Field>
 
-        <Field label="Cidade" error={errors.cidade} span={6}>
+        <Field label={t('city')} error={errors.cidade} span={6}>
           <input
             className={`input-clean ${errors.cidade ? 'input-error' : ''}`}
             value={endereco.cidade}
             onChange={(e) => handleChange('cidade', e.target.value)}
-            placeholder="São Paulo"
+            placeholder={t('cityPlaceholder')}
           />
         </Field>
       </div>
@@ -829,6 +834,7 @@ function PagamentoForm({
   errors,
   totalEstimado,
 }) {
+  const { t } = useLanguage();
   const handleCartao = (campo, valor) =>
     setDadosCartao((prev) => ({ ...prev, [campo]: valor }));
 
@@ -842,10 +848,10 @@ function PagamentoForm({
       }}
     >
       <h2 style={{ margin: '0 0 4px', color: BORDEAUX, fontSize: '1.15rem' }}>
-        Forma de Pagamento
+        {t('paymentMethod')}
       </h2>
       <p style={{ margin: '0 0 1.5rem', color: MUTED, fontSize: '0.88rem' }}>
-        Escolha como deseja pagar.
+        {t('paymentMethodDescription')}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -873,9 +879,9 @@ function PagamentoForm({
                 {forma.icone}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: DARK }}>{forma.nome}</div>
+                <div style={{ fontWeight: 700, color: DARK }}>{t(forma.id === 'pix' ? 'pixPayment' : forma.id === 'cartao' ? 'cardPayment' : 'bankSlip')}</div>
                 <div style={{ fontSize: '0.82rem', color: MUTED }}>
-                  {forma.descricao}
+                  {t(forma.id === 'pix' ? 'paymentApproval' : forma.id === 'cartao' ? 'cardDescription' : 'bankSlipDescription')}
                   {forma.desconto > 0 && (
                     <span
                       style={{
@@ -933,7 +939,7 @@ function PagamentoForm({
               fontWeight: 700,
             }}
           >
-            Dados do Cartão
+            {t('cardData')}
           </h3>
           <div
             style={{
@@ -942,35 +948,35 @@ function PagamentoForm({
               gap: '1rem',
             }}
           >
-            <Field label="Número do cartão" error={errors.cardNumero} span={6}>
+            <Field label={t('cardNumber')} error={errors.cardNumero} span={6}>
               <input
                 className={`input-clean ${errors.cardNumero ? 'input-error' : ''}`}
                 value={dadosCartao.numero}
                 onChange={(e) =>
                   handleCartao('numero', formatarNumeroCartao(e.target.value))
                 }
-                placeholder="0000 0000 0000 0000"
+                placeholder={t('cardNumberPlaceholder')}
                 maxLength={23}
               />
             </Field>
-            <Field label="Nome impresso" error={errors.cardNome} span={6}>
+            <Field label={t('printedName')} error={errors.cardNome} span={6}>
               <input
                 className={`input-clean ${errors.cardNome ? 'input-error' : ''}`}
                 value={dadosCartao.nome}
                 onChange={(e) =>
                   handleCartao('nome', e.target.value.toUpperCase())
                 }
-                placeholder="COMO ESTÁ NO CARTÃO"
+                placeholder={t('cardNamePlaceholder')}
               />
             </Field>
-            <Field label="Validade" error={errors.cardValidade} span={2}>
+            <Field label={t('expiry')} error={errors.cardValidade} span={2}>
               <input
                 className={`input-clean ${errors.cardValidade ? 'input-error' : ''}`}
                 value={dadosCartao.validade}
                 onChange={(e) =>
                   handleCartao('validade', formatarValidade(e.target.value))
                 }
-                placeholder="MM/AA"
+                placeholder={t('cardExpiryPlaceholder')}
                 maxLength={5}
               />
             </Field>
@@ -984,11 +990,11 @@ function PagamentoForm({
                     e.target.value.replace(/\D/g, '').slice(0, 4),
                   )
                 }
-                placeholder="000"
+                placeholder={t('cardCvvPlaceholder')}
                 maxLength={4}
               />
             </Field>
-            <Field label="Parcelas" span={2}>
+            <Field label={t('installments')} span={2}>
               <select
                 className="input-clean"
                 value={dadosCartao.parcelas}
@@ -1008,15 +1014,15 @@ function PagamentoForm({
       {pagamento === 'pix' && (
         <InfoBox
           icone="📱"
-          titulo="Pagamento via PIX"
-          texto="Após confirmar o pedido, você receberá um QR Code para pagar com seu app bancário. Aprovação em segundos."
+          titulo={t('pixPayment')}
+          texto={t('pixDescription')}
         />
       )}
       {pagamento === 'boleto' && (
         <InfoBox
           icone="🧾"
-          titulo="Boleto Bancário"
-          texto="O boleto será gerado e enviado para seu e-mail. A compensação ocorre em até 2 dias úteis."
+          titulo={t('bankSlip')}
+          texto={t('bankSlipDescription')}
         />
       )}
     </section>
@@ -1049,6 +1055,7 @@ function InfoBox({ icone, titulo, texto }) {
 }
 
 function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
+  const { t } = useLanguage();
   return (
     <section
       style={{
@@ -1059,10 +1066,10 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
       }}
     >
       <h2 style={{ margin: '0 0 1.5rem', color: BORDEAUX, fontSize: '1.15rem' }}>
-        Revisão do Pedido
+        {t('reviewOrder')}
       </h2>
 
-      <BlocoRevisao titulo="Endereço">
+      <BlocoRevisao titulo={t('address')}>
         <div style={{ color: DARK, fontWeight: 600 }}>{endereco.nome}</div>
         <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
           {endereco.logradouro}, {endereco.numero}
@@ -1074,7 +1081,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
         </div>
       </BlocoRevisao>
 
-      <BlocoRevisao titulo="Entrega">
+      <BlocoRevisao titulo={t('deliveryLabel')}>
         <div style={{ color: DARK, fontWeight: 600 }}>
           {frete.transportadora} — {frete.tipo}
         </div>
@@ -1083,7 +1090,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
         </div>
       </BlocoRevisao>
 
-      <BlocoRevisao titulo="Pagamento">
+      <BlocoRevisao titulo={t('payment')}>
         <div style={{ color: DARK, fontWeight: 600 }}>
           {pagamento.icone} {pagamento.nome}
         </div>
@@ -1145,6 +1152,7 @@ function BlocoRevisao({ titulo, children, ultimo }) {
 }
 
 function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento }) {
+  const { t } = useLanguage();
   const totalItens = cartItems.reduce((s, it) => s + it.quantidade, 0);
 
   return (
@@ -1157,7 +1165,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
       }}
     >
       <h2 style={{ margin: '0 0 1.25rem', color: BORDEAUX, fontSize: '1.1rem' }}>
-        Resumo do Pedido
+        {t('orderSummary')}
       </h2>
 
       <div
@@ -1216,7 +1224,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
                 {item.nome}
               </div>
               <div style={{ fontSize: '0.75rem', color: MUTED }}>
-                Qtd: {item.quantidade}
+                {t('quantity')}: {item.quantidade}
               </div>
             </div>
             <div
@@ -1250,10 +1258,10 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
           />
         )}
         <Linha
-          label="Frete"
+          label={t('shipping')}
           valor={
             totais.valorFrete === 0 && cupom?.tipo === 'frete_gratis'
-              ? 'Grátis'
+              ? t('free')
               : formatBRL(totais.valorFrete)
           }
         />
@@ -1277,7 +1285,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
             letterSpacing: 0.5,
           }}
         >
-          Total
+          {t('total')}
         </div>
         <div
           style={{ fontSize: '1.6rem', fontWeight: 800, color: BORDEAUX, lineHeight: 1 }}
@@ -1298,7 +1306,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
           border: `1px solid ${BORDER}`,
         }}
       >
-        🔒 Seus dados estão protegidos
+        🔒 {t('protectedData')}
       </div>
     </section>
   );

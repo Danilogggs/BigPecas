@@ -1,10 +1,12 @@
+import { useLanguage } from '../contexts/LanguageContext';
 
 
 export function FormField({ label, error, children, required = false }) {
+  const { t } = useLanguage();
   return (
     <div className="form-group">
       <label className="form-label">
-        {label} {required && '*'}
+        {t(label)} {required && '*'}
       </label>
       {children}
       {error && <div className="form-error">{error}</div>}
@@ -47,6 +49,7 @@ export function FormSelect({
   placeholder = 'Selecione uma opção',
   ...props
 }) {
+  const { t } = useLanguage();
   return (
     <FormField label={label} error={error} required={required}>
       <select
@@ -56,7 +59,7 @@ export function FormSelect({
         className={`form-select ${error ? 'error' : ''}`}
         {...props}
       >
-        <option value="">{placeholder}</option>
+        <option value="">{t(placeholder)}</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>
             {option.nome_categoria || option.nome_material}

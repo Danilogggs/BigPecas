@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const REGEX = { email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ };
 
@@ -9,6 +11,7 @@ export default function LoginPage() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { login } = useAuth();
+  const { t } = useLanguage();
 
   const [form, setForm]     = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
@@ -23,9 +26,9 @@ export default function LoginPage() {
 
   const validate = () => {
     const e = {};
-    if (!form.email.trim())                          e.email    = 'Informe seu e-mail.';
-    else if (!REGEX.email.test(form.email.trim()))   e.email    = 'Digite um e-mail válido.';
-    if (!form.password.trim())                       e.password = 'Informe sua senha.';
+    if (!form.email.trim())                          e.email    = t('emailRequired');
+    else if (!REGEX.email.test(form.email.trim()))   e.email    = t('validEmail');
+    if (!form.password.trim())                       e.password = t('passwordRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -39,7 +42,7 @@ export default function LoginPage() {
       await login(form.email.trim().toLowerCase(), form.password);
       navigate(location.state?.from?.pathname || '/', { replace: true });
     } catch (err) {
-      setError(mapSupabaseAuthError(err, 'login'));
+      setError(t(mapSupabaseAuthError(err, 'login')));
     } finally {
       setLoading(false);
     }
@@ -47,6 +50,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-layout">
+      <LanguageSwitcher className="auth-language-switcher" />
       {/* Painel esquerdo */}
       <div className="auth-panel-left">
         <div className="auth-panel-left__glow" />
@@ -62,23 +66,22 @@ export default function LoginPage() {
           </div>
 
           <h1 className="auth-panel-left__heading">
-            Cada peça conta<br />uma história.
+            {t('loginHeroTitle')}<br />{t('loginHeroSubtitle')}
           </h1>
 
           <p className="auth-panel-left__sub">
-            Entre para acompanhar seus anúncios, pedidos e a
-            curadoria de peças raras feita para o universo dos carros clássicos.
+            {t('loginHeroDescription')}
           </p>
 
           <div className="auth-panel-left__features">
             {[
-              'Anuncie peças com procedência verificada',
-              'Acompanhe pedidos e simulações de frete',
-              'Curadoria por marca, década e condição',
+              'loginFeatureListings',
+              'loginFeatureOrders',
+              'loginFeatureCuration',
             ].map((text) => (
               <div key={text} className="auth-panel-left__feature">
                 <span className="auth-panel-left__feature-icon" aria-hidden="true">•</span>
-                {text}
+                {t(text)}
               </div>
             ))}
           </div>
@@ -92,18 +95,18 @@ export default function LoginPage() {
       {/* Painel direito */}
       <div className="auth-panel-right">
         <div className="auth-form-card">
-          <p className="auth-form-tag">ACESSO À CONTA</p>
-          <h2 className="auth-form-title">Entrar na sua conta</h2>
+          <p className="auth-form-tag">{t('accountAccess')}</p>
+          <h2 className="auth-form-title">{t('enterAccount')}</h2>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group" style={{ marginBottom: '1.1rem' }}>
-              <label className="label" htmlFor="email">E-mail</label>
+              <label className="label" htmlFor="email">{t('email')}</label>
               <input
                 id="email"
                 className={`input ${errors.email ? 'error' : ''}`}
                 type="email"
                 name="email"
-                placeholder="bernardo@bigpecas.com.br"
+                placeholder={t('emailPlaceholder')}
                 value={form.email}
                 onChange={handleChange}
                 autoComplete="email"
@@ -113,9 +116,9 @@ export default function LoginPage() {
 
             <div className="form-group" style={{ marginBottom: '1.25rem' }}>
               <div className="flex-between" style={{ marginBottom: '.4rem' }}>
-                <label className="label" htmlFor="password">Senha</label>
+                <label className="label" htmlFor="password">{t('password')}</label>
                 <Link to="/recuperar-senha" style={{ fontSize: '.78rem', color: 'var(--bp-gold)', fontWeight: 600 }}>
-                  Esqueci a senha
+                  {t('forgotPassword')}
                 </Link>
               </div>
               <input
@@ -139,14 +142,14 @@ export default function LoginPage() {
               disabled={loading}
               style={{ borderRadius: 'var(--r-md)' }}
             >
-              {loading ? <><span className="spinner" /> Entrando…</> : 'Entrar'}
+              {loading ? <><span className="spinner" /> {t('loading')}</> : t('login')}
             </button>
           </form>
 
           <div className="auth-form-footer">
             <span>
-              Ainda não tem conta?{' '}
-              <Link to="/cadastro-usuario">Cadastre-se</Link>
+              {t('noAccount')}{' '}
+              <Link to="/cadastro-usuario">{t('signUp')}</Link>
             </span>
           </div>
         </div>

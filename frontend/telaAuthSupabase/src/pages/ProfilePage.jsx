@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { buscarPerfilUsuario, salvarPerfilUsuario } from '../services/usuarioService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const INITIAL_FORM = {
   full_name: '',
@@ -24,6 +25,7 @@ const REGEX = {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
@@ -254,7 +256,7 @@ export default function ProfilePage() {
       <div className="profile-page" style={{ minHeight: '100vh', backgroundColor: 'var(--bp-cream)' }}>
         <Header />
         <main style={{ padding: '2rem', color: 'var(--bp-text-sub)' }}>
-          Carregando perfil...
+          {t('Carregando perfil...')}
         </main>
       </div>
     );
@@ -288,7 +290,7 @@ export default function ProfilePage() {
             color: 'var(--bp-text)',
           }}
         >
-          Editar Perfil
+          {t('Editar Perfil')}
         </h1>
 
         <p
@@ -298,12 +300,12 @@ export default function ProfilePage() {
             color: 'var(--bp-text-muted)',
           }}
         >
-          Atualize suas informações básicas.
+          {t('Atualize suas informações básicas.')}
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Nome completo *</label>
+            <label style={labelStyle}>{t('Nome completo')} *</label>
             <input
               type="text"
               name="full_name"
@@ -315,7 +317,7 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>E-mail</label>
+            <label style={labelStyle}>{t('email')}</label>
             <input
               type="email"
               name="email"
@@ -326,30 +328,30 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Gênero</label>
+            <label style={labelStyle}>{t('Gênero')}</label>
             <select
               name="gender"
               value={form.gender}
               onChange={handleChange}
               style={getInputStyle('gender')}
             >
-              <option value="">Prefiro não informar</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Não-binário">Não-binário</option>
-              <option value="Outro">Outro</option>
+              <option value="">{t('Prefiro não informar')}</option>
+              <option value="Masculino">{t('male')}</option>
+              <option value="Feminino">{t('female')}</option>
+              <option value="Não-binário">{t('nonBinary')}</option>
+              <option value="Outro">{t('other')}</option>
             </select>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
             <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>CEP *</label>
+              <label style={labelStyle}>{t('zipCode')} *</label>
               <input
                 type="text"
                 name="cep"
                 value={form.cep}
                 onChange={handleCepChange}
-                placeholder="00000-000"
+                placeholder={t('zipPlaceholder')}
                 maxLength={9}
                 style={getInputStyle('cep')}
               />
@@ -357,13 +359,13 @@ export default function ProfilePage() {
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>Telefone *</label>
+              <label style={labelStyle}>{t('phone')} *</label>
               <input
                 type="text"
                 name="telefone"
                 value={form.telefone}
                 onChange={handleTelefoneChange}
-                placeholder="(00) 00000-0000"
+                placeholder={t('phoneMaskPlaceholder')}
                 maxLength={15}
                 style={getInputStyle('telefone')}
               />
@@ -381,11 +383,11 @@ export default function ProfilePage() {
               lineHeight: 1.5,
             }}
           >
-            Toda conta pode comprar e vender. Os dados abaixo só se tornam obrigatórios ao anunciar a primeira peça.
+            {t('Toda conta pode comprar e vender. Os dados abaixo só se tornam obrigatórios ao anunciar a primeira peça.')}
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Nome da loja</label>
+            <label style={labelStyle}>{t('Nome da loja')}</label>
             <input
               type="text"
               name="nome_loja"
@@ -397,7 +399,7 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Descrição da loja</label>
+            <label style={labelStyle}>{t('Descrição da loja')}</label>
             <textarea
               name="descricao_loja"
               value={form.descricao_loja}
@@ -423,7 +425,7 @@ export default function ProfilePage() {
               style={{ width: '18px', height: '18px', accentColor: 'var(--bp-gold)' }}
             />
             <label htmlFor="receber-email-notificacao-venda" style={{ color: 'var(--bp-text)', fontWeight: 600, cursor: 'pointer' }}>
-              Receber e-mail ao confirmar uma venda
+              {t('Receber e-mail ao confirmar uma venda')}
             </label>
           </div>
 
@@ -456,7 +458,7 @@ export default function ProfilePage() {
                 opacity: saving ? 0.7 : 1,
               }}
             >
-              {saving ? 'Salvando...' : 'Salvar alterações'}
+              {saving ? t('Salvando...') : t('Salvar alterações')}
             </button>
 
             <button
@@ -473,7 +475,7 @@ export default function ProfilePage() {
                 cursor: 'pointer',
               }}
             >
-              Editar minhas peças
+              {t('Editar minhas peças')}
             </button>
 
             <button
@@ -490,7 +492,7 @@ export default function ProfilePage() {
                 cursor: 'pointer',
               }}
             >
-              Voltar para home
+              {t('Voltar para home')}
             </button>
           </div>
         </form>

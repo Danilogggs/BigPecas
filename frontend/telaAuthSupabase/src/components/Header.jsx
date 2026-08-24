@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { buscarPerfilUsuario } from '../services/usuarioService';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -10,6 +12,7 @@ export default function Header() {
   const [searchParams] = useSearchParams();
   const { user, logout } = useAuth();
   const { cartItems } = useCart();
+  const { t } = useLanguage();
 
   const [localSearch, setLocalSearch] = useState(searchParams.get('nome') || '');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -48,8 +51,8 @@ export default function Header() {
   };
 
   const navLinks = [
-    { label: 'Catálogo',       path: '/buscaPecas' },
-    { label: 'Vender peça',    path: '/cadastroPecas' },
+    { label: t('catalog'),       path: '/buscaPecas' },
+    { label: t('sellPart'),      path: '/cadastroPecas' },
   ];
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -83,9 +86,9 @@ export default function Header() {
           type="text"
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
-          placeholder="Buscar peça, código ou modelo…"
+          placeholder={t('searchPlaceholder')}
         />
-        <button type="submit" aria-label="Buscar">
+        <button type="submit" aria-label={t('search')}>
           <SearchIcon />
         </button>
       </form>
@@ -94,12 +97,13 @@ export default function Header() {
 
       {/* Actions */}
       <div className="bp-header__actions">
+        <LanguageSwitcher />
         {/* Cart */}
         {user && (
           <button
             className="bp-header__cart"
             onClick={() => navigate('/carrinho')}
-            title="Meu carrinho"
+            title={t('myCart')}
           >
             <CartIcon />
             {cartCount > 0 && (
@@ -118,7 +122,7 @@ export default function Header() {
               onClick={() => setDropdownOpen((v) => !v)}
               aria-expanded={dropdownOpen}
               aria-haspopup="menu"
-              aria-label="Abrir menu da conta"
+              aria-label={t('accountMenu')}
             >
               <UserIcon />
               <ChevronIcon open={dropdownOpen} />
@@ -127,16 +131,16 @@ export default function Header() {
             {dropdownOpen && (
               <div className="bp-header__dropdown" role="menu">
                 {[
-                  { label: 'Início',            path: '/' },
-                  ...(isAdmin ? [{ label: 'Administração', path: '/admin' }] : []),
-                  { label: 'Catálogo',           path: '/buscaPecas' },
-                  { label: 'Vender peça',        path: '/cadastroPecas' },
-                  { label: 'Editar perfil',      path: '/perfil' },
-                  { label: 'Lista de Desejos',   path: '/wish' },
-                  { label: 'Carrinho',           path: '/carrinho' },
-                  { label: 'Chats',              path: '/chats' },
-                  { label: 'Compras e vendas',   path: '/pedidos' },
-                  { label: 'Configurações',      path: '/configuracoes' },
+                  { label: t('home'),            path: '/' },
+                  ...(isAdmin ? [{ label: t('administration'), path: '/admin' }] : []),
+                  { label: t('catalog'),         path: '/buscaPecas' },
+                  { label: t('sellPart'),        path: '/cadastroPecas' },
+                  { label: t('editProfile'),     path: '/perfil' },
+                  { label: t('wishlist'),        path: '/wish' },
+                  { label: t('cart'),            path: '/carrinho' },
+                  { label: t('chats'),           path: '/chats' },
+                  { label: t('orders'),          path: '/pedidos' },
+                  { label: t('settings'),        path: '/configuracoes' },
                 ].map(({ label, path }) => (
                   <button
                     key={path}
@@ -152,7 +156,7 @@ export default function Header() {
                   role="menuitem"
                   onClick={() => { logout(); navigate('/login'); setDropdownOpen(false); }}
                 >
-                  Sair
+                  {t('logout')}
                 </button>
               </div>
             )}
@@ -162,7 +166,7 @@ export default function Header() {
             className="bp-header__btn-login"
             onClick={() => navigate('/login')}
           >
-            Entrar
+            {t('login')}
           </button>
         )}
       </div>

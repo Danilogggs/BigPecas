@@ -477,6 +477,13 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); line-height: 1.2; color
 .bp-header__spacer { flex: 1; }
 
 .bp-header__actions { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+.bp-header__language select { min-width: 58px; padding: 7px 5px; border: 1px solid rgba(255,255,255,.35); border-radius: 6px; background: transparent; color: var(--bp-white); font-size: .72rem; font-weight: 800; cursor: pointer; }
+.bp-header__language option { color: var(--bp-green-900); background: var(--bp-white); }
+.bp-language-switcher select { min-width: 58px; padding: 7px 5px; border: 1px solid rgba(21,34,24,.35); border-radius: 6px; background: var(--bp-surface); color: var(--bp-green-900); font-size: .72rem; font-weight: 800; cursor: pointer; }
+.bp-language-switcher option { color: var(--bp-green-900); background: var(--bp-white); }
+.auth-language-switcher { position: absolute; top: 1.25rem; right: 1.5rem; z-index: 5; }
+.public-language-switcher { position: fixed; top: 1.25rem; right: 1.5rem; z-index: 5; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .bp-header__btn-login {
   padding: .5rem 1.1rem;

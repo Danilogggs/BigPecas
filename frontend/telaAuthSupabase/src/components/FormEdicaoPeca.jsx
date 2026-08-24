@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { FormInput, FormSelect, FormTextarea } from './FormComponents';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const FormEdicaoPeca = memo(function FormEdicaoPeca({
   formData,
@@ -16,15 +17,16 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
   onSubmit,
   onLimpar,
 }) {
+  const { t } = useLanguage();
   const conditions = [
-    { id: 'NOS', label: 'NOS (Novo em Estoque)' },
-    { id: 'USED', label: 'USED (Usado)' },
-    { id: 'REFURBISHED', label: 'REFURBISHED (Refabricado)' },
+    { id: 'NOS', label: t('NOS (Novo em Estoque)') },
+    { id: 'USED', label: t('USED (Usado)') },
+    { id: 'REFURBISHED', label: t('REFURBISHED (Refabricado)') },
   ];
 
   return (
     <div className="editar-form-container">
-      <h2 className="form-title">Editar Peça</h2>
+      <h2 className="form-title">{t('Editar Peça')}</h2>
 
       {message.text && (
         <div className={`form-message ${message.type}`}>{message.text}</div>
@@ -34,7 +36,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
         <div className="form-grid">
           <FormInput
             name="nome_peca"
-            label="Nome da Peça"
+            label={t('Nome da Peça')}
             value={formData.nome_peca}
             onChange={onInputChange}
             error={errors.nome_peca}
@@ -43,7 +45,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
 
           <FormInput
             name="sku"
-            label="SKU"
+            label={t('SKU')}
             value={formData.sku}
             onChange={onInputChange}
             error={errors.sku}
@@ -52,7 +54,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
 
           <FormInput
             name="oem_number"
-            label="Número OEM"
+            label={t('Número OEM')}
             value={formData.oem_number}
             onChange={onInputChange}
             error={errors.oem_number}
@@ -61,7 +63,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
 
           <FormInput
             name="num_serie"
-            label="Número de Série"
+            label={t('Número de Série')}
             value={formData.num_serie}
             onChange={onInputChange}
             error={errors.num_serie}
@@ -70,49 +72,49 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
 
           <FormSelect
             name="categoria_id"
-            label="Categoria"
+            label={t('Categoria')}
             value={formData.categoria_id}
             onChange={onInputChange}
             error={errors.categoria_id}
             options={categorias}
-            placeholder="Selecione uma categoria"
+            placeholder={t('Selecione uma categoria')}
             required
           />
 
           <FormSelect
             name="material_id"
-            label="Material"
+            label={t('Material')}
             value={formData.material_id}
             onChange={onInputChange}
             error={errors.material_id}
             options={materiais}
-            placeholder="Selecione um material"
+            placeholder={t('Selecione um material')}
             required
           />
 
           <FormSelect
             name="condicao"
-            label="Condição"
+            label={t('Condição')}
             value={formData.condicao}
             onChange={onInputChange}
             options={conditions}
-            placeholder="Selecione a condição"
+            placeholder={t('Selecione a condição')}
           />
 
           <FormInput
             name="preco"
-            label="Preço (R$)"
+            label={t('Preço (R$)')}
             value={formData.preco}
             onChange={onInputChange}
             error={errors.preco}
-            placeholder="0.00"
+            placeholder={t('pricePlaceholder')}
             required
           />
 
           <FormInput
             name="estoque_atual"
             type="number"
-            label="Estoque Atual"
+            label={t('Estoque Atual')}
             value={formData.estoque_atual}
             onChange={onInputChange}
             error={errors.estoque_atual}
@@ -122,7 +124,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           <FormInput
             name="peso_gramas"
             type="number"
-            label="Peso (gramas)"
+            label={t('Peso (gramas)')}
             value={formData.peso_gramas}
             onChange={onInputChange}
             error={errors.peso_gramas}
@@ -132,7 +134,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           <FormInput
             name="comprimento_mm"
             type="number"
-            label="Comprimento (mm)"
+            label={t('Comprimento (mm)')}
             value={formData.comprimento_mm}
             onChange={onInputChange}
             error={errors.comprimento_mm}
@@ -142,7 +144,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           <FormInput
             name="largura_mm"
             type="number"
-            label="Largura (mm)"
+            label={t('Largura (mm)')}
             value={formData.largura_mm}
             onChange={onInputChange}
             error={errors.largura_mm}
@@ -152,7 +154,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           <FormInput
             name="altura_mm"
             type="number"
-            label="Altura (mm)"
+            label={t('Altura (mm)')}
             value={formData.altura_mm}
             onChange={onInputChange}
             error={errors.altura_mm}
@@ -163,7 +165,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
         <div className="form-wide">
           <FormTextarea
             name="detalhes_gravacao"
-            label="Detalhes de Gravação"
+            label={t('Detalhes de Gravação')}
             value={formData.detalhes_gravacao}
             onChange={onInputChange}
             error={errors.detalhes_gravacao}
@@ -175,7 +177,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
         <div className="form-wide">
           <FormTextarea
             name="historico_proveniencia"
-            label="Histórico de Procedência"
+            label={t('Histórico de Procedência')}
             value={formData.historico_proveniencia}
             onChange={onInputChange}
             error={errors.historico_proveniencia}
@@ -185,16 +187,16 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
         </div>
 
         <div className="form-wide">
-          <div className="form-label">Imagem da Peça</div>
+          <div className="form-label">{t('Imagem da Peça')}</div>
           {imagemPreview && (
             <div className="form-image-preview">
-              <img src={imagemPreview} alt="Preview" />
+              <img src={imagemPreview} alt={t('Preview')} />
               <button
                 type="button"
                 onClick={onRemoveImage}
                 className="form-image-remove-btn"
               >
-                Remover imagem
+                {t('Remover imagem')}
               </button>
             </div>
           )}
@@ -206,7 +208,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
             className="form-input"
           />
           <div className="form-image-help">
-            Formatos aceitos: JPG, PNG, WEBP (máx. 2MB)
+            {t('Formatos aceitos: JPG, PNG, WEBP (máx. 2MB)')}
           </div>
         </div>
 
@@ -216,7 +218,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
             disabled={saving}
             className="btn btn-primary"
           >
-            {saving ? 'Salvando...' : 'Salvar alterações'}
+            {saving ? t('Salvando...') : t('Salvar alterações')}
           </button>
 
           <button
@@ -224,7 +226,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
             onClick={onLimpar}
             className="btn btn-secondary"
           >
-            Limpar formulário
+            {t('Limpar formulário')}
           </button>
         </div>
       </form>

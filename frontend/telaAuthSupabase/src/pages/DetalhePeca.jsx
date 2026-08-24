@@ -26,6 +26,7 @@ import {
   SPACING,
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function formatarPreco(valor) {
   const numero = Number(valor);
@@ -40,14 +41,13 @@ function formatarPreco(valor) {
   });
 }
 
-function formatarData(valor) {
-  if (!valor) return 'Nao informada';
-
-  const data = new Date(valor);
-
-  if (Number.isNaN(data.getTime())) return 'Nao informada';
-
-  return data.toLocaleDateString('pt-BR');
+function formatarData(valor, formatDate) {
+  if (!valor) return '';
+  return formatDate(valor, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 function buscarNome(lista, id, fallback) {
@@ -56,6 +56,7 @@ function buscarNome(lista, id, fallback) {
 }
 
 function InfoItem({ label, value }) {
+  const { t } = useLanguage();
   return (
     <div
       style={{
@@ -77,13 +78,14 @@ function InfoItem({ label, value }) {
         {label}
       </div>
       <div style={{ color: COLORS.DARK_TEXT, fontWeight: 700, lineHeight: 1.4 }}>
-        {value || 'Nao informado'}
+        {value || t('noInfo')}
       </div>
     </div>
   );
 }
 
 function TextSection({ title, children }) {
+  const { t } = useLanguage();
   return (
     <section
       style={{
@@ -104,14 +106,15 @@ function TextSection({ title, children }) {
         {title}
       </h2>
       <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.7 }}>
-        {children || 'Nao informado'}
+        {children || t('noInfo')}
       </p>
     </section>
   );
 }
 
 function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatClick, notice, resumoAvaliacoes }) {
-  const textoNome = loading ? 'Carregando...' : error || nome || 'Vendedor nao informado';
+  const { t } = useLanguage();
+  const textoNome = loading ? t('loading') : error || nome || t('seller');
 
   return (
     <section
@@ -140,7 +143,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
               margin: `0 0 ${SPACING.SM}`,
             }}
           >
-            Vendedor
+            {t('sellerLabel')}
           </h2>
           <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
             {textoNome}
@@ -158,7 +161,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
               cursor: !fornecedorId || loading ? 'not-allowed' : 'pointer',
             }}
           >
-            Abrir chat
+            {t('openChat')}
           </button>
 
           <button
@@ -171,7 +174,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
               cursor: !fornecedorId || loading ? 'not-allowed' : 'pointer',
             }}
           >
-            Ver vendedor
+            {t('viewSeller')}
           </button>
         </div>
       </div>
@@ -190,11 +193,11 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
           fontWeight: 700,
         }}
       >
-        <span>Avaliação do vendedor</span>
+        <span>{t('sellerRating')}</span>
         <span>
           {resumoAvaliacoes?.total > 0
             ? `★ ${Number(resumoAvaliacoes.media).toFixed(1)} (${resumoAvaliacoes.total})`
-            : 'Ainda sem avaliações'}
+            : t('noReviews')}
         </span>
       </div>
 
@@ -215,6 +218,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
 }
 
 function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
+  const { t } = useLanguage();
   return (
     <section
       style={{
@@ -226,7 +230,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
       }}
     >
       <h2 style={{ color: COLORS.DARK_TEXT, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
-        Avaliações do produto
+        {t('productReviews')}
       </h2>
 
       {resumo.total > 0 ? (
@@ -236,7 +240,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
               ★ {Number(resumo.media).toFixed(1)}
             </strong>
             <span style={{ color: 'var(--bp-text-muted)' }}>
-              {resumo.total} {resumo.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
+              {resumo.total} {resumo.total === 1 ? t('verifiedReviews') : t('verifiedReviewsPlural')}
             </span>
           </div>
           <div style={{ display: 'grid', gap: SPACING.SM }}>
@@ -264,7 +268,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
         </>
       ) : (
         <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.7 }}>
-          Este produto ainda não recebeu avaliações de compras entregues.
+          {t('noProductReviews')}
         </p>
       )}
     </section>
@@ -272,6 +276,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
 }
 
 export default function DetalhePeca() {
+  const { formatDate, t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, removeFromCart, cartItems } = useCart();
@@ -314,7 +319,7 @@ export default function DetalhePeca() {
         setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
         setMateriais(Array.isArray(materiaisData) ? materiaisData : []);
       } catch (error) {
-        setErrorMessage(parseUnexpectedError(error, 'Nao foi possivel carregar os detalhes da peca.'));
+        setErrorMessage(parseUnexpectedError(error, t('partDetailsLoadFailed')));
       } finally {
         setLoading(false);
       }
@@ -418,7 +423,7 @@ export default function DetalhePeca() {
         setFornecedor(usuario?.profile || usuario);
       } catch (error) {
         setFornecedor(null);
-        setFornecedorError(parseUnexpectedError(error, 'Nao foi possivel carregar o dono da peca.'));
+        setFornecedorError(parseUnexpectedError(error, t('sellerLoadFailed')));
       } finally {
         setLoadingFornecedor(false);
       }
@@ -447,12 +452,12 @@ export default function DetalhePeca() {
 
   const categoriaNome = useMemo(() => {
     if (peca?.categoria?.nome) return peca.categoria.nome;
-    return buscarNome(categorias, peca?.categoria_id, 'Categoria nao informada');
+    return buscarNome(categorias, peca?.categoria_id, t('categoryUnknown'));
   }, [categorias, peca]);
 
   const materialNome = useMemo(() => {
     if (peca?.material?.nome) return peca.material.nome;
-    return buscarNome(materiais, peca?.material_id, 'Material nao informado');
+    return buscarNome(materiais, peca?.material_id, t('noInfo'));
   }, [materiais, peca]);
 
   const nomeFornecedor = useMemo(() => {
@@ -479,14 +484,14 @@ export default function DetalhePeca() {
       if (salvoNaWish) {
         await removerPecaWish(peca.id);
         setSalvoNaWish(false);
-        setWishMessage('Peça removida da sua lista de desejos.');
+        setWishMessage(t('removedWishlist'));
       } else {
         await adicionarPecaWish(peca.id);
         setSalvoNaWish(true);
-        setWishMessage('Peça adicionada à sua lista de desejos.');
+        setWishMessage(t('addedWishlist'));
       }
     } catch (error) {
-      setWishMessage(parseUnexpectedError(error, 'Não foi possível atualizar sua lista de desejos agora.'));
+      setWishMessage(parseUnexpectedError(error, t('wishlistError')));
     } finally {
       setLoadingWish(false);
     }
@@ -498,11 +503,11 @@ export default function DetalhePeca() {
     if (itemNoCarrinho) {
       // Remover do carrinho
       removeFromCart(peca.id);
-      setCarrinhoMessage('Peça removida do carrinho.');
+      setCarrinhoMessage(t('removedFromCart'));
     } else {
       // Validar se há estoque
       if (Number(peca.estoque_atual) <= 0) {
-        setCarrinhoMessage('Desculpe, este item não está em estoque no momento.');
+        setCarrinhoMessage(t('outOfStockMessage'));
         return;
       }
 
@@ -519,7 +524,7 @@ export default function DetalhePeca() {
 
       // Adicionar ao carrinho
       addToCart(itemParaCarrinho);
-      setCarrinhoMessage('Peça adicionada ao carrinho com sucesso.');
+      setCarrinhoMessage(t('addedToCart'));
     }
   }
 
@@ -542,11 +547,11 @@ export default function DetalhePeca() {
               margin: `0 0 ${SPACING.SM}`,
             }}
           >
-            Peças relacionadas
+            {t('relatedParts')}
           </h2>
 
           <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
-            Carregando recomendações...
+            {t('loadingRecommendations')}
           </p>
         </section>
       );
@@ -573,7 +578,7 @@ export default function DetalhePeca() {
             margin: `0 0 ${SPACING.SM}`,
           }}
         >
-          Peças relacionadas
+            {t('relatedParts')}
         </h2>
 
         <p
@@ -584,7 +589,7 @@ export default function DetalhePeca() {
             lineHeight: 1.6,
           }}
         >
-          Sugestões baseadas em categoria, material, condição, fornecedor e faixa de preço.
+          {t('recommendationsDescription')}
         </p>
 
         <div
@@ -611,7 +616,7 @@ export default function DetalhePeca() {
               {item.imagem && (
                 <img
                   src={item.imagem}
-                  alt={item.nome_peca || 'Imagem da peça recomendada'}
+                  alt={item.nome_peca || t('recommendedPartImage')}
                   style={{
                     width: '100%',
                     height: 120,
@@ -629,7 +634,7 @@ export default function DetalhePeca() {
                   marginBottom: 6,
                 }}
               >
-                {item.nome_peca || 'Peça sem nome'}
+                {item.nome_peca || t('unnamedPart')}
               </strong>
 
               <span style={{ color: COLORS.DARK_TEXT, fontWeight: 700 }}>
@@ -644,7 +649,7 @@ export default function DetalhePeca() {
                   fontWeight: 700,
                 }}
               >
-                Compatibilidade: {item.score_recomendacao} pts
+                  {t('compatibility')}: {item.score_recomendacao} {t('points')}
               </div>
             </button>
           ))}
@@ -672,10 +677,10 @@ export default function DetalhePeca() {
               margin: `0 0 ${SPACING.SM}`,
             }}
           >
-            Fornecedores recomendados
+            {t('recommendedSellers')}
           </h2>
           <p style={{ margin: 0, color: 'var(--bp-text-muted)', lineHeight: 1.6 }}>
-            Carregando fornecedores...
+            {t('loadingSellers')}
           </p>
         </section>
       );
@@ -702,7 +707,7 @@ export default function DetalhePeca() {
             margin: `0 0 ${SPACING.SM}`,
           }}
         >
-          Fornecedores recomendados
+          {t('recommendedSellers')}
         </h2>
 
         <p
@@ -713,7 +718,7 @@ export default function DetalhePeca() {
             lineHeight: 1.6,
           }}
         >
-          Sugestões baseadas em quantidade de peças cadastradas, estoque disponível e completude do perfil.
+          {t('recommendedSellersDescription')}
         </p>
 
         <div
@@ -724,11 +729,11 @@ export default function DetalhePeca() {
           }}
         >
           {fornecedoresRecomendados.map((fornecedorItem) => {
-            const nome =
+              const nome =
               fornecedorItem.nome_loja ||
               fornecedorItem.full_name ||
               fornecedorItem.email ||
-              'Vendedor BigPeças';
+                t('seller');
 
             return (
               <button
@@ -755,7 +760,7 @@ export default function DetalhePeca() {
                 </strong>
 
                 <div style={{ color: 'var(--bp-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                  {fornecedorItem.descricao_loja || 'Fornecedor com peças cadastradas no BigPeças.'}
+                  {fornecedorItem.descricao_loja || t('sellerDescriptionFallback')}
                 </div>
 
                 <div
@@ -766,7 +771,7 @@ export default function DetalhePeca() {
                     fontWeight: 800,
                   }}
                 >
-                  {fornecedorItem.total_pecas} peças • {fornecedorItem.pecas_com_estoque} com estoque
+                  {fornecedorItem.total_pecas} {t('productsLabel').toLowerCase()} • {fornecedorItem.pecas_com_estoque} {t('stock').toLowerCase()}
                 </div>
 
                 <div
@@ -777,7 +782,7 @@ export default function DetalhePeca() {
                     fontWeight: 700,
                   }}
                 >
-                  Relevância: {fornecedorItem.score_recomendacao} pts
+                  {t('relevance')}: {fornecedorItem.score_recomendacao} {t('points')}
                 </div>
               </button>
             );
@@ -819,13 +824,13 @@ export default function DetalhePeca() {
               onClick={() => navigate('/buscaPecas')}
               style={BUTTON_SECONDARY_STYLE}
             >
-              Voltar para busca
+              {t('backToSearch')}
             </button>
           </div>
 
           {loading && (
             <div style={{ color: COLORS.DARK_TEXT, fontWeight: 700 }}>
-              Carregando detalhes da peca...
+              {t('loadingPartDetails')}
             </div>
           )}
 
@@ -870,7 +875,7 @@ export default function DetalhePeca() {
                   {peca.imagem ? (
                     <img
                       src={peca.imagem}
-                      alt={peca.nome_peca || 'Imagem da peca'}
+                      alt={peca.nome_peca || t('partImage')}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -887,7 +892,7 @@ export default function DetalhePeca() {
                         padding: SPACING.XL,
                       }}
                     >
-                      Sem imagem cadastrada
+                      {t('noRegisteredImage')}
                     </div>
                   )}
                 </div>
@@ -923,7 +928,7 @@ export default function DetalhePeca() {
                           margin: 0,
                         }}
                       >
-                        {peca.nome_peca || 'Peca sem nome'}
+                        {peca.nome_peca || t('unnamedPart')}
                       </h1>
 
                       <span
@@ -972,7 +977,7 @@ export default function DetalhePeca() {
                         fontWeight: 800,
                       }}
                     >
-                      Estoque: {peca.estoque_atual ?? 0}
+                      {t('stockLabel')}: {peca.estoque_atual ?? 0}
                     </span>
                   </div>
 
@@ -986,8 +991,8 @@ export default function DetalhePeca() {
                   >
                     <InfoItem label="SKU" value={peca.sku} />
                     <InfoItem label="OEM" value={peca.oem_number} />
-                    <InfoItem label="Numero de serie" value={peca.num_serie} />
-                    <InfoItem label="Cadastro" value={formatarData(peca.data_cadastro || peca.created_at)} />
+                    <InfoItem label={t('serialNumber')} value={peca.num_serie} />
+                    <InfoItem label={t('registration')} value={formatarData(peca.data_cadastro || peca.created_at, formatDate)} />
                   </div>
 
                   <div style={{ display: 'flex', gap: SPACING.MD, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1001,7 +1006,7 @@ export default function DetalhePeca() {
                         color: itemNoCarrinho ? 'var(--bp-on-primary)' : 'var(--bp-action-text)',
                       }}
                     >
-                      {itemNoCarrinho ? '✗ Remover do carrinho' : '🛒︎ Adicionar ao carrinho'}
+                      {itemNoCarrinho ? `✗ ${t('removeFromCart')}` : `🛒︎ ${t('addToCart')}`}
                     </button>
 
                     <button
@@ -1017,7 +1022,7 @@ export default function DetalhePeca() {
                         cursor: loadingWish ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {salvoNaWish ? '♥ Remover da lista de desejos' : '♡ Adicionar à lista de desejos'}
+                      {salvoNaWish ? `♥ ${t('removeFromWishlist')}` : `♡ ${t('addToWishlist')}`}
                     </button>
                   </div>
 
@@ -1081,17 +1086,17 @@ export default function DetalhePeca() {
                   gap: SPACING.MD,
                 }}
               >
-                <InfoItem label="Peso" value={peca.peso_gramas ? `${peca.peso_gramas} g` : ''} />
-                <InfoItem label="Comprimento" value={peca.comprimento_mm ? `${peca.comprimento_mm} mm` : ''} />
-                <InfoItem label="Largura" value={peca.largura_mm ? `${peca.largura_mm} mm` : ''} />
-                <InfoItem label="Altura" value={peca.altura_mm ? `${peca.altura_mm} mm` : ''} />
+                <InfoItem label={t('weight')} value={peca.peso_gramas ? `${peca.peso_gramas} g` : ''} />
+                <InfoItem label={t('length')} value={peca.comprimento_mm ? `${peca.comprimento_mm} mm` : ''} />
+                <InfoItem label={t('width')} value={peca.largura_mm ? `${peca.largura_mm} mm` : ''} />
+                <InfoItem label={t('height')} value={peca.altura_mm ? `${peca.altura_mm} mm` : ''} />
               </section>
 
-              <TextSection title="Detalhes de gravacao">
+              <TextSection title={t('detailsOfEngraving')}>
                 {peca.detalhes_gravacao}
               </TextSection>
 
-              <TextSection title="Historico de procedencia">
+              <TextSection title={t('provenanceHistory')}>
                 {peca.historico_proveniencia}
               </TextSection>
             </>
