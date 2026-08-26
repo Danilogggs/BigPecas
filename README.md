@@ -2,7 +2,7 @@
 
 > Marketplace de peças automotivas que conecta compradores e vendedores em uma jornada completa: catálogo, carrinho, frete, pedido, acompanhamento da entrega e avaliações de compra verificada.
 
-![Banner do BigPeças](frontend/telaAuthSupabase/public/banner.png)
+![Banner do BigPeças](frontend/public/banner.png)
 
 ![React](https://img.shields.io/badge/React-18.3-149ECA?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)
@@ -81,15 +81,15 @@ BigPecas/
 │   ├── .env.example
 │   └── package.json
 ├── frontend/
-│   └── telaAuthSupabase/
-│       ├── public/
-│       ├── src/
-│       │   ├── components/
-│       │   ├── contexts/
-│       │   ├── pages/
-│       │   └── services/
-│       ├── .env.example
-│       └── package.json
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── features/
+│   │   ├── pages/
+│   │   └── services/
+│   ├── .env.example
+│   └── package.json
 ├── docker-compose.yml
 └── README.md
 ```
@@ -156,7 +156,7 @@ A API ficará disponível em `http://localhost:3001`.
 Em outro terminal:
 
 ```bash
-cd frontend/telaAuthSupabase
+cd frontend
 cp .env.example .env
 npm install
 npm run dev
@@ -234,7 +234,7 @@ Serviços disponíveis:
 Compile o frontend antes de abrir um Pull Request:
 
 ```bash
-cd frontend/telaAuthSupabase
+cd frontend
 npm run build
 ```
 

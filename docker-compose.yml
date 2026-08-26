@@ -15,7 +15,7 @@ services:
       retries: 3
 
   frontend:
-    build: ./frontend/telaAuthSupabase
+    build: ./frontend
     ports:
       - "80:80"
     depends_on:

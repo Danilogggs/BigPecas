@@ -198,6 +198,7 @@ async function enviarNotificacaoVendaVendedor({
   ].filter(Boolean).join('\n');
 
   let result;
+  let emailError = null;
   try {
     result = await enviarEmail({
       to,
@@ -206,6 +207,7 @@ async function enviarNotificacaoVendaVendedor({
       text,
     });
   } catch (error) {
+    emailError = error;
     result = { sent: false, error };
   }
 
@@ -222,6 +224,7 @@ async function enviarNotificacaoVendaVendedor({
     console.warn('Falha ao registrar notificação de venda:', error);
   }
 
+  if (emailError) throw emailError;
   return result;
 }
 
@@ -288,6 +291,7 @@ async function enviarNotificacaoStatusPedidoCliente({
   ].filter(Boolean).join('\n');
 
   let result;
+  let emailError = null;
   try {
     result = await enviarEmail({
       to,
@@ -296,6 +300,7 @@ async function enviarNotificacaoStatusPedidoCliente({
       text,
     });
   } catch (error) {
+    emailError = error;
     result = { sent: false, error };
   }
 
@@ -312,6 +317,7 @@ async function enviarNotificacaoStatusPedidoCliente({
     console.warn('Falha ao registrar notificação de status:', error);
   }
 
+  if (emailError) throw emailError;
   return result;
 }
 
