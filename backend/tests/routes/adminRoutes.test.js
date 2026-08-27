@@ -31,6 +31,8 @@ function consultaEm(tabela, indice = 0) {
 describe('adminRoutes', () => {
   beforeEach(() => {
     mockSupabaseAdmin.__reset();
+    mockSupabaseAdmin.auth.admin.createUser.mockReset();
+    mockSupabaseAdmin.auth.admin.deleteUser.mockReset();
     mockSincronizarStatusVendas.mockResolvedValue(undefined);
   });
 
@@ -116,7 +118,7 @@ describe('adminRoutes', () => {
       const resposta = await request(app).get('/api/admin/preferencias');
 
       expect(resposta.body).toEqual({
-        config: { widgets: ['usuarios', 'pecas', 'pedidos', 'pedidos_pendentes', 'avaliacoes'] },
+        config: { widgets: ['boas_vindas', 'faturamento', 'pedidos', 'ticket_medio', 'taxa_conclusao', 'desempenho_vendas', 'requer_atencao', 'fluxo_pedidos', 'resumo_plataforma', 'atividade_recente'] },
         updated_at: null,
       });
     });
@@ -157,16 +159,16 @@ describe('adminRoutes', () => {
     it.each([
       ['lista vazia', []],
       ['nao e lista', 'usuarios'],
-      ['widgets demais', ['usuarios', 'pecas', 'pedidos', 'pedidos_pendentes', 'avaliacoes', 'administradores', 'extra']],
+      ['widgets demais', ['boas_vindas', 'usuarios', 'administradores', 'pecas', 'pedidos', 'pedidos_pendentes', 'avaliacoes', 'fluxo_pedidos', 'estoque_baixo', 'atividade_recente', 'seguranca', 'faturamento', 'ticket_medio', 'taxa_conclusao', 'taxa_cancelamento', 'desempenho_vendas', 'produtos_top', 'extra']],
     ])('recusa configuracao com %s', async (_descricao, widgets) => {
       const resposta = await request(app).put('/api/admin/preferencias').send({ widgets });
 
       expect(resposta.status).toBe(400);
-      expect(resposta.body.error).toContain('Escolha entre 1 e 6 widgets');
+      expect(resposta.body.error).toContain('Escolha entre 1 e 16 widgets');
     });
 
     it.each([
-      ['widget desconhecido', ['usuarios', 'faturamento']],
+      ['widget desconhecido', ['usuarios', 'produto_desconhecido']],
       ['widget repetido', ['usuarios', 'usuarios']],
     ])('recusa %s', async (_descricao, widgets) => {
       const resposta = await request(app).put('/api/admin/preferencias').send({ widgets });
@@ -245,6 +247,63 @@ describe('adminRoutes', () => {
       await request(app).get('/api/admin/usuarios?is_admin=talvez');
 
       expect(consultaEm('users').operacao('eq')).toBeNull();
+    });
+  });
+
+  describe('POST /usuarios/admin', () => {
+    const cadastro = { full_name: 'Nova Administradora', email: 'NOVA@BIGPECAS.COM', password: 'segura123' };
+
+    it('cria uma conta confirmada no Auth e um perfil administrador', async () => {
+      mockSupabaseAdmin.__queueTable(
+        'users',
+        { data: null, error: null },
+        { data: { id: 10, email: 'nova@bigpecas.com', full_name: 'Nova Administradora', is_admin: true }, error: null },
+      );
+      mockSupabaseAdmin.auth.admin.createUser.mockResolvedValue({ data: { user: { id: 'auth-10' } }, error: null });
+
+      const resposta = await request(app).post('/api/admin/usuarios/admin').send(cadastro);
+
+      expect(resposta.status).toBe(201);
+      expect(resposta.body.usuario).toMatchObject({ email: 'nova@bigpecas.com', is_admin: true });
+      expect(mockSupabaseAdmin.auth.admin.createUser).toHaveBeenCalledWith(expect.objectContaining({
+        email: 'nova@bigpecas.com', password: 'segura123', email_confirm: true,
+      }));
+      expect(consultaEm('users', 1).argumentos('insert')[0]).toMatchObject({
+        email: 'nova@bigpecas.com', full_name: 'Nova Administradora', is_admin: true,
+        email_verificado: true, tipo_usuario: 'ambos',
+      });
+    });
+
+    it('recusa email ja usado antes de criar usuario no Auth', async () => {
+      mockSupabaseAdmin.__mockTable('users', { data: { id: 5, email: 'nova@bigpecas.com' }, error: null });
+
+      const resposta = await request(app).post('/api/admin/usuarios/admin').send(cadastro);
+
+      expect(resposta.status).toBe(409);
+      expect(mockSupabaseAdmin.auth.admin.createUser).not.toHaveBeenCalled();
+    });
+
+    it('remove o usuario do Auth se a gravacao do perfil falhar', async () => {
+      mockSupabaseAdmin.__queueTable(
+        'users',
+        { data: null, error: null },
+        { data: null, error: { message: 'falha no banco' } },
+      );
+      mockSupabaseAdmin.auth.admin.createUser.mockResolvedValue({ data: { user: { id: 'auth-10' } }, error: null });
+      mockSupabaseAdmin.auth.admin.deleteUser.mockResolvedValue({ data: {}, error: null });
+
+      expect((await request(app).post('/api/admin/usuarios/admin').send(cadastro)).status).toBe(500);
+      expect(mockSupabaseAdmin.auth.admin.deleteUser).toHaveBeenCalledWith('auth-10');
+    });
+
+    it.each([
+      [{ ...cadastro, full_name: 'A' }, 'nome'],
+      [{ ...cadastro, email: 'invalido' }, 'email'],
+      [{ ...cadastro, password: 'curta' }, 'senha'],
+    ])('valida os dados antes de criar a conta (%s)', async (dados) => {
+      const resposta = await request(app).post('/api/admin/usuarios/admin').send(dados);
+      expect(resposta.status).toBe(400);
+      expect(mockSupabaseAdmin.auth.admin.createUser).not.toHaveBeenCalled();
     });
   });
 

@@ -1,7 +1,14 @@
 const AppError = require('../../../utils/AppError');
 
-const WIDGETS_PADRAO = ['usuarios', 'pecas', 'pedidos', 'pedidos_pendentes', 'avaliacoes'];
-const WIDGETS_PERMITIDOS = new Set([...WIDGETS_PADRAO, 'administradores']);
+const WIDGETS_PADRAO = [
+  'boas_vindas', 'faturamento', 'pedidos', 'ticket_medio', 'taxa_conclusao',
+  'desempenho_vendas', 'requer_atencao',
+  'fluxo_pedidos', 'resumo_plataforma', 'atividade_recente',
+];
+const WIDGETS_PERMITIDOS = new Set([
+  ...WIDGETS_PADRAO, 'usuarios', 'administradores', 'pecas', 'pedidos',
+  'pedidos_pendentes', 'avaliacoes', 'taxa_cancelamento',
+]);
 const STATUS_PEDIDO = new Set(['aguardando_pagamento', 'pago', 'enviado', 'entregue', 'cancelado']);
 
 function inteiroPositivo(valor, padrao, maximo = Number.MAX_SAFE_INTEGER) {
@@ -25,7 +32,7 @@ function validarId(valor, rotulo = 'registro') {
 
 function validarWidgets(widgets) {
   if (!Array.isArray(widgets) || widgets.length < 1 || widgets.length > WIDGETS_PERMITIDOS.size) {
-    throw new AppError(400, 'Escolha entre 1 e 6 widgets para o painel.');
+    throw new AppError(400, `Escolha entre 1 e ${WIDGETS_PERMITIDOS.size} widgets para o painel.`);
   }
   if (new Set(widgets).size !== widgets.length || widgets.some((item) => !WIDGETS_PERMITIDOS.has(item))) {
     throw new AppError(400, 'A configuracao contem widgets invalidos ou repetidos.');
