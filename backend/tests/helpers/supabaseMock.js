@@ -104,6 +104,9 @@ function createSupabaseMock() {
       signUp: jest.fn(),
       signInWithPassword: jest.fn(),
       admin: {
+        createUser: jest.fn(),
+        deleteUser: jest.fn(),
+        listUsers: jest.fn(),
         getUserById: jest.fn(),
         updateUserById: jest.fn(),
       },

@@ -39,6 +39,28 @@ export default function useAdminDashboard({ getToken, t, gateway = adminGatewayP
 
   const toggleWidget = (widget) => setDraftWidgets((atual) => alternarWidget(atual, widget));
   const moveWidget = (widget, direction) => setDraftWidgets((atual) => moverWidget(atual, widget, direction));
+  const reorderWidget = (source, target) => setDraftWidgets((current) => {
+    const from = current.indexOf(source);
+    const to = current.indexOf(target);
+    if (from < 0 || to < 0 || from === to) return current;
+    const next = [...current];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    return next;
+  });
+  const registrarAdminCriado = () => setState((atual) => ({
+    ...atual,
+    dashboard: atual.dashboard ? {
+      ...atual.dashboard,
+      usuarios: (atual.dashboard.usuarios || 0) + 1,
+      administradores: (atual.dashboard.administradores || 0) + 1,
+    } : atual.dashboard,
+  }));
+  const ajustarDashboard = (alteracoes) => setState((atual) => ({
+    ...atual,
+    dashboard: atual.dashboard ? Object.fromEntries(Object.entries(atual.dashboard).map(([key, value]) => [
+      key, Math.max(0, Number(value || 0) + Number(alteracoes[key] || 0)),
+    ])) : atual.dashboard,
+  }));
 
   function toggleCustomizing() {
     setDraftWidgets(widgets);
@@ -66,6 +88,7 @@ export default function useAdminDashboard({ getToken, t, gateway = adminGatewayP
   return {
     state, widgets, draftWidgets, customizing, saving, feedback,
     visibleWidgets: customizing ? draftWidgets : widgets,
-    moveWidget, savePreferences, toggleCustomizing, toggleWidget,
+    ajustarDashboard, moveWidget, registrarAdminCriado, reorderWidget, savePreferences,
+    toggleCustomizing, toggleWidget,
   };
 }
