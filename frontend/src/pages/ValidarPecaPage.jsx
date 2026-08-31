@@ -3,8 +3,10 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Money from '../components/Money';
 import service from '../services/avaliadorService';
+import { useLanguage } from '../contexts/LanguageContext';
 import '../styles/Review.css';
 export default function ValidarPecaPage() {
+  const { t } = useLanguage();
   const location = useLocation();
   const { pecaId } = useParams();
   const [data, setData] = useState(null), [answers, setAnswers] = useState({});
@@ -28,33 +30,33 @@ export default function ValidarPecaPage() {
       const revision = data.peca.revisao_avaliacao;
       if (reject) await service.rejectValidacao(pecaId, comment, responses, revision);
       else await service.submitValidacao(pecaId, responses, comment, revision);
-      setMessage(reject ? 'Peça reprovada. O vendedor foi notificado.' : 'Peça aprovada e publicada. O vendedor foi notificado.');
+      setMessage(t(reject ? 'partRejectedNotice' : 'partApprovedNotice'));
     } catch(e) { setError(e.message); } finally { setBusy(false); }
   }
   const p = data?.peca;
-  return <><Header /><main className="review-page"><Link to={location.state?.from || '/avaliador'} state={location.state?.section ? { section: location.state.section } : undefined}>← Voltar à fila</Link>
-    {loading && <p role="status">Carregando…</p>}{error && <p role="alert">{error}</p>}
+  return <><Header /><main className="review-page"><Link to={location.state?.from || '/avaliador'} state={location.state?.section ? { section: location.state.section } : undefined}>← {t('backToQueue')}</Link>
+    {loading && <p role="status">{t('pageLoading')}</p>}{error && <p role="alert">{error}</p>}
     {message && <p role="status">{message}</p>}
-    {p && <><h1>{p.nome_peca}</h1><p>Revisão {p.revisao_avaliacao} · {p.status_publicacao}</p>
+    {p && <><h1>{p.nome_peca}</h1><p>{t('revisionAndStatus', { revision: p.revisao_avaliacao, status: p.status_publicacao })}</p>
       <div className="review-grid"><section className="review-card">
         {p.imagem && <img src={p.imagem} alt={p.nome_peca} />}
         {p.url_video && <video src={p.url_video} controls preload="metadata" />}
         <p><Money value={p.preco_base} currency={p.moeda_base} /></p>
         <dl>{[['SKU',p.sku],['Número de série',p.num_serie],['Comprimento (mm)',p.comprimento_mm],['Largura (mm)',p.largura_mm],
           ['Altura (mm)',p.altura_mm],['Peso (g)',p.peso_gramas],['Gravações',p.detalhes_gravacao],['Procedência',p.historico_proveniencia]]
-          .map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value ?? 'Não informado'}</dd></div>)}</dl>
-        <p>API de série: {p.status_api_serie}. Integração futura; confira a autenticidade manualmente.</p>
-      </section><section className="review-card"><h2>Checklist obrigatório</h2>
-        <p>Critérios preservados no envio desta revisão. Mudanças administrativas valem para os próximos envios.</p>
-        {!criteria.length && <p role="alert">Sem critérios. A publicação está bloqueada; solicite configuração ao administrador e novo envio ao vendedor.</p>}
+          .map(([label,value]) => <div key={label}><dt>{t(label)}</dt><dd>{value ?? t('notProvided')}</dd></div>)}</dl>
+        <p>{t('serialApiStatus', { status: p.status_api_serie })}</p>
+      </section><section className="review-card"><h2>{t('mandatoryChecklist')}</h2>
+        <p>{t('preservedCriteria')}</p>
+        {!criteria.length && <p role="alert">{t('noCriteriaWarning')}</p>}
         <fieldset disabled={!pending || busy}>{criteria.map(c => <label className="review-check" key={c.id}>
           <input type="checkbox" checked={answers[c.id] === true} onChange={e => setAnswers(a => ({...a,[c.id]:e.target.checked}))} />
-          <span>{c.nome_criterio} {c.obrigatorio ? '(obrigatório)' : '(opcional)'}<small>{c.descricao}</small></span>
+          <span>{c.nome_criterio} ({t(c.obrigatorio ? 'requiredSuffix' : 'optionalSuffix')})<small>{c.descricao}</small></span>
         </label>)}</fieldset>
-        <label>Observações / motivo da reprovação<textarea maxLength={5000} value={comment} disabled={!pending || busy} onChange={e => setComment(e.target.value)} /></label>
-        <div className="review-actions"><button disabled={!pending || busy || !complete} onClick={() => decide(false)}>Concluir e publicar</button>
-          <button disabled={!pending || busy || !comment.trim()} onClick={() => decide(true)}>Reprovar</button></div>
-        {data.validacao?.decidida_em && <p>Decisão: {data.validacao.status}. {data.validacao.comentarios}</p>}
+        <label>{t('rejectionNotes')}<textarea maxLength={5000} value={comment} disabled={!pending || busy} onChange={e => setComment(e.target.value)} /></label>
+        <div className="review-actions"><button disabled={!pending || busy || !complete} onClick={() => decide(false)}>{t('completeAndPublish')}</button>
+          <button disabled={!pending || busy || !comment.trim()} onClick={() => decide(true)}>{t('reject')}</button></div>
+        {data.validacao?.decidida_em && <p>{t('decision', { status: data.validacao.status, comments: data.validacao.comentarios })}</p>}
       </section></div></>}
   </main></>;
 }

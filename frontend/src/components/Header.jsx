@@ -82,7 +82,7 @@ export default function Header() {
   };
 
   const navLinks = [
-    ...(isAvaliador ? [{label: 'Avaliar peças', path: '/avaliador'}] : []),
+    ...(isAvaliador ? [{ label: t('avaliarPecas'), path: '/avaliador' }] : []),
     { label: t('catalog'),       path: '/buscaPecas' },
     { label: t('sellPart'),      path: '/cadastroPecas' },
   ];

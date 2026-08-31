@@ -270,10 +270,10 @@ export default function CadastroUsuario() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <label style={{ display: 'block', marginBottom: 20 }}>Perfil
+          <label style={{ display: 'block', marginBottom: 20 }}>{t('profile')}
             <select name="tipo_usuario" value={form.tipo_usuario || 'ambos'} onChange={handleChange}>
-              <option value="ambos">Comprador / vendedor</option>
-              <option value="avaliador">Avaliador</option>
+              <option value="ambos">{t('buyerSeller')}</option>
+              <option value="avaliador">{t('evaluatorRole')}</option>
             </select>
           </label>
           <div style={{ marginBottom: SPACING.LG }}>

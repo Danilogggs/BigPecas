@@ -62,7 +62,7 @@ export function FormSelect({
         <option value="">{t(placeholder)}</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>
-            {option.nome_categoria || option.nome_material}
+            {t(option.nome || option.nome_categoria || option.nome_material)}
           </option>
         ))}
       </select>

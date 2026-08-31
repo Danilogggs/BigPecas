@@ -59,7 +59,7 @@ export default function NotificacoesPage() {
                       <p style={{ margin: 0, color: MUTED, lineHeight: 1.5 }}>
                         {notificacao.mensagem}
                         {notificacao.peca_id && <><br /><Link to={notificacao.tipo === 'nova_peca_para_validar'
-                          ? '/avaliador/validar/' + notificacao.peca_id : '/editar-pecas'}>Ver anúncio / avaliação</Link></>}
+                          ? '/avaliador/validar/' + notificacao.peca_id : '/editar-pecas'}>{t('viewListingEvaluation')}</Link></>}
                       </p>
                     </div>
 

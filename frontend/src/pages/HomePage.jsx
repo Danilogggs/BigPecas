@@ -191,7 +191,7 @@ export default function HomePage() {
                       onClick={() => navigate(`/buscaPecas?categoria_id=${cat.id}`)}
                     >
                       <div className="cat-card__icon">{CATEGORIA_ICONS[cat.nome] || '🔧'}</div>
-                      <div className="cat-card__name">{cat.nome}</div>
+                      <div className="cat-card__name">{t(cat.nome)}</div>
                     </div>
                   ))
               }

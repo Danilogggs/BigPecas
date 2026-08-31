@@ -163,15 +163,15 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           />
         </div>
 
-        <p role="status">{reviewStatus}</p><label style={{display:'block',margin:'16px 0'}}>Vídeo da peça (URL HTTPS de arquivo MP4/WebM)
+        <p role="status">{reviewStatus}</p><label style={{display:'block',margin:'16px 0'}}>{t('partVideoUrl')}
                 <input type="url" name="url_video" value={formData.url_video || ''} onChange={onInputChange} style={{width:'100%',padding:12}} placeholder="https://..." />
               </label>
-              <label>Moeda base
+              <label>{t('baseCurrency')}
                 <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={onInputChange}>
                   <option value="BRL">BRL</option><option value="USD">USD</option><option value="EUR">EUR</option>
                 </select>
               </label>
-              <p>O anúncio será enviado para avaliação. Moedas estrangeiras exigem taxa configurada. O pagamento ocorre em BRL.</p>
+              <p>{t('listingEvaluationCurrencyNotice')}</p>
 <div className="form-wide">
           <FormTextarea
             name="detalhes_gravacao"

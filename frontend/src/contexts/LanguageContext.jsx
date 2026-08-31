@@ -1,4 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import { avaliadorTranslations } from './avaliadorTranslations';
 
 export const LANGUAGES = {
   PTBR: 'PTBR',
@@ -373,6 +376,47 @@ const editPartsTranslations = {
   FR: { editPartsLoadFailed: 'Impossible de charger vos pièces et options.', selectedPartLoadFailed: 'Impossible de charger la pièce sélectionnée.', fixHighlightedFields: 'Corrigez les champs indiqués avant d’enregistrer.', partUpdated: 'Pièce mise à jour avec succès !', partUpdateFailed: 'Impossible de mettre à jour la pièce.', loadingYourParts: 'Chargement de vos pièces...', registerNewPart: '+ Enregistrer une nouvelle pièce', selectPartToEdit: 'Sélectionnez une pièce à modifier', clickPartToStart: 'Cliquez sur une pièce dans la liste à gauche pour commencer' },
 };
 
+const migrationTranslations = {
+  PTBR: { displayCurrency: 'Moeda de exibição', displayCurrencyHint: 'Moeda de exibição; cobrança em BRL', region: 'Região', viewListingEvaluation: 'Ver anúncio / avaliação', profile: 'Perfil', buyerSeller: 'Comprador / vendedor', evaluatorRole: 'Avaliador', conditionExcellent: 'Excelente', conditionGood: 'Bom', conditionAcceptable: 'Aceitável', partVideoUrl: 'Vídeo da peça (URL HTTPS de arquivo MP4/WebM)', baseCurrency: 'Moeda base', listingEvaluationCurrencyNotice: 'O anúncio será enviado para avaliação. Moedas estrangeiras exigem taxa configurada. O pagamento ocorre em BRL.', Motor: 'Motor', Lataria: 'Lataria', Elétrica: 'Elétrica', Interior: 'Interior', Suspensão: 'Suspensão', Freios: 'Freios', Transmissão: 'Transmissão', Carroceria: 'Carroceria', sellerLabel: 'Vendedor', openChat: 'Abrir conversa', viewSeller: 'Ver vendedor', sellerRating: 'Avaliação do vendedor', noReviews: 'Nenhuma avaliação', productReviews: 'Avaliações do produto', noProductReviews: 'Este produto ainda não possui avaliações.', verifiedReviews: 'avaliação verificada', verifiedReviewsPlural: 'avaliações verificadas', sellerDescriptionFallback: 'Vendedor de peças automotivas', points: 'pontos' },
+  EN: { displayCurrency: 'Display currency', displayCurrencyHint: 'Display currency; charged in BRL', region: 'Region', viewListingEvaluation: 'View listing / evaluation', profile: 'Profile', buyerSeller: 'Buyer / seller', evaluatorRole: 'Evaluator', conditionExcellent: 'Excellent', conditionGood: 'Good', conditionAcceptable: 'Acceptable', partVideoUrl: 'Part video (HTTPS URL for an MP4/WebM file)', baseCurrency: 'Base currency', listingEvaluationCurrencyNotice: 'The listing will be submitted for evaluation. Foreign currencies require a configured exchange rate. Payment is processed in BRL.', Motor: 'Engine', Lataria: 'Body panels', Elétrica: 'Electrical', Interior: 'Interior', Suspensão: 'Suspension', Freios: 'Brakes', Transmissão: 'Transmission', Carroceria: 'Bodywork', sellerLabel: 'Seller', openChat: 'Open chat', viewSeller: 'View seller', sellerRating: 'Seller rating', noReviews: 'No reviews', productReviews: 'Product reviews', noProductReviews: 'This product has no reviews yet.', verifiedReviews: 'verified review', verifiedReviewsPlural: 'verified reviews', sellerDescriptionFallback: 'Automotive parts seller', points: 'points' },
+  FR: { displayCurrency: 'Devise d’affichage', displayCurrencyHint: 'Devise d’affichage ; paiement en BRL', region: 'Région', viewListingEvaluation: 'Voir l’annonce / l’évaluation', profile: 'Profil', buyerSeller: 'Acheteur / vendeur', evaluatorRole: 'Évaluateur', conditionExcellent: 'Excellent', conditionGood: 'Bon', conditionAcceptable: 'Acceptable', partVideoUrl: 'Vidéo de la pièce (URL HTTPS d’un fichier MP4/WebM)', baseCurrency: 'Devise de base', listingEvaluationCurrencyNotice: 'L’annonce sera soumise à évaluation. Les devises étrangères nécessitent un taux configuré. Le paiement est effectué en BRL.', Motor: 'Moteur', Lataria: 'Panneaux de carrosserie', Elétrica: 'Électricité', Interior: 'Intérieur', Suspensão: 'Suspension', Freios: 'Freins', Transmissão: 'Transmission', Carroceria: 'Carrosserie', sellerLabel: 'Vendeur', openChat: 'Ouvrir la discussion', viewSeller: 'Voir le vendeur', sellerRating: 'Évaluation du vendeur', noReviews: 'Aucun avis', productReviews: 'Avis sur le produit', noProductReviews: 'Ce produit n’a pas encore d’avis.', verifiedReviews: 'avis vérifié', verifiedReviewsPlural: 'avis vérifiés', sellerDescriptionFallback: 'Vendeur de pièces automobiles', points: 'points' },
+};
+
+const resources = Object.values(LANGUAGES).reduce((result, language) => ({
+  ...result,
+  [language]: {
+    translation: {
+      ...translations[language],
+      ...uiExtras[language],
+      ...semanticTranslations[language],
+      ...editPartsTranslations[language],
+      ...legacyLabels[language],
+      ...cartTranslations[language],
+      ...avaliadorTranslations[language],
+      ...migrationTranslations[language],
+    },
+  },
+}), {});
+
+if (!i18n.isInitialized) {
+  i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng: LANGUAGES.PTBR,
+      fallbackLng: LANGUAGES.PTBR,
+      supportedLngs: Object.values(LANGUAGES),
+      initImmediate: false,
+      keySeparator: false,
+      interpolation: {
+        escapeValue: false,
+        prefix: '{',
+        suffix: '}',
+      },
+      returnNull: false,
+    });
+}
+
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {
     const saved = window.localStorage.getItem('bigpecas-language');
@@ -382,18 +426,16 @@ export function LanguageProvider({ children }) {
   useEffect(() => {
     window.localStorage.setItem('bigpecas-language', language);
     document.documentElement.lang = language === LANGUAGES.PTBR ? 'pt-BR' : language.toLowerCase();
+    i18n.changeLanguage(language);
   }, [language]);
 
   const value = useMemo(() => ({
     language,
     setLanguage,
-    t: (key, replacements = {}) => {
-      const text = translations[language][key] || uiExtras[language]?.[key] || semanticTranslations[language]?.[key] || editPartsTranslations[language]?.[key] || legacyLabels[language]?.[key] || cartTranslations[language]?.[key] || translations.PTBR[key] || uiExtras.PTBR[key] || semanticTranslations.PTBR[key] || key;
-      return Object.entries(replacements).reduce(
-        (result, [name, replacement]) => result.replace(`{${name}}`, replacement),
-        text,
-      );
-    },
+    t: (key, replacements = {}) => i18n.getFixedT(language)(key, {
+      ...replacements,
+      defaultValue: key,
+    }),
     formatDate: (value, options = {}) => {
       if (!value) return '';
       const date = new Date(value);

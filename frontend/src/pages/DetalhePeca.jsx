@@ -233,7 +233,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
                     {'★'.repeat(avaliacao.nota)}{'☆'.repeat(5 - avaliacao.nota)}
                   </strong>
                   <span style={{ color: '#21734A', fontSize: '0.78rem', fontWeight: 800 }}>
-                    Compra verificada
+                    {t('verifiedPurchase')}
                   </span>
                 </div>
                 {avaliacao.comentario && (
@@ -750,7 +750,7 @@ export default function DetalhePeca() {
                     fontWeight: 800,
                   }}
                 >
-                  {fornecedorItem.total_pecas} {t('productsLabel').toLowerCase()} • {fornecedorItem.pecas_com_estoque} {t('stock').toLowerCase()}
+                  {fornecedorItem.total_pecas} {t('productsLabel').toLowerCase()} • {fornecedorItem.pecas_com_estoque} {t('stockLabel').toLowerCase()}
                 </div>
 
                 <div
@@ -927,7 +927,7 @@ export default function DetalhePeca() {
                     </div>
 
                     <p style={{ margin: `${SPACING.SM} 0 0`, color: 'var(--bp-text-sub)' }}>
-                      {categoriaNome} / {materialNome}
+                      {t(categoriaNome)} / {t(materialNome)}
                     </p>
                   </div>
 

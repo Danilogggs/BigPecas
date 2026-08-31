@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ValidarPecaPage from '../ValidarPecaPage';
 import service from '../../services/avaliadorService';
+import { LanguageProvider } from '../../contexts/LanguageContext';
 jest.mock('../../components/Header', () => () => <header>Header</header>);
 jest.mock('../../components/Money', () => () => <span>Preço</span>);
 jest.mock('../../services/avaliadorService', () => ({
@@ -14,9 +15,9 @@ const fixture = {
   criterios: [{id:1,nome_criterio:'Peça real?',obrigatorio:true}, {id:2,nome_criterio:'Documentação extra',obrigatorio:false}],
 };
 function open() {
-  return render(<MemoryRouter initialEntries={['/avaliador/validar/10']}><Routes>
+  return render(<LanguageProvider><MemoryRouter initialEntries={['/avaliador/validar/10']}><Routes>
     <Route path="/avaliador/validar/:pecaId" element={<ValidarPecaPage />} />
-  </Routes></MemoryRouter>);
+  </Routes></MemoryRouter></LanguageProvider>);
 }
 beforeEach(() => { jest.clearAllMocks(); service.getValidacaoPeca.mockResolvedValue(fixture); });
 test('publica somente após checks obrigatórios e envia a revisão visualizada', async () => {

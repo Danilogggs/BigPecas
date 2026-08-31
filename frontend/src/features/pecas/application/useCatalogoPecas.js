@@ -151,7 +151,7 @@ export default function useCatalogoPecas({ searchParams, gateway = pecasGatewayP
   }
 
   return {
-    buscarNomeCategoria: (id) => buscarNomeOpcao(categorias, id, t('categoryUnknown')),
+    buscarNomeCategoria: (id) => t(buscarNomeOpcao(categorias, id, t('categoryUnknown'))),
     categorias,
     errorMessage,
     feedbackMessage,

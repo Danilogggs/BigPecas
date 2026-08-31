@@ -180,7 +180,7 @@ export default function BuscaPecas() {
                 >
                   <option value="">{loadingCategorias ? t('loading') : t('all')}</option>
                   {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
+                    <option key={c.id} value={c.id}>{t(c.nome)}</option>
                   ))}
                 </select>
               </div>
@@ -195,9 +195,9 @@ export default function BuscaPecas() {
                 >
                   <option value="">{t('all')}</option>
                   <option value="NOS">NOS</option>
-                  <option value="EXCELENTE">Excelente</option>
-                  <option value="BOM">Bom</option>
-                  <option value="ACEITÁVEL">Aceitável</option>
+                  <option value="EXCELENTE">{t('conditionExcellent')}</option>
+                  <option value="BOM">{t('conditionGood')}</option>
+                  <option value="ACEITÁVEL">{t('conditionAcceptable')}</option>
                 </select>
               </div>
 
