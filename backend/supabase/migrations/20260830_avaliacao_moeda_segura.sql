@@ -257,7 +257,7 @@ GRANT SELECT ON public.precos_publicos_moeda TO service_role;
 
 -- Histórico é imutável após decisão; reenvios criam outra revisão.
 CREATE OR REPLACE FUNCTION public.proteger_historico_avaliacao() RETURNS trigger
-LANGUAGE plpgsql SET search_path = public, pg_temp AS $
+LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
 BEGIN
   IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'O histórico de avaliação não pode ser excluído.'; END IF;
   IF NEW.criterios_snapshot IS DISTINCT FROM OLD.criterios_snapshot OR
@@ -266,17 +266,17 @@ BEGIN
     RAISE EXCEPTION 'O histórico de avaliação é imutável. Crie uma nova revisão.';
   END IF;
   RETURN NEW;
-END $;
+END $$;
 DROP TRIGGER IF EXISTS proteger_historico_avaliacao ON public.avaliacoes_pecas;
 CREATE TRIGGER proteger_historico_avaliacao BEFORE UPDATE OR DELETE ON public.avaliacoes_pecas
 FOR EACH ROW EXECUTE FUNCTION public.proteger_historico_avaliacao();
 
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.pecas'::regclass AND conname='pecas_api_serie_status_check') THEN
     ALTER TABLE public.pecas ADD CONSTRAINT pecas_api_serie_status_check
     CHECK (status_api_serie IN ('nao_verificado','pendente','aprovado','reprovado','erro')) NOT VALID;
   END IF;
-END $;
+END $$;
 
 COMMIT;
 

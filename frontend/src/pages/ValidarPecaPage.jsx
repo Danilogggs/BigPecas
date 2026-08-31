@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Money from '../components/Money';
 import service from '../services/avaliadorService';
 import '../styles/Review.css';
 export default function ValidarPecaPage() {
+  const location = useLocation();
   const { pecaId } = useParams();
   const [data, setData] = useState(null), [answers, setAnswers] = useState({});
   const [comment, setComment] = useState(''), [error, setError] = useState(''), [message, setMessage] = useState('');
@@ -31,7 +32,7 @@ export default function ValidarPecaPage() {
     } catch(e) { setError(e.message); } finally { setBusy(false); }
   }
   const p = data?.peca;
-  return <><Header /><main className="review-page"><Link to="/avaliador">← Voltar à fila</Link>
+  return <><Header /><main className="review-page"><Link to={location.state?.from || '/avaliador'} state={location.state?.section ? { section: location.state.section } : undefined}>← Voltar à fila</Link>
     {loading && <p role="status">Carregando…</p>}{error && <p role="alert">{error}</p>}
     {message && <p role="status">{message}</p>}
     {p && <><h1>{p.nome_peca}</h1><p>Revisão {p.revisao_avaliacao} · {p.status_publicacao}</p>

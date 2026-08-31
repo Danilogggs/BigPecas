@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { SearchIcon, StarIcon, TrashIcon, UserIcon, WrenchIcon } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,12 +8,14 @@ import useAdminDashboard from '../features/admin/application/useAdminDashboard';
 import { WIDGETS_ADMIN, WIDGETS_PADRAO } from '../features/admin/domain/dashboard';
 import adminGateway from '../features/admin/infrastructure/adminGateway';
 import { createAdminTranslator } from '../features/admin/presentation/adminTranslations';
+import avaliadorService from '../services/avaliadorService';
 import './AdminPage.css';
 import './AdminDashboardPolish.css';
 
 const NAV = [
   ['overview', 'Visão geral', '▦'], ['usuarios', 'Usuários', 'user'],
-  ['pecas', 'Peças', 'part'], ['pedidos', 'Pedidos', '▤'], ['avaliacoes', 'Avaliações', 'star'],
+  ['pecas', 'Peças', 'part'], ['validacoes', 'Validação de peças', '✓'],
+  ['pedidos', 'Pedidos', '▤'], ['avaliacoes', 'Avaliações', 'star'],
 ];
 const STATUS = ['aguardando_pagamento', 'pago', 'enviado', 'entregue', 'cancelado'];
 const STATUS_LABEL = { aguardando_pagamento: 'Aguardando pagamento', pago: 'Pago', enviado: 'Enviado', entregue: 'Entregue', cancelado: 'Cancelado' };
@@ -32,13 +34,14 @@ const money = (value) => Number.isFinite(Number(value))
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { getToken } = useAuth();
   const { t, language } = useLanguage();
   const tr = createAdminTranslator(language);
   const adminNav = NAV.map(([id, label, icon]) => [id, tr(label), icon]);
   const translatedStatus = Object.fromEntries(Object.entries(STATUS_LABEL).map(([key, label]) => [key, t({ aguardando_pagamento: 'awaitingPayment', pago: 'paid', enviado: 'shipped', entregue: 'delivered', cancelado: 'canceled' }[key]) || tr(label)]));
   const dash = useAdminDashboard({ getToken, t });
-  const [section, setSection] = useState('overview');
+  const [section, setSection] = useState(location.state?.section || 'overview');
   const [records, setRecords] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [search, setSearch] = useState('');
@@ -65,6 +68,7 @@ export default function AdminPage() {
       let result;
       if (target === 'usuarios') result = await adminGateway.listarUsuarios(token, search);
       if (target === 'pecas') result = await adminGateway.listarPecas(token, search);
+      if (target === 'validacoes') result = { data: await avaliadorService.getPecasPendentes(100, 0) };
       if (target === 'pedidos') result = await adminGateway.listarPedidos(token, statusFilter);
       if (target === 'avaliacoes') result = await adminGateway.listarAvaliacoes(token, reviewType);
       setRecords(result?.data || []);
@@ -161,6 +165,7 @@ export default function AdminPage() {
     overview: 'Acompanhe os principais números e a atividade da plataforma.',
     usuarios: 'Gerencie acessos, perfis e permissões administrativas.',
     pecas: 'Consulte e modere os anúncios publicados no catálogo.',
+    validacoes: 'Analise anúncios pendentes antes de disponibilizá-los no catálogo.',
     pedidos: 'Acompanhe pedidos e atualize o andamento das transações.',
     avaliacoes: 'Modere as avaliações enviadas pela comunidade.',
   }).map(([key, value]) => [key, tr(value)]));
@@ -267,7 +272,7 @@ export default function AdminPage() {
       <div className="admin-sidebar-user"><span>{(dash.state.admin.full_name || 'A')[0]}</span><div><strong>{dash.state.admin.full_name || 'Administrador'}</strong><small>{dash.state.admin.email}</small></div></div>
     </aside>
 
-    <main className="admin-main"><button onClick={() => navigate("/admin/checklist")}>Configurar checklist de peças</button>
+    <main className="admin-main">
       <header className="admin-page-heading"><div><span className="admin-eyebrow">{tr('Painel administrativo')}</span><h1>{title}</h1><p>{descriptions[section]}</p></div><div className="admin-heading-actions">{section === 'overview' && !dash.customizing && <button className="admin-layout-trigger" onClick={dash.toggleCustomizing} title={tr('Organizar dashboard')} aria-label={tr('Organizar dashboard')}>⚙</button>}<button className="admin-primary" onClick={() => setModal(true)}>＋ {tr('Novo administrador')}</button></div></header>
       {notice.text && <div className={`admin-notice admin-notice--${notice.type}`}>{notice.text}<button onClick={() => setNotice({ type: '', text: '' })}>×</button></div>}
       {section === 'overview' && <>
@@ -281,17 +286,20 @@ export default function AdminPage() {
           {(section === 'usuarios' || section === 'pecas') && <form className="admin-search" onSubmit={(e) => { e.preventDefault(); load(); }}><SearchIcon size={18} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`${tr('Buscar')} ${title.toLowerCase()}…`} /><button>{tr('Buscar')}</button></form>}
           {section === 'pedidos' && <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">{tr('Todos os status')}</option>{STATUS.map((item) => <option key={item} value={item}>{translatedStatus[item]}</option>)}</select>}
           {section === 'avaliacoes' && <div className="admin-segmented"><button className={reviewType === 'produtos' ? 'is-active' : ''} onClick={() => setReviewType('produtos')}>{tr('Produtos')}</button><button className={reviewType === 'fornecedores' ? 'is-active' : ''} onClick={() => setReviewType('fornecedores')}>{tr('Fornecedores')}</button></div>}
+          {section === 'validacoes' && <button className="admin-checklist-button" onClick={() => navigate('/admin/checklist')}>⚙ {tr('Configurar checklist')}</button>}
           <span className="admin-result-count">{records.length} {tr('registros')}</span>
         </div>
         {section === 'avaliacoes' && reviewType === 'fornecedores' && !loadingList && supplierRanking.length > 0 && <div className="admin-supplier-ranking"><div className="admin-ranking-heading"><div><span className="admin-eyebrow">Reputação dos parceiros</span><h3>Fornecedores mais bem avaliados</h3><p>Ranking pela média das avaliações recebidas.</p></div><span>★ Média geral</span></div><div className="admin-ranking-bars">{supplierRanking.map((supplier, index) => <article key={supplier.id}><span className="admin-ranking-position">{index + 1}</span><div className="admin-ranking-name"><strong>{supplier.name}</strong><small>{supplier.count} {supplier.count === 1 ? 'avaliação' : 'avaliações'}</small></div><div className="admin-ranking-track"><i style={{ width: `${(supplier.average / 5) * 100}%` }} /></div><b>{supplier.average.toFixed(1)}</b><span className="admin-ranking-star">★</span></article>)}</div></div>}
         {loadingList ? <div className="admin-table-loading"><div className="admin-spinner" /> {tr('Carregando registros…')}</div> : records.length === 0 ? <div className="admin-empty"><span>◇</span><p>{tr('Nenhum registro encontrado.')}</p></div> : <div className="admin-table-wrap"><table><thead><tr>
           {section === 'usuarios' && <><th>{tr('Usuário')}</th><th>{tr('Perfil')}</th><th>{tr('Cadastro')}</th><th>{tr('Permissão')}</th><th>{tr('Ações')}</th></>}
           {section === 'pecas' && <><th>{tr('Peça')}</th><th>SKU / OEM</th><th>{tr('Preço')}</th><th>{tr('Estoque')}</th><th>{tr('Ações')}</th></>}
+          {section === 'validacoes' && <><th>{tr('Peça')}</th><th>{tr('Fornecedor')}</th><th>{tr('Preço')}</th><th>{tr('Revisão')}</th><th>{tr('Mídia')}</th><th>{tr('Ações')}</th></>}
           {section === 'pedidos' && <><th>{tr('Pedido')}</th><th>{tr('Cliente')}</th><th>{tr('Valor')}</th><th>{tr('Status')}</th></>}
           {section === 'avaliacoes' && <><th>{tr(reviewType === 'fornecedores' ? 'Loja fornecedora' : 'Peça avaliada')}</th><th>{tr('Pedido')}</th><th>{tr('Nota')}</th><th>{tr('Comentário')}</th><th>{tr('Data')}</th><th>{tr('Ações')}</th></>}
         </tr></thead><tbody>{records.map((item) => <tr key={item.id}>
           {section === 'usuarios' && <><td><div className="admin-person"><span>{(item.full_name || item.email || '?')[0]}</span><div><strong>{item.full_name || tr('Sem nome')}</strong><small>{item.email}</small></div></div></td><td>{item.nome_loja || tr('Usuário')}</td><td>{date(item.created_at)}</td><td><button disabled={busy === `u${item.id}`} className={`admin-role-toggle ${item.is_admin ? 'is-admin' : ''}`} onClick={() => toggleAdmin(item)}>{item.is_admin ? tr('Administrador') : tr('Tornar admin')}</button></td><td><div className="admin-row-actions"><button className="admin-icon-edit" title={tr('Editar usuário')} onClick={() => setEditing({ type: 'usuario', id: item.id, data: { full_name: item.full_name || '', email: item.email || '', telefone: item.telefone || '', nome_loja: item.nome_loja || '' } })}>✎</button><button className="admin-icon-danger" title={tr('Excluir usuário')} onClick={() => setConfirming({ type: 'usuario', item, title: tr('Excluir usuário?'), description: tr('A conta perderá o acesso imediatamente.') })}><TrashIcon size={17} /></button></div></td></>}
           {section === 'pecas' && <><td><strong>{item.nome_peca || item.nome || `${tr('Peça')} #${item.id}`}</strong></td><td><span className="admin-code">{item.sku || item.oem_number || '—'}</span></td><td>{money(item.preco)}</td><td>{item.estoque_atual ?? item.estoque ?? '—'}</td><td><div className="admin-row-actions"><button className="admin-icon-edit" title={tr('Editar peça')} onClick={() => setEditing({ type: 'peca', id: item.id, data: { nome_peca: item.nome_peca || '', preco: item.preco_base ?? item.preco ?? '', estoque_atual: item.estoque_atual ?? 0 } })}>✎</button><button className="admin-icon-danger" title={tr('Excluir peça')} onClick={() => setConfirming({ type: 'peca', item, title: tr('Remover peça?'), description: tr('A peça será retirada permanentemente do catálogo.') })}><TrashIcon size={17} /></button></div></td></>}
+          {section === 'validacoes' && <><td><div className="admin-validation-part">{item.imagem ? <img src={item.imagem} alt="" /> : <span>{item.url_video ? '▶' : '◇'}</span>}<div><strong>{item.nome_peca || `${tr('Peça')} #${item.id}`}</strong><small>{item.sku || item.oem_number || tr('Sem código')}</small></div></div></td><td>{item.users?.full_name || `${tr('Fornecedor')} #${item.fornecedor_id}`}</td><td>{money(item.preco_base ?? item.preco)}</td><td><span className="admin-validation-status">{tr('Pendente')} · {item.revisao_avaliacao || 1}</span></td><td>{item.imagem ? tr('Imagem') : item.url_video ? tr('Vídeo') : tr('Sem mídia')}</td><td><button className="admin-review-button" onClick={() => navigate(`/avaliador/validar/${item.id}`, { state: { from: '/admin', section: 'validacoes' } })}>{tr('Analisar anúncio')} →</button></td></>}
           {section === 'pedidos' && <><td><strong>#{item.id}</strong><small className="admin-cell-sub">{date(item.criado_em)}</small></td><td>{item.comprador_nome || item.usuario_nome || item.email || '—'}</td><td>{money(item.valor_total || item.total)}</td><td><select className="admin-status" value={item.status || ''} onChange={(e) => action(`o${item.id}`, async () => adminGateway.atualizarPedido(await getToken(), item.id, e.target.value), 'Status atualizado.')}><option value="" disabled>{tr('Status')}</option>{STATUS.map((value) => <option key={value} value={value}>{translatedStatus[value]}</option>)}</select></td></>}
           {section === 'avaliacoes' && <><td><strong>{reviewType === 'fornecedores' ? (item.fornecedor_loja || item.fornecedor_nome || `${tr('Fornecedor')} #${item.fornecedor_id || '—'}`) : (item.peca_nome || `${tr('Peça')} #${item.peca_id || '—'}`)}</strong></td><td><span className="admin-code">#{item.pedido_id || '—'}</span></td><td><div className="admin-stars">{'★'.repeat(Math.min(5, Number(item.nota) || 0))}<span>{item.nota || '—'}</span></div></td><td className="admin-comment">{item.comentario || item.descricao || tr('Sem comentário')}</td><td>{date(item.data_avaliacao)}</td><td><div className="admin-row-actions"><button className="admin-icon-edit" title={tr('Editar avaliação')} onClick={() => setEditing({ type: 'avaliacao', id: item.id, data: { nota: item.nota || 1, comentario: item.comentario || '' } })}>✎</button><button className="admin-icon-danger" title={tr('Excluir avaliação')} onClick={() => setConfirming({ type: 'avaliacao', item, title: tr('Remover avaliação?'), description: tr('A nota e o comentário serão excluídos permanentemente.') })}><TrashIcon size={17} /></button></div></td></>}
         </tr>)}</tbody></table></div>}
