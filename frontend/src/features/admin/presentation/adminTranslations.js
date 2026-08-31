@@ -44,12 +44,18 @@ const EXTRA = {
     'A peça será retirada permanentemente do catálogo.': 'The part will be permanently removed from the catalog.',
     'A nota e o comentário serão excluídos permanentemente.': 'The rating and comment will be permanently deleted.',
     'Excluir usuário?': 'Delete user?', 'A conta perderá o acesso imediatamente.': 'The account will lose access immediately.',
+    'Excluir permanentemente': 'Delete permanently', 'Excluir usuário permanentemente?': 'Permanently delete user?',
+    'A conta, o perfil e todos os dados relacionados serão apagados.': 'The account, profile and all related data will be deleted.',
+    'Excluir peça permanentemente?': 'Permanently delete part?', 'A peça e todos os dados relacionados serão apagados do banco.': 'The part and all related data will be deleted from the database.',
   },
   FR: {
     'Editar avaliação': 'Modifier l’avis', 'Excluir avaliação': 'Supprimer l’avis', 'Remover avaliação?': 'Supprimer l’avis ?', 'Remover peça?': 'Supprimer la pièce ?',
     'A peça será retirada permanentemente do catálogo.': 'La pièce sera définitivement retirée du catalogue.',
     'A nota e o comentário serão excluídos permanentemente.': 'La note et le commentaire seront définitivement supprimés.',
     'Excluir usuário?': 'Supprimer l’utilisateur ?', 'A conta perderá o acesso imediatamente.': 'Le compte perdra immédiatement son accès.',
+    'Excluir permanentemente': 'Supprimer définitivement', 'Excluir usuário permanentemente?': 'Supprimer définitivement l’utilisateur ?',
+    'A conta, o perfil e todos os dados relacionados serão apagados.': 'Le compte, le profil et toutes les données associées seront supprimés.',
+    'Excluir peça permanentemente?': 'Supprimer définitivement la pièce ?', 'A peça e todos os dados relacionados serão apagados do banco.': 'La pièce et toutes les données associées seront supprimées de la base.',
   },
 };
 

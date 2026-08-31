@@ -125,6 +125,26 @@ function criarAdminUseCases({ repository, tabelas, sincronizarStatusVendas }) {
     return { message: 'Peca removida pelo administrador.', peca: data };
   }
 
+  async function removerPecaPermanente(valor) {
+    const { data, error } = await repository.removerPecaPermanente(validarId(valor, 'peca'));
+    if (error) throw error;
+    if (!data) throw new AppError(404, 'Peca nao encontrada.');
+    return { message: 'Peca e dados relacionados excluidos permanentemente.' };
+  }
+
+  async function removerUsuarioPermanente(id, admin) {
+    const userId = validarId(id, 'usuario');
+    if (Number(admin.id) === userId) throw new AppError(409, 'Voce nao pode excluir a propria conta administrativa.');
+    const atual = await repository.buscarUsuarioPorId(userId);
+    if (atual.error) throw atual.error;
+    if (!atual.data) throw new AppError(404, 'Usuario nao encontrado.');
+    const { data, error } = await repository.removerUsuarioPermanente(userId);
+    if (error) throw error;
+    if (!data) throw new AppError(404, 'Usuario nao encontrado.');
+    await repository.removerAuthPorEmail(atual.data.email);
+    return { message: 'Conta, perfil e dados relacionados excluidos permanentemente.' };
+  }
+
   async function listarPedidos(query) {
     const pagina = paginacao(query);
     const status = query.status ? validarStatus(query.status) : '';
@@ -166,7 +186,7 @@ function criarAdminUseCases({ repository, tabelas, sincronizarStatusVendas }) {
     listarAvaliacoes, listarPecas, listarPedidos, listarUsuarios,
     obterDashboard: repository.obterDashboard, obterDadosGerenciais: repository.obterDadosGerenciais,
     obterPreferencias,
-    removerAvaliacao, removerPeca, removerUsuario, salvarPreferencias,
+    removerAvaliacao, removerPeca, removerPecaPermanente, removerUsuario, removerUsuarioPermanente, salvarPreferencias,
   });
 }
 

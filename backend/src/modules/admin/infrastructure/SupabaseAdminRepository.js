@@ -131,6 +131,7 @@ function criarSupabaseAdminRepository({ supabase, tabelas }) {
     }).eq('id', id).select('id, email').maybeSingle();
     return anonimizado.error ? anonimizado : { data: { ...anonimizado.data, email: emailOriginal }, error: null };
   }
+  const buscarUsuarioPorId = (id) => supabase.from(tabelas.usuarios).select('id, email').eq('id', id).maybeSingle();
   async function removerAuthPorEmail(email) {
     const authUser = await localizarAuthPorEmail(email);
     if (authUser) { const resultado = await supabase.auth.admin.deleteUser(authUser.id); if (resultado.error) throw resultado.error; }
@@ -144,6 +145,8 @@ function criarSupabaseAdminRepository({ supabase, tabelas }) {
 
   const removerPeca = (id) => supabase.from(tabelas.pecas).update({ status_publicacao: 'arquivada' }).eq('id', id)
     .select('id, nome_peca').maybeSingle();
+  const removerPecaPermanente = (id) => supabase.rpc('excluir_peca_permanentemente', { p_peca_id: id });
+  const removerUsuarioPermanente = (id) => supabase.rpc('excluir_usuario_permanentemente', { p_usuario_id: id });
   const editarPeca = (id, dados) => supabase.from(tabelas.pecas).update(dados).eq('id', id).select('*').maybeSingle();
 
   async function listarPedidos({ status, from, to }) {
@@ -185,10 +188,11 @@ function criarSupabaseAdminRepository({ supabase, tabelas }) {
   const editarAvaliacao = (table, id, dados) => supabase.from(table).update(dados).eq('id', id).select('*').maybeSingle();
 
   return Object.freeze({
-    atualizarPedido, atualizarPermissao, buscarPedido, buscarPreferencias, buscarUsuarioPorEmail,
+    atualizarPedido, atualizarPermissao, buscarPedido, buscarPreferencias, buscarUsuarioPorEmail, buscarUsuarioPorId,
     contarAdmins, criarContaAdmin,
     editarAvaliacao, editarPeca, editarUsuario, listarAvaliacoes, listarPecas, listarPedidos,
     listarUsuarios, obterDashboard, obterDadosGerenciais, removerAvaliacao, removerAuthPorEmail, removerPeca,
+    removerPecaPermanente, removerUsuarioPermanente,
     removerUsuario, salvarPreferencias,
   });
 }

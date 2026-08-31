@@ -13,10 +13,12 @@ function criarAdminController(useCases) {
     criarContaAdmin: adaptar(async (req, res) => res.status(201).json(await useCases.criarContaAdmin(req.body))),
     editarUsuario: adaptar(async (req, res) => res.json(await useCases.editarUsuario(req.params.id, req.body))),
     removerUsuario: adaptar(async (req, res) => res.json(await useCases.removerUsuario(req.params.id, req.admin))),
+    removerUsuarioPermanente: adaptar(async (req, res) => res.json(await useCases.removerUsuarioPermanente(req.params.id, req.admin))),
     atualizarAdmin: adaptar(async (req, res) => res.json(await useCases.atualizarAdmin(req.params.id, req.body?.is_admin))),
     pecas: adaptar(async (req, res) => res.json(await useCases.listarPecas(req.query))),
     editarPeca: adaptar(async (req, res) => res.json(await useCases.editarPeca(req.params.id, req.body))),
     removerPeca: adaptar(async (req, res) => res.json(await useCases.removerPeca(req.params.id))),
+    removerPecaPermanente: adaptar(async (req, res) => res.json(await useCases.removerPecaPermanente(req.params.id))),
     pedidos: adaptar(async (req, res) => res.json(await useCases.listarPedidos(req.query))),
     atualizarStatus: adaptar(async (req, res) => res.json(await useCases.atualizarStatus({
       id: req.params.id, status: req.body?.status, admin: req.admin,
