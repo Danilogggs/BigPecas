@@ -32,8 +32,8 @@ function criarPedidosUseCases({
     return usuario;
   }
 
-  async function buscarPecasPorIds(ids) {
-    const pecas = await repository.buscarPecasPorIds(ids);
+  async function buscarPecasPorIds(ids, somentePublicadas = false) {
+    const pecas = await repository.buscarPecasPorIds(ids, somentePublicadas);
     return new Map(pecas.map((peca) => [String(peca.id), peca]));
   }
 
@@ -104,7 +104,7 @@ function criarPedidosUseCases({
   }
 
   async function enriquecerItensDoNovoPedido(itens) {
-    const pecasPorId = await buscarPecasPorIds(itens.map((item) => item?.id));
+    const pecasPorId = await buscarPecasPorIds(itens.map((item) => item?.id), true);
     const pecasFaltantes = itens.filter((item) => !pecasPorId.has(String(item?.id)));
 
     if (pecasFaltantes.length > 0) {

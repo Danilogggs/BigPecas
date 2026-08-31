@@ -92,9 +92,9 @@ function criarAdminUseCases({ repository, tabelas, sincronizarStatusVendas }) {
   async function editarPeca(id, dados = {}) {
     const payload = {};
     if ('nome_peca' in dados) payload.nome_peca = String(dados.nome_peca || '').trim();
-    if ('preco' in dados) payload.preco = Number(dados.preco);
+    if ('preco' in dados) payload.preco_base = Number(dados.preco);
     if ('estoque_atual' in dados) payload.estoque_atual = Number(dados.estoque_atual);
-    if (!Object.keys(payload).length || ('nome_peca' in payload && !payload.nome_peca) || (payload.preco !== undefined && payload.preco <= 0) || (payload.estoque_atual !== undefined && (!Number.isInteger(payload.estoque_atual) || payload.estoque_atual < 0))) throw new AppError(400, 'Revise o nome, preco e estoque da peca.');
+    if (!Object.keys(payload).length || ('nome_peca' in payload && !payload.nome_peca) || (payload.preco_base !== undefined && (!Number.isFinite(payload.preco_base) || payload.preco_base <= 0)) || (payload.estoque_atual !== undefined && (!Number.isInteger(payload.estoque_atual) || payload.estoque_atual < 0))) throw new AppError(400, 'Revise o nome, preco e estoque da peca.');
     const { data, error } = await repository.editarPeca(validarId(id, 'peca'), payload);
     if (error) throw error;
     if (!data) throw new AppError(404, 'Peca nao encontrada.');

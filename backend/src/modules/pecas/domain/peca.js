@@ -15,7 +15,7 @@ const CAMPOS_ORDENACAO = Object.freeze({
 const CAMPOS_ATUALIZAVEIS = new Set([
   'nome_peca', 'sku', 'oem_number', 'num_serie', 'categoria_id', 'material_id',
   'condicao', 'peso_gramas', 'comprimento_mm', 'largura_mm', 'altura_mm',
-  'detalhes_gravacao', 'historico_proveniencia', 'preco', 'estoque_atual', 'imagem',
+  'detalhes_gravacao', 'historico_proveniencia', 'preco', 'estoque_atual', 'imagem', 'url_video', 'moeda_base',
 ]);
 
 const CAMPOS_INTEIROS = new Set([
@@ -23,6 +23,20 @@ const CAMPOS_INTEIROS = new Set([
   'altura_mm', 'estoque_atual',
 ]);
 
+function validarMoeda(valor) {
+  if (typeof valor !== 'string' || !/^[A-Z]{3}$/.test(valor)) throw new AppError(400, 'Moeda inválida.');
+  return valor;
+}
+function validarMidia(valor, video) {
+  if (valor == null || valor === '') return null;
+  if (typeof valor !== 'string') throw new AppError(400, 'Mídia inválida.');
+  if (!video && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(valor) && valor.length <= 8000000) return valor;
+  try {
+    const url = new URL(valor);
+    if (url.protocol === 'https:' && !url.username && !url.password && valor.length < 4096) return valor;
+  } catch {}
+  throw new AppError(400, video ? 'Informe uma URL HTTPS de vídeo MP4/WebM.' : 'Imagem inválida.');
+}
 function validarId(id) {
   if (!/^\d+$/.test(String(id)) || Number(id) < 1) {
     throw new AppError(400, 'Informe um identificador válido.');
@@ -40,7 +54,7 @@ function validarOrdenacao(sort) {
 function validarNumeroConsulta(valor, nomeCampo) {
   if (valor === undefined || valor === null || valor === '') return null;
   const numero = Number(valor);
-  if (Number.isNaN(numero)) {
+  if (!Number.isFinite(numero)) {
     throw new AppError(400, `Informe um valor válido para ${nomeCampo}.`);
   }
   return numero;
@@ -163,7 +177,11 @@ function montarPayloadPeca(body = {}, fornecedorId) {
     historico_proveniencia: processarValor(body.historico_proveniencia),
     preco: processarFloat(body.preco),
     estoque_atual: processarNumero(body.estoque_atual) ?? 0,
-    imagem: processarValor(body.imagem),
+    imagem: validarMidia(body.imagem, false),
+    url_video: validarMidia(body.url_video, true),
+    moeda_base: validarMoeda(body.moeda_base || 'BRL'),
+    preco_base: processarFloat(body.preco),
+    status_publicacao: 'pendente_validacao',
     fornecedor_id: fornecedorId,
   };
 }
@@ -173,7 +191,7 @@ function validarPayloadCadastro(payload) {
     throw new AppError(401, 'Não foi possível vincular a peça ao usuário logado.');
   }
   if (!payload.nome_peca) throw new AppError(400, 'Informe o nome da peça.');
-  if (payload.preco === null || payload.preco <= 0) {
+  if (!Number.isFinite(payload.preco) || payload.preco <= 0) {
     throw new AppError(400, 'Informe um preço válido para a peça.');
   }
   if (!payload.categoria_id) throw new AppError(400, 'Informe a categoria da peça.');
@@ -196,7 +214,13 @@ function sanitizarAtualizacao(updates) {
   Object.entries(updates).forEach(([campo, valor]) => {
     if (!CAMPOS_ATUALIZAVEIS.has(campo)) return;
     if (CAMPOS_INTEIROS.has(campo)) sanitizado[campo] = processarNumero(valor);
-    else if (campo === 'preco') sanitizado[campo] = processarFloat(valor);
+    else if (campo === 'preco') {
+      const preco = processarFloat(valor);
+      if (!Number.isFinite(preco) || preco <= 0) throw new AppError(400, 'Preço inválido.');
+      sanitizado.preco_base = preco;
+    }
+    else if (campo === 'moeda_base') sanitizado[campo] = validarMoeda(valor);
+    else if (campo === 'imagem' || campo === 'url_video') sanitizado[campo] = validarMidia(valor, campo === 'url_video');
     else sanitizado[campo] = processarValor(valor);
   });
 

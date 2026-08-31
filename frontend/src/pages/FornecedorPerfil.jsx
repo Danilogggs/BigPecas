@@ -1,3 +1,4 @@
+import Money from '../components/Money';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
@@ -107,7 +108,7 @@ function PecaCard({ peca, onClick }) {
       </strong>
 
       <span style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
-        {formatarPreco(peca.preco)}
+        <Money value={peca.preco_base ?? peca.preco} currency={peca.moeda_base || "BRL"} />
       </span>
 
       <div style={{ marginTop: 8, color: 'var(--bp-text-muted)', fontSize: '0.85rem', fontWeight: 700 }}>

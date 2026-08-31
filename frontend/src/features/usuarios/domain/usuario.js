@@ -6,7 +6,7 @@ export function criarEstadoPerfil(perfil = {}) {
     email: perfil.email || '',
     gender: perfil.gender || '',
     cep: perfil.cep || '',
-    tipo_usuario: 'ambos',
+    tipo_usuario: perfil.tipo_usuario === 'avaliador' ? 'avaliador' : 'ambos',
     nome_loja: perfil.nome_loja || '',
     descricao_loja: perfil.descricao_loja || '',
     telefone: perfil.telefone || '',

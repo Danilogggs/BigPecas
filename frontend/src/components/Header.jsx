@@ -6,6 +6,7 @@ import { buscarPerfilUsuario } from '../services/usuarioService';
 import { buscarContagemNotificacoesNaoLidas } from '../services/notificacoesService';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import CurrencySelector from './CurrencySelector';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Header() {
 
   const [localSearch, setLocalSearch] = useState(searchParams.get('nome') || '');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isAvaliador, setIsAvaliador] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0);
   const dropdownRef = useRef(null);
@@ -34,7 +36,7 @@ export default function Header() {
       return undefined;
     }
     buscarPerfilUsuario()
-      .then((profile) => { if (active) setIsAdmin(profile?.is_admin === true); })
+      .then((profile) => { if (active) { setIsAdmin(profile?.is_admin === true); setIsAvaliador(profile?.tipo_usuario === 'avaliador' || profile?.is_admin === true); } })
       .catch(() => { if (active) setIsAdmin(false); });
     return () => { active = false; };
   }, [user]);
@@ -80,6 +82,7 @@ export default function Header() {
   };
 
   const navLinks = [
+    ...(isAvaliador ? [{label: 'Avaliar peças', path: '/avaliador'}] : []),
     { label: t('catalog'),       path: '/buscaPecas' },
     { label: t('sellPart'),      path: '/cadastroPecas' },
   ];
@@ -126,13 +129,13 @@ export default function Header() {
 
       {/* Actions */}
       <div className="bp-header__actions">
-        <LanguageSwitcher />
+        <LanguageSwitcher /><CurrencySelector />
         <button
           type="button"
           className="bp-header__notifications"
           onClick={() => navigate('/notificacoes')}
-          title="Notificações"
-          aria-label="Notificações"
+          title={t('notifications')}
+          aria-label={t('notifications')}
         >
           <BellIcon />
           {notificacoesNaoLidas > 0 && (

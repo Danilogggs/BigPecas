@@ -1,3 +1,4 @@
+import { useCurrency } from '../../../contexts/CurrencyContext';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import * as pecasGatewayPadrao from '../../../services/pecasService';
@@ -14,6 +15,8 @@ const TAMANHO_PAGINA = 24;
 
 export default function useCatalogoPecas({ searchParams, gateway = pecasGatewayPadrao }) {
   const { t } = useLanguage();
+  const money = useCurrency();
+  const moeda = money?.currency || 'BRL';
   const [showFilters, setShowFilters] = useState(false);
   const [pecas, setPecas] = useState([]);
   const [totalPecas, setTotalPecas] = useState(0);
@@ -31,8 +34,8 @@ export default function useCatalogoPecas({ searchParams, gateway = pecasGatewayP
     nome: searchParams.get('nome') || '',
     categoria_id: searchParams.get('categoria_id') || '',
     condicao: '',
-    min_preco: 0,
-    max_preco: PRECO_MAXIMO_FILTRO,
+    min_preco: Number(searchParams.get('min_preco')) || 0,
+    max_preco: Number(searchParams.get('max_preco')) || PRECO_MAXIMO_FILTRO,
   });
   const [sort, setSort] = useState('preco');
   const [ordem, setOrdem] = useState('asc');
@@ -66,7 +69,7 @@ export default function useCatalogoPecas({ searchParams, gateway = pecasGatewayP
   }, [feedbackMessage]);
 
   async function fetchPecas(page = 1, append = false) {
-    const params = { ...filters, sort, ordem, page, limit: TAMANHO_PAGINA };
+    const params = { ...filters, moeda, sort, ordem, page, limit: TAMANHO_PAGINA };
     if (append) setLoadingMore(true);
     else setLoading(true);
     setErrorMessage('');
@@ -97,7 +100,7 @@ export default function useCatalogoPecas({ searchParams, gateway = pecasGatewayP
 
   useEffect(() => {
     fetchPecas(1);
-  }, [sort, ordem]);
+  }, [sort, ordem, moeda]);
 
   useEffect(() => {
     const delay = setTimeout(() => fetchPecas(1), 400);
@@ -153,7 +156,7 @@ export default function useCatalogoPecas({ searchParams, gateway = pecasGatewayP
     errorMessage,
     feedbackMessage,
     filters,
-    formatarPreco: formatarPrecoPeca,
+    formatarPreco: money ? (v) => money.format(v, moeda) : formatarPrecoPeca,
     handleCarregarMais: () => fetchPecas(currentPage + 1, true),
     handleChange,
     handleSortClick,

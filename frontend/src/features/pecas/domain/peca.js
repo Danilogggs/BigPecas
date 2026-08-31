@@ -15,6 +15,8 @@ export const FORMULARIO_PECA_INICIAL = Object.freeze({
   preco: '',
   estoque_atual: '',
   imagem: '',
+  url_video: '',
+  moeda_base: 'BRL',
 });
 
 export const REGRAS_VALIDACAO_PECA = Object.freeze({

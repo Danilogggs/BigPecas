@@ -202,7 +202,7 @@ export default function ProfilePage() {
             color: 'var(--bp-text)',
           }}
         >
-          {t('Editar Perfil')}
+          {t('editProfile')}
         </h1>
 
         <p
@@ -212,7 +212,7 @@ export default function ProfilePage() {
             color: 'var(--bp-text-muted)',
           }}
         >
-          {t('Atualize suas informações básicas.')}
+          {t('updateProfileDescription')}
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -240,14 +240,14 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>{t('Gênero')}</label>
+            <label style={labelStyle}>{t('genderLabel')}</label>
             <select
               name="gender"
               value={form.gender}
               onChange={handleChange}
               style={getInputStyle('gender')}
             >
-              <option value="">{t('Prefiro não informar')}</option>
+              <option value="">{t('preferNotToInform')}</option>
               <option value="Masculino">{t('male')}</option>
               <option value="Feminino">{t('female')}</option>
               <option value="Não-binário">{t('nonBinary')}</option>
@@ -295,11 +295,11 @@ export default function ProfilePage() {
               lineHeight: 1.5,
             }}
           >
-            {t('Toda conta pode comprar e vender. Os dados abaixo só se tornam obrigatórios ao anunciar a primeira peça.')}
+            {t('storeDescriptionText')}
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>{t('Nome da loja')}</label>
+            <label style={labelStyle}>{t('storeName')}</label>
             <input
               type="text"
               name="nome_loja"
@@ -311,7 +311,7 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>{t('Descrição da loja')}</label>
+            <label style={labelStyle}>{t('storeDescription')}</label>
             <textarea
               name="descricao_loja"
               value={form.descricao_loja}
@@ -337,7 +337,7 @@ export default function ProfilePage() {
               style={{ width: '18px', height: '18px', accentColor: 'var(--bp-gold)' }}
             />
             <label htmlFor="receber-email-notificacao-venda" style={{ color: 'var(--bp-text)', fontWeight: 600, cursor: 'pointer' }}>
-              {t('Receber e-mail ao confirmar uma venda')}
+              {t('receiveSaleEmail')}
             </label>
           </div>
 

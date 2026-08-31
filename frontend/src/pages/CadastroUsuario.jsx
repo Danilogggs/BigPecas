@@ -18,11 +18,11 @@ const INITIAL_FORM = {
 };
 
 const GENDER_OPTIONS = [
-  { value: '', label: 'Prefiro não informar' },
-  { value: 'Masculino', label: 'Masculino' },
-  { value: 'Feminino', label: 'Feminino' },
-  { value: 'Não-binário', label: 'Não-binário' },
-  { value: 'Outro', label: 'Outro' },
+  { value: '', labelKey: 'preferNotToInform' },
+  { value: 'Masculino', labelKey: 'male' },
+  { value: 'Feminino', labelKey: 'female' },
+  { value: 'Não-binário', labelKey: 'nonBinary' },
+  { value: 'Outro', labelKey: 'other' },
 ];
 
 const REGEX = {
@@ -176,13 +176,13 @@ export default function CadastroUsuario() {
         password: form.password,
         gender: form.gender.trim(),
         cep: form.cep.trim(),
-        tipo_usuario: 'ambos',
+        tipo_usuario: form.tipo_usuario || 'ambos',
         nome_loja: '',
         descricao_loja: '',
         telefone: form.telefone.trim(),
       });
 
-      setMessage({ type: 'success', text: 'Conta criada. Verifique seu email para ativar o acesso.' });
+      setMessage({ type: 'success', text: t('accountCreatedCheckEmail') });
       setTimeout(() => navigate('/login'), 3500);
     } catch (error) {
       setMessage({ type: 'error', text: t(mapSupabaseAuthError(error, 'register')) });
@@ -225,13 +225,12 @@ export default function CadastroUsuario() {
             {t('joinClassicCommunity')}<br />{t('communitySubtitle')}
           </h1>
           <p className="auth-panel-left__sub">
-            Anuncie peças com selo de verificação, acompanhe pedidos e acesse
-            curadoria por marca, década e condição.
+            {t('loginHeroDescription')}
           </p>
           <div className="auth-panel-left__features">
-            {['Anuncie com procedência verificada', 'Acompanhe pedidos e simulações', 'Curadoria por marca, década e condição'].map((t) => (
-              <div key={t} className="auth-panel-left__feature">
-                <span className="auth-panel-left__feature-icon" aria-hidden="true">•</span>{t}
+            {[t('loginFeatureListings'), t('loginFeatureOrders'), t('loginFeatureCuration')].map((label) => (
+              <div key={label} className="auth-panel-left__feature">
+                <span className="auth-panel-left__feature-icon" aria-hidden="true">•</span>{label}
               </div>
             ))}
           </div>
@@ -253,8 +252,8 @@ export default function CadastroUsuario() {
         }}
       >
         <div style={{ marginBottom: '1.75rem' }}>
-          <p className="auth-form-tag">{t('NOVA CONTA')}</p>
-          <h2 className="auth-form-title" style={{ marginBottom: 0 }}>{t('Criar sua conta')}</h2>
+          <p className="auth-form-tag">{t('newAccount')}</p>
+          <h2 className="auth-form-title" style={{ marginBottom: 0 }}>{t('createAccount')}</h2>
         </div>
 
         {message.text && (
@@ -262,7 +261,7 @@ export default function CadastroUsuario() {
             <AlertSuccess>
               <div>{message.text}</div>
               <div style={{ fontSize: '0.85rem', marginTop: SPACING.SM, opacity: 0.8 }}>
-                Redirecionando para o login...
+                {t('redirectingToLogin')}
               </div>
             </AlertSuccess>
           ) : (
@@ -271,6 +270,12 @@ export default function CadastroUsuario() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
+          <label style={{ display: 'block', marginBottom: 20 }}>Perfil
+            <select name="tipo_usuario" value={form.tipo_usuario || 'ambos'} onChange={handleChange}>
+              <option value="ambos">Comprador / vendedor</option>
+              <option value="avaliador">Avaliador</option>
+            </select>
+          </label>
           <div style={{ marginBottom: SPACING.LG }}>
             <Field label={t('Nome completo')} required>
               <Input
@@ -296,7 +301,7 @@ export default function CadastroUsuario() {
                 marginBottom: SPACING.SM,
               }}
             >
-              {t('Gênero')}
+              {t('genderLabel')}
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACING.SM }}>
@@ -305,7 +310,7 @@ export default function CadastroUsuario() {
 
                 return (
                   <button
-                    key={option.label}
+                    key={option.value || option.labelKey}
                     type="button"
                     onClick={() => handleGenderSelect(option.value)}
                     style={{
@@ -321,7 +326,7 @@ export default function CadastroUsuario() {
                       boxShadow: selected ? `0 4px 10px ${COLORS.BORDEAUX}14` : 'none',
                     }}
                   >
-                    {option.label}
+                    {t(option.labelKey)}
                   </button>
                 );
               })}
@@ -385,7 +390,7 @@ export default function CadastroUsuario() {
               {errors.password && <div style={fieldErrorStyle}>{errors.password}</div>}
             </Field>
 
-            <Field label={t('Confirmar senha')} required>
+            <Field label={t('confirmPassword')} required>
               <Input
                 type="password"
                 name="confirmPassword"
@@ -418,7 +423,7 @@ export default function CadastroUsuario() {
               transition: 'all 0.2s ease',
             }}
           >
-            {loading ? 'Criando conta...' : 'Criar conta'}
+            {loading ? t('creatingAccount') : t('createAccountAction')}
           </ButtonPrimary>
         </form>
 
@@ -430,9 +435,9 @@ export default function CadastroUsuario() {
             textAlign: 'center',
           }}
         >
-          Já possui conta?{' '}
+          {t('alreadyHaveAccount')}{' '}
           <Link to="/login" style={{ color: COLORS.BORDEAUX, fontWeight: 700, textDecoration: 'none' }}>
-            Entrar
+            {t('signIn')}
           </Link>
         </div>
       </div>

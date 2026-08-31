@@ -301,11 +301,11 @@ export default function CheckoutPage() {
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ fontSize: '0.8rem', color: MUTED, marginBottom: 6 }}>
             <span style={{ cursor: 'pointer' }} onClick={() => navigate('/carrinho')}>
-              {t('Carrinho')}
+              {t('cart')}
             </span>{' '}
             ›{' '}
             <span style={{ color: BORDEAUX, fontWeight: 600 }}>
-              {t('Finalizar Compra')}
+              {t('checkout')}
             </span>
           </div>
           <h1
@@ -317,7 +317,7 @@ export default function CheckoutPage() {
               fontFamily: "'Playfair Display', Georgia, serif",
             }}
           >
-            {etapa === 4 ? t('Compra completa') : t('Finalizar Compra')}
+            {etapa === 4 ? t('purchaseCompleted') : t('checkout')}
           </h1>
         </div>
 
@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                   fontSize: '0.95rem',
                 }}
               >
-                ← Voltar
+                ← {t('back')}
               </button>
 
               {etapa < 3 ? (
@@ -422,7 +422,7 @@ export default function CheckoutPage() {
                     fontSize: '0.95rem',
                   }}
                 >
-                  Continuar →
+                  {t('continue')} →
                 </button>
               ) : (
                 <button

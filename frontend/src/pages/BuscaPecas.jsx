@@ -1,3 +1,5 @@
+import { useCurrency } from '../contexts/CurrencyContext';
+import Money from '../components/Money';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import useCatalogoPecas from '../features/pecas/application/useCatalogoPecas';
@@ -18,6 +20,7 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function BuscaPecas() {
+  const money = useCurrency();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const {
@@ -200,7 +203,7 @@ export default function BuscaPecas() {
 
 
               <div style={{ gridColumn: 'span 2', marginTop: SPACING.SM }}>
-  <label style={LABEL_STYLE}>{t('priceRange')}</label>
+  <label style={LABEL_STYLE}>{t('priceRange')} ({money?.currency || 'BRL'})</label>
 
   <div
     style={{
@@ -621,7 +624,7 @@ export default function BuscaPecas() {
                       fontSize: '1.15rem',
                     }}
                   >
-                    {formatarPreco(item.preco)}
+                    <Money value={item.preco_base ?? item.preco} currency={item.moeda_base || "BRL"} />
                   </strong>
 
                   <span

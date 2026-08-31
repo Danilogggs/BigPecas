@@ -1,3 +1,4 @@
+import Money from '../components/Money';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
@@ -616,7 +617,7 @@ export default function DetalhePeca() {
               </strong>
 
               <span style={{ color: COLORS.DARK_TEXT, fontWeight: 700 }}>
-                {formatarPreco(item.preco)}
+                <Money value={item.preco_base ?? item.preco} currency={item.moeda_base || "BRL"} />
               </span>
 
               <div
@@ -850,6 +851,7 @@ export default function DetalhePeca() {
                     justifyContent: 'center',
                   }}
                 >
+                  {peca.url_video && <video src={peca.url_video} controls preload="metadata" style={{width:"100%",maxHeight:320}} />}
                   {peca.imagem ? (
                     <img
                       src={peca.imagem}
@@ -942,7 +944,7 @@ export default function DetalhePeca() {
                     }}
                   >
                     <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.7rem' }}>
-                      {formatarPreco(peca.preco)}
+                      <Money value={peca.preco_base ?? peca.preco} currency={peca.moeda_base || "BRL"} />
                     </strong>
 
                     <span

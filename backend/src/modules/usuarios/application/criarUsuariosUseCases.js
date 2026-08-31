@@ -97,6 +97,7 @@ function criarUsuariosUseCases({ repository, emailConfirmRedirectTo }) {
     if (!usuario.full_name) throw new AppError(400, 'Informe o nome completo.');
 
     const existente = await repository.buscarPerfilPorEmail(email);
+    usuario.tipo_usuario = existente?.tipo_usuario || 'ambos';
     let profile = await repository.salvarPerfil(usuario, {
       forcarVerificadoAoInserir: emailConfirmado(authUser),
     });

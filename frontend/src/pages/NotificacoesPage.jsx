@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import { useLanguage } from '../contexts/LanguageContext';
 import useNotificacoes from '../features/notificacoes/application/useNotificacoes';
 import { formatarDataNotificacao as formatDate } from '../features/notificacoes/presentation/notificacaoPresentation';
 
@@ -10,6 +12,7 @@ const WHITE = 'var(--bp-surface)';
 
 export default function NotificacoesPage() {
   const { error, loading, marcarComoLida, notificacoes } = useNotificacoes();
+  const { t } = useLanguage();
 
   return (
     <div style={{ minHeight: '100vh', background: CREAM }}>
@@ -17,14 +20,14 @@ export default function NotificacoesPage() {
 
       <main style={{ maxWidth: 980, margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
         <h1 style={{ margin: '0 0 1.25rem', color: TEXT, fontSize: '2rem' }}>
-          Notificações
+          {t('notifications')}
         </h1>
 
-        {loading && <Box>Carregando notificações...</Box>}
+        {loading && <Box>{t('loadingNotifications')}</Box>}
         {error && !loading && <Box danger>{error}</Box>}
 
         {!loading && !error && notificacoes.length === 0 && (
-          <Box>Nenhuma notificação por enquanto.</Box>
+          <Box>{t('noNotifications')}</Box>
         )}
 
         {!loading && !error && notificacoes.length > 0 && (
@@ -55,6 +58,8 @@ export default function NotificacoesPage() {
                       </h2>
                       <p style={{ margin: 0, color: MUTED, lineHeight: 1.5 }}>
                         {notificacao.mensagem}
+                        {notificacao.peca_id && <><br /><Link to={notificacao.tipo === 'nova_peca_para_validar'
+                          ? '/avaliador/validar/' + notificacao.peca_id : '/editar-pecas'}>Ver anúncio / avaliação</Link></>}
                       </p>
                     </div>
 
@@ -74,13 +79,13 @@ export default function NotificacoesPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        Marcar lida
+                        {t('markAsRead')}
                       </button>
                     )}
                   </div>
 
                   <div style={{ marginTop: 10, fontSize: '.78rem', color: MUTED }}>
-                    {notificacao.lida_em ? `Lida em ${formatDate(notificacao.lida_em)}` : 'Não lida'}
+                    {notificacao.lida_em ? `${t('readAt')} ${formatDate(notificacao.lida_em)}` : t('notRead')}
                   </div>
                 </article>
               );

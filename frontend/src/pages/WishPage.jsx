@@ -1,3 +1,4 @@
+import Money from '../components/Money';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import {
@@ -238,7 +239,7 @@ export default function WishPage() {
                       {peca.oem_number ? `OEM: ${peca.oem_number}` : 'OEM não informado'}
                     </p>
                     <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.2rem' }}>
-                      {formatarPreco(peca.preco)}
+                      <Money value={peca.preco_base ?? peca.preco} currency={peca.moeda_base || "BRL"} />
                     </strong>
                   </div>
 
