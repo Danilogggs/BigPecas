@@ -377,6 +377,7 @@ export default function EditarPecas() {
   const [materiais, setMateriais] = useState([]);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedPecaId, setSelectedPecaId] = useState(null);
+  const [reviewStatus, setReviewStatus] = useState('');
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [pecasSearchQuery, setPecasSearchQuery] = useState('');
 
@@ -452,6 +453,7 @@ export default function EditarPecas() {
 
       try {
         const peca = await buscarPecaPorId(pecaId);
+        setReviewStatus((peca.status_publicacao || '') + (peca.motivo_rejeicao ? ': ' + peca.motivo_rejeicao : ''));
 
         setFormData({
           nome_peca: peca?.nome_peca || '',
@@ -467,7 +469,9 @@ export default function EditarPecas() {
           altura_mm: peca?.altura_mm || '',
           detalhes_gravacao: peca?.detalhes_gravacao || '',
           historico_proveniencia: peca?.historico_proveniencia || '',
-          preco: peca?.preco || '',
+          preco: String(peca?.preco_base ?? peca?.preco ?? ''),
+          moeda_base: peca?.moeda_base || 'BRL',
+          url_video: peca?.url_video || '',
           estoque_atual: peca?.estoque_atual || '',
           imagem: peca?.imagem || '',
         });
@@ -552,6 +556,8 @@ export default function EditarPecas() {
           ? parseInt(formData.estoque_atual, 10)
           : 0,
         imagem: formData.imagem || '',
+        url_video: formData.url_video || '',
+        moeda_base: formData.moeda_base || 'BRL',
       };
 
       try {
@@ -638,7 +644,7 @@ export default function EditarPecas() {
           />
 
           {selectedPecaId ? (
-            <FormEdicaoPeca
+            <FormEdicaoPeca reviewStatus={reviewStatus}
               formData={formData}
               onInputChange={handleInputChange}
               onImageChange={handleImageChangeWrapper}

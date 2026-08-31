@@ -4,6 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 const FormEdicaoPeca = memo(function FormEdicaoPeca({
   formData,
+  reviewStatus,
   onInputChange,
   onImageChange,
   onRemoveImage,
@@ -103,7 +104,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
 
           <FormInput
             name="preco"
-            label={t('Preço (R$)')}
+            label="Preço na moeda base"
             value={formData.preco}
             onChange={onInputChange}
             error={errors.preco}
@@ -162,7 +163,16 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           />
         </div>
 
-        <div className="form-wide">
+        <p role="status">{reviewStatus}</p><label style={{display:'block',margin:'16px 0'}}>Vídeo da peça (URL HTTPS de arquivo MP4/WebM)
+                <input type="url" name="url_video" value={formData.url_video || ''} onChange={onInputChange} style={{width:'100%',padding:12}} placeholder="https://..." />
+              </label>
+              <label>Moeda base
+                <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={onInputChange}>
+                  <option value="BRL">BRL</option><option value="USD">USD</option><option value="EUR">EUR</option>
+                </select>
+              </label>
+              <p>O anúncio será enviado para avaliação. Moedas estrangeiras exigem taxa configurada. O pagamento ocorre em BRL.</p>
+<div className="form-wide">
           <FormTextarea
             name="detalhes_gravacao"
             label={t('Detalhes de Gravação')}

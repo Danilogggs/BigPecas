@@ -56,7 +56,7 @@ function criarSupabaseUsuariosRepository({ supabaseAdmin, supabasePublic, userTa
       .select('*')
       .maybeSingle();
     if (error) throw error;
-    return normalizarPerfil(data) || { ...perfil, tipo_usuario: 'ambos', email_verificado: true };
+    return normalizarPerfil(data) || { ...perfil, email_verificado: true };
   }
 
   async function cadastrarAuth({ email, password, usuario, redirectTo }) {

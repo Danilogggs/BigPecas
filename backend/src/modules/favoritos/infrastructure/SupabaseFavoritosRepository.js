@@ -14,13 +14,13 @@ function criarSupabaseFavoritosRepository({ supabase, tabelas }) {
   }
 
   async function listarPecas(ids) {
-    const { data, error } = await supabase.from(tabelas.pecas).select('*').in('id', ids);
+    const { data, error } = await supabase.from(tabelas.pecas).select('*').eq('status_publicacao', 'publicada').in('id', ids);
     if (error) throw error;
     return data || [];
   }
 
   async function buscarPeca(id) {
-    const { data, error } = await supabase.from(tabelas.pecas).select('*').eq('id', id).maybeSingle();
+    const { data, error } = await supabase.from(tabelas.pecas).select('*').eq('status_publicacao', 'publicada').eq('id', id).maybeSingle();
     if (error) throw error;
     return data;
   }

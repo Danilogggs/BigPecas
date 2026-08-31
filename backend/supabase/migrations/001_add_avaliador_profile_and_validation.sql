@@ -1,0 +1,2 @@
+-- Rascunho substituído por 20260830_avaliacao_moeda_segura.sql.
+-- Intencionalmente vazia: execute a migration canônica, inclusive em bancos existentes.

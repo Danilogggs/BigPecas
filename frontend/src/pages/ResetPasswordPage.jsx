@@ -44,12 +44,12 @@ export default function ResetPasswordPage() {
         setHasRecoverySession(hasSession);
 
         if (!hasSession) {
-          setError('Link inválido ou expirado. Solicite um novo e-mail de recuperação de senha.');
+          setError(t('invalidRecoveryLink'));
         }
       } catch {
         if (!isMounted) return;
         setHasRecoverySession(false);
-        setError('Não foi possível validar o link de recuperação. Solicite um novo e-mail.');
+        setError(t('invalidRecoveryValidation'));
       } finally {
         if (isMounted) {
           setCheckingLink(false);
@@ -96,15 +96,15 @@ export default function ResetPasswordPage() {
     const newErrors = {};
 
     if (!form.password.trim()) {
-      newErrors.password = 'Informe a nova senha.';
+      newErrors.password = t('passwordRequired');
     } else if (form.password.length < 8) {
-      newErrors.password = 'A senha deve ter pelo menos 8 caracteres.';
+      newErrors.password = t('passwordMinPlaceholder');
     }
 
     if (!form.confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Confirme a nova senha.';
+      newErrors.confirmPassword = t('confirmNewPasswordPlaceholder');
     } else if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'As senhas não conferem.';
+      newErrors.confirmPassword = t('confirmPasswordPlaceholder');
     }
 
     setErrors(newErrors);
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
     setSuccess('');
 
     if (!hasRecoverySession) {
-      setError('Link inválido ou expirado. Solicite um novo e-mail de recuperação de senha.');
+      setError(t('invalidRecoveryLink'));
       return;
     }
 
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
 
     try {
       await updatePassword(form.password);
-      setSuccess('Senha redefinida com sucesso. Redirecionando para o login...');
+      setSuccess(t('passwordResetSuccess'));
       setForm(INITIAL_FORM);
       navigate('/login?senhaRedefinida=1', { replace: true });
     } catch (err) {
@@ -184,24 +184,24 @@ export default function ResetPasswordPage() {
           </span>
 
           <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
-            {t('Redefinir senha')}
+            {t('resetPasswordTitle')}
           </h1>
 
           <p style={{ marginTop: SPACING.SM, fontSize: '0.95rem', color: COLORS.MUTED_TEXT }}>
-            {t('Cadastre uma nova senha para acessar sua conta novamente.')}
+            {t('resetPasswordDescription')}
           </p>
         </div>
 
         {checkingLink ? (
-          <p style={{ color: COLORS.MUTED_TEXT, margin: 0 }}>{t('Validando link de recuperação...')}</p>
+          <p style={{ color: COLORS.MUTED_TEXT, margin: 0 }}>{t('validatingRecoveryLink')}</p>
         ) : (
           <form onSubmit={handleSubmit} noValidate>
             <div style={{ marginBottom: SPACING.LG }}>
-              <Field label={t('Nova senha')} required>
+              <Field label={t('newPassword')} required>
                 <Input
                   type="password"
                   name="password"
-                  placeholder={t('Digite sua nova senha')}
+                  placeholder={t('enterNewPassword')}
                   value={form.password}
                   onChange={handleChange}
                   required
@@ -212,11 +212,11 @@ export default function ResetPasswordPage() {
             </div>
 
             <div style={{ marginBottom: SPACING.LG }}>
-              <Field label={t('Confirmar nova senha')} required>
+              <Field label={t('confirmNewPassword')} required>
                 <Input
                   type="password"
                   name="confirmPassword"
-                  placeholder={t('Confirme sua nova senha')}
+                  placeholder={t('confirmNewPasswordPlaceholder')}
                   value={form.confirmPassword}
                   onChange={handleChange}
                   required
@@ -247,7 +247,7 @@ export default function ResetPasswordPage() {
                 boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
               }}
             >
-              {loading ? t('Salvando...') : t('Salvar nova senha')}
+              {loading ? t('savingPassword') : t('saveNewPassword')}
             </ButtonPrimary>
           </form>
         )}

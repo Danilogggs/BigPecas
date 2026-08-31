@@ -26,6 +26,9 @@ const AdminPage           = lazy(() => import('./pages/AdminPage'));
 const SettingsPage        = lazy(() => import('./pages/SettingsPage'));
 const NotificacoesPage    = lazy(() => import('./pages/NotificacoesPage'));
 
+const AvaliadorPage = lazy(() => import('./pages/AvaliadorPage'));
+const ValidarPecaPage = lazy(() => import('./pages/ValidarPecaPage'));
+const AdminChecklistPage = lazy(() => import('./pages/AdminChecklistPage'));
 function PageLoader() {
   const { t } = useLanguage();
   return (
@@ -43,6 +46,9 @@ export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        <Route path="/avaliador" element={<PrivateRoute><AvaliadorPage /></PrivateRoute>} />
+        <Route path="/avaliador/validar/:pecaId" element={<PrivateRoute><ValidarPecaPage /></PrivateRoute>} />
+        <Route path="/admin/checklist" element={<PrivateRoute><AdminChecklistPage /></PrivateRoute>} />
         <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
         <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
 

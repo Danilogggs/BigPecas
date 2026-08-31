@@ -16,7 +16,7 @@ function criarSupabaseNotificacoesRepository({ supabase, tabelas }) {
 
   async function listar(userId) {
     const { data, error } = await supabase.from(tabelas.notificacoes)
-      .select('id, user_id, pedido_id, tipo, titulo, mensagem, status_envio, lida_em, criada_em')
+      .select('id, user_id, pedido_id, peca_id, tipo, titulo, mensagem, status_envio, lida_em, criada_em')
       .eq('user_id', String(userId)).order('criada_em', { ascending: false }).limit(50);
     if (error) throw error;
     return data || [];

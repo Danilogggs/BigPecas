@@ -36,7 +36,7 @@ function criarPecasUseCases({ repository }) {
     validarPayloadCadastro(payload);
     const peca = await repository.criarPeca(payload);
 
-    return { id: peca?.id, message: 'Peça cadastrada com sucesso!', peca };
+    return { id: peca?.id, message: 'Peça cadastrada e enviada para avaliação. Ela ficará pública após aprovação.', peca };
   }
 
   async function listar({ identidade, query }) {
@@ -54,6 +54,7 @@ function criarPecasUseCases({ repository }) {
     const resultado = await repository.listarPecas({
       filtros: {
         fornecedorAtualId,
+        moeda: query.moeda || 'BRL',
         fornecedorId: fornecedor_id
           ? validarNumeroConsulta(fornecedor_id, 'fornecedor')
           : null,
@@ -119,7 +120,7 @@ function criarPecasUseCases({ repository }) {
     const id = validarId(idInformado);
     const limite = validarNumeroConsulta(limiteInformado, 'limite') || 4;
     const pecaBase = await repository.buscarPecaPorId(id);
-    if (!pecaBase) {
+    if (!pecaBase || pecaBase.status_publicacao !== 'publicada') {
       throw new AppError(404, 'Peça base não encontrada para gerar recomendações.');
     }
 
@@ -135,10 +136,15 @@ function criarPecasUseCases({ repository }) {
     return { peca_base_id: id, total: recomendacoes.length, recomendacoes };
   }
 
-  async function detalhar(idInformado) {
+  async function detalhar(idInformado, identidade) {
     const id = validarId(idInformado);
     const peca = await repository.buscarPecaPorId(id);
     if (!peca) throw new AppError(404, 'Peça não encontrada.');
+    if (peca.status_publicacao !== 'publicada') {
+      const email = obterEmailUsuarioAutenticado(identidade);
+      const dono = email ? await repository.buscarFornecedorPorEmail(email) : null;
+      if (!dono || String(dono.id) !== String(peca.fornecedor_id)) throw new AppError(404, 'Peça não encontrada.');
+    }
     return peca;
   }
 

@@ -23,7 +23,7 @@ function sanitizarUsuario(body = {}) {
     email: normalizarEmail(body.email),
     gender: normalizarTexto(body.gender || body.genero),
     cep: normalizarTexto(body.cep),
-    tipo_usuario: 'ambos',
+    tipo_usuario: body.tipo_usuario === 'avaliador' ? 'avaliador' : 'ambos',
     nome_loja: normalizarTexto(body.nome_loja),
     descricao_loja: normalizarTexto(body.descricao_loja),
     telefone: normalizarTexto(body.telefone),
@@ -48,7 +48,7 @@ const emailConfirmado = (user) => Boolean(user?.email_confirmed_at || user?.conf
 
 function normalizarPerfil(perfil) {
   return perfil
-    ? { ...perfil, tipo_usuario: 'ambos', is_admin: perfil.is_admin === true }
+    ? { ...perfil, tipo_usuario: perfil.tipo_usuario === 'avaliador' ? 'avaliador' : 'ambos', is_admin: perfil.is_admin === true }
     : perfil;
 }
 

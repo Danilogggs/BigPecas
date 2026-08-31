@@ -1,3 +1,5 @@
+import Money from '../components/Money';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -18,6 +20,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
   const { t } = useLanguage();
+  const money = useCurrency();
 
   const [pecas, setPecas]           = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -147,7 +150,7 @@ export default function HomePage() {
                   <div className="bp-hero__featured-app">{destaque.condicao}</div>
                 )}
                 <div className="bp-hero__featured-footer">
-                  <span className="bp-hero__featured-price">{formatBRL(destaque.preco)}</span>
+                  <span className="bp-hero__featured-price"><Money value={destaque.preco_base ?? destaque.preco} currency={destaque.moeda_base || "BRL"} /></span>
                   <span className="badge badge-verified">{t('verified')}</span>
                 </div>
               </div>
@@ -280,8 +283,8 @@ export default function HomePage() {
                 { label: t('mostRecent'), url: '/buscaPecas?sort=data_cadastro&order=desc' },
                 { label: t('nosCondition'), url: '/buscaPecas?condicao=NOS' },
                 { label: t('restoredCondition'), url: '/buscaPecas?condicao=Restaurada' },
-                { label: t('under500'), url: '/buscaPecas?max_preco=500' },
-                { label: t('over5000'), url: '/buscaPecas?min_preco=5000' },
+                { label: '≤ ' + (money?.format(500) || formatBRL(500)), url: '/buscaPecas?max_preco=' + (money?.convert(500) ?? 500) },
+                { label: '≥ ' + (money?.format(5000) || formatBRL(5000)), url: '/buscaPecas?min_preco=' + (money?.convert(5000) ?? 5000) },
               ].map(({ label, url }) => (
                 <button key={label} className="btn btn-ghost btn-sm" onClick={() => navigate(url)}>
                   {label}
@@ -361,6 +364,7 @@ export default function HomePage() {
 
 function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
   const { t } = useLanguage();
+  const money = useCurrency();
   const semEstoque = Number(peca.estoque_atual) === 0;
 
   return (
@@ -394,7 +398,7 @@ function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
         </div>
 
         <div className="product-card__footer">
-          <span className="product-card__price">{formatBRL(peca.preco)}</span>
+          <span className="product-card__price"><Money value={peca.preco_base ?? peca.preco} currency={peca.moeda_base || "BRL"} /></span>
           <span
             className={`badge ${semEstoque ? 'badge-error' : 'badge-verified'}`}
           >

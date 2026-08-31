@@ -968,7 +968,16 @@ export default function CadastroPecas() {
               </p>
             </div>
 
-            <FormGroup label={t('Imagem da peça')}>
+            <label style={{display:'block',margin:'16px 0'}}>Vídeo da peça (URL HTTPS de arquivo MP4/WebM)
+                <input type="url" name="url_video" value={formData.url_video || ''} onChange={handleInputChange} style={{width:'100%',padding:12}} placeholder="https://..." />
+              </label>
+              <label>Moeda base
+                <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={handleInputChange}>
+                  <option value="BRL">BRL</option><option value="USD">USD</option><option value="EUR">EUR</option>
+                </select>
+              </label>
+              <p>O anúncio será enviado para avaliação. Moedas estrangeiras exigem taxa configurada. O pagamento ocorre em BRL.</p>
+<FormGroup label={t('Imagem da peça')}>
               <input
                 ref={imageInputRef}
                 type="file"

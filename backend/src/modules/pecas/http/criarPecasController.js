@@ -50,7 +50,7 @@ function criarPecasController(useCases) {
     }),
 
     detalhar: adaptar(async (req, res) => {
-      res.json(await useCases.detalhar(req.params.id));
+      res.json(await useCases.detalhar(req.params.id, obterIdentidade(req)));
     }),
 
     atualizar: adaptar(async (req, res) => {

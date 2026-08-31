@@ -19,7 +19,10 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
     },
 
     async listarPecas({ filtros, ordenacao, paginacao }) {
-      let query = supabase.from(pecas).select('*');
+      let query = filtros.fornecedorAtualId
+        ? supabase.from(pecas).select('*').neq('status_publicacao', 'arquivada')
+        : supabase.from('precos_publicos_moeda').select('*').eq('moeda_exibicao', filtros.moeda || 'BRL');
+      const campoPreco = filtros.fornecedorAtualId ? 'preco' : 'preco_exibicao';
       if (filtros.fornecedorAtualId) query = query.eq('fornecedor_id', filtros.fornecedorAtualId);
       if (filtros.fornecedorId !== null) query = query.eq('fornecedor_id', filtros.fornecedorId);
       if (filtros.categoriaId !== null) query = query.eq('categoria_id', filtros.categoriaId);
@@ -28,11 +31,11 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
       if (filtros.oemNumber) query = query.eq('oem_number', filtros.oemNumber);
       if (filtros.numeroSerie) query = query.eq('num_serie', filtros.numeroSerie);
       if (filtros.nome) query = query.ilike('nome_peca', `%${filtros.nome}%`);
-      if (filtros.precoMinimo !== null) query = query.gte('preco', filtros.precoMinimo);
-      if (filtros.precoMaximo !== null) query = query.lte('preco', filtros.precoMaximo);
+      if (filtros.precoMinimo !== null) query = query.gte(campoPreco, filtros.precoMinimo);
+      if (filtros.precoMaximo !== null) query = query.lte(campoPreco, filtros.precoMaximo);
       if (filtros.estoqueMinimo !== null) query = query.gte('estoque_atual', filtros.estoqueMinimo);
 
-      query = query.order(ordenacao.campo, { ascending: ordenacao.ascendente });
+      query = query.order(ordenacao.campo === 'preco' ? campoPreco : ordenacao.campo, { ascending: ordenacao.ascendente });
       const { data, error, count } = await query
         .select('*', { count: 'estimated' })
         .range(paginacao.inicio, paginacao.fim);
@@ -52,7 +55,7 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
       const { data, error } = await supabase
         .from(pecas)
         .select('id, nome_peca, fornecedor_id, preco, estoque_atual, imagem')
-        .in('fornecedor_id', ids);
+        .in('fornecedor_id', ids).eq('status_publicacao', 'publicada');
       if (error) throw error;
       return data || [];
     },
@@ -71,7 +74,7 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
       const { data, error } = await supabase
         .from(pecas)
         .select('*')
-        .eq('fornecedor_id', id)
+        .eq('fornecedor_id', id).eq('status_publicacao', 'publicada')
         .order('id', { ascending: false });
       if (error) throw error;
       return data || [];
@@ -96,6 +99,7 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
       let query = supabase
         .from(pecas)
         .select('*')
+        .eq('status_publicacao', 'publicada')
         .neq('id', id)
         .gt('estoque_atual', 0)
         .limit(30);
@@ -118,7 +122,7 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
     },
 
     async deletarPeca(id) {
-      const { error } = await supabase.from(pecas).delete().eq('id', id);
+      const { error } = await supabase.from(pecas).update({ status_publicacao: 'arquivada' }).eq('id', id);
       if (error) throw error;
     },
 

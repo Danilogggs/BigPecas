@@ -13,18 +13,28 @@ function criarSupabasePedidosRepository({ supabase, tabelas }) {
       return data;
     },
 
-    async buscarPecasPorIds(ids) {
+    async buscarPecasPorIds(ids, somentePublicadas = false) {
       const idsUnicos = [...new Set(
         ids.filter((id) => id !== null && id !== undefined).map(String),
       )];
       if (idsUnicos.length === 0) return [];
 
-      const { data, error } = await supabase
-        .from(pecas)
-        .select('id, nome_peca, preco, imagem, sku, estoque_atual, fornecedor_id')
+      let query = supabase.from(pecas)
+        .select('id, nome_peca, preco, preco_base, moeda_base, imagem, sku, estoque_atual, fornecedor_id')
         .in('id', idsUnicos);
+      if (somentePublicadas) query = query.eq('status_publicacao', 'publicada');
+      const { data, error } = await query;
 
       if (error) throw error;
+      if (somentePublicadas && data?.length) {
+        const { data: taxas, error: taxaError } = await supabase.from('taxas_cambio').select('moeda, unidades_por_brl');
+        if (taxaError) throw taxaError;
+        return data.map(p => {
+          const taxa = Number(taxas.find(t => t.moeda === p.moeda_base)?.unidades_por_brl);
+          if (!(taxa > 0)) throw new Error('Câmbio indisponível para esta peça.');
+          return { ...p, preco: Math.round(Number(p.preco_base) / taxa * 100) / 100 };
+        });
+      }
       return data || [];
     },
 

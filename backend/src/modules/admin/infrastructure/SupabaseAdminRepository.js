@@ -137,12 +137,12 @@ function criarSupabaseAdminRepository({ supabase, tabelas }) {
   }
 
   async function listarPecas({ search, from, to }) {
-    let query = supabase.from(tabelas.pecas).select('*', { count: 'exact' });
+    let query = supabase.from(tabelas.pecas).select('*', { count: 'exact' }).neq('status_publicacao', 'arquivada');
     if (search) query = query.or(`nome_peca.ilike.%${search}%,sku.ilike.%${search}%,oem_number.ilike.%${search}%`);
     return query.order('id', { ascending: false }).range(from, to);
   }
 
-  const removerPeca = (id) => supabase.from(tabelas.pecas).delete().eq('id', id)
+  const removerPeca = (id) => supabase.from(tabelas.pecas).update({ status_publicacao: 'arquivada' }).eq('id', id)
     .select('id, nome_peca').maybeSingle();
   const editarPeca = (id, dados) => supabase.from(tabelas.pecas).update(dados).eq('id', id).select('*').maybeSingle();
 
