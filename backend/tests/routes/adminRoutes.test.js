@@ -497,8 +497,70 @@ describe('adminRoutes', () => {
       const resposta = await request(app).get(`/api/admin/avaliacoes/${tipo}`);
 
       expect(resposta.status).toBe(200);
-      expect(resposta.body.data).toEqual([{ id: 1 }]);
+      expect(resposta.body.data).toEqual([
+        { id: 1, peca_nome: null, fornecedor_nome: null, fornecedor_loja: null },
+      ]);
       expect(consultaEm(tabela).argumentos('order')).toEqual(['data_avaliacao', { ascending: false }]);
+    });
+
+    it('enriquece a avaliacao com o nome da peca e os dados do fornecedor', async () => {
+      mockSupabaseAdmin.__mockTable('avaliacoes_produto', {
+        data: [{ id: 1, peca_id: 10, fornecedor_id: 5 }],
+        count: 1,
+        error: null,
+      });
+      mockSupabaseAdmin.__mockTable('pecas', { data: [{ id: 10, nome_peca: 'Friso Opala' }], error: null });
+      mockSupabaseAdmin.__mockTable('users', {
+        data: [{ id: 5, full_name: 'Zé Vendedor', nome_loja: 'Loja do Zé' }],
+        error: null,
+      });
+
+      const resposta = await request(app).get('/api/admin/avaliacoes/produtos');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.data).toEqual([{
+        id: 1,
+        peca_id: 10,
+        fornecedor_id: 5,
+        peca_nome: 'Friso Opala',
+        fornecedor_nome: 'Zé Vendedor',
+        fornecedor_loja: 'Loja do Zé',
+      }]);
+    });
+
+    it('usa os itens do pedido como nome da peca quando a avaliacao nao aponta uma peca', async () => {
+      mockSupabaseAdmin.__mockTable('avaliacoes_produto', {
+        data: [{ id: 2, pedido_id: 77, fornecedor_id: 5 }],
+        count: 1,
+        error: null,
+      });
+      mockSupabaseAdmin.__mockTable('pedidos', {
+        data: [{ id: 77, itens: [{ nome: 'Roda' }, { nome_peca: 'Calota' }] }],
+        error: null,
+      });
+      mockSupabaseAdmin.__mockTable('users', {
+        data: [{ id: 5, full_name: 'Zé Vendedor', nome_loja: null }],
+        error: null,
+      });
+
+      const resposta = await request(app).get('/api/admin/avaliacoes/produtos');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.data[0]).toMatchObject({
+        peca_nome: 'Roda, Calota',
+        fornecedor_loja: 'Zé Vendedor',
+      });
+    });
+
+    it('devolve a lista vazia sem consultar as tabelas de apoio', async () => {
+      mockSupabaseAdmin.__mockTable('avaliacoes_produto', { data: [], count: 0, error: null });
+
+      const resposta = await request(app).get('/api/admin/avaliacoes/produtos');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.data).toEqual([]);
+      expect(mockSupabaseAdmin.__callsFor('pecas')).toHaveLength(0);
+      expect(mockSupabaseAdmin.__callsFor('users')).toHaveLength(0);
     });
 
     it('recusa tipo desconhecido', async () => {
@@ -528,6 +590,296 @@ describe('adminRoutes', () => {
 
       expect(resposta.status).toBe(400);
       expect(resposta.body.error).toBe('O id de avaliacao e invalido.');
+    });
+  });
+
+  describe('PATCH /usuarios/:id', () => {
+    /** Estado atual do usuario, lido antes de qualquer atualizacao. */
+    function mockarUsuarioExistente(atual = { id: 9, email: 'antigo@bigpecas.com', full_name: 'Antigo' }) {
+      mockSupabaseAdmin.__queueTable('users', { data: atual, error: null });
+    }
+
+    it('atualiza os campos permitidos e ignora os demais', async () => {
+      mockarUsuarioExistente();
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({ data: { users: [] }, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, full_name: 'Novo Nome' }, error: null });
+
+      const resposta = await request(app)
+        .patch('/api/admin/usuarios/9')
+        .send({ full_name: '  Novo Nome  ', telefone: '11999990000', is_admin: true, id: 123 });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.message).toBe('Usuario atualizado com sucesso.');
+      expect(consultaEm('users', 1).argumentos('update')[0]).toMatchObject({
+        full_name: 'Novo Nome',
+        telefone: '11999990000',
+      });
+      expect(consultaEm('users', 1).argumentos('update')[0]).not.toHaveProperty('is_admin');
+    });
+
+    it('normaliza o email e sincroniza com o Supabase Auth', async () => {
+      mockarUsuarioExistente();
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'auth-9', email: 'antigo@bigpecas.com', user_metadata: { origem: 'painel' } }] },
+        error: null,
+      });
+      mockSupabaseAdmin.auth.admin.updateUserById.mockResolvedValue({ data: {}, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9 }, error: null });
+
+      const resposta = await request(app)
+        .patch('/api/admin/usuarios/9')
+        .send({ email: '  NOVO@BigPecas.com  ', full_name: 'Novo' });
+
+      expect(resposta.status).toBe(200);
+      expect(mockSupabaseAdmin.auth.admin.updateUserById).toHaveBeenCalledWith('auth-9', {
+        email: 'novo@bigpecas.com',
+        email_confirm: true,
+        user_metadata: { origem: 'painel', full_name: 'Novo' },
+      });
+    });
+
+    it('desfaz a troca de email no Auth quando a gravacao no banco falha', async () => {
+      mockarUsuarioExistente();
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'auth-9', email: 'antigo@bigpecas.com' }] },
+        error: null,
+      });
+      mockSupabaseAdmin.auth.admin.updateUserById.mockResolvedValue({ data: {}, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: null, error: new Error('constraint') });
+
+      const resposta = await request(app).patch('/api/admin/usuarios/9').send({ email: 'novo@bigpecas.com' });
+
+      expect(resposta.status).toBe(500);
+      expect(mockSupabaseAdmin.auth.admin.updateUserById).toHaveBeenLastCalledWith('auth-9', {
+        email: 'antigo@bigpecas.com',
+        email_confirm: true,
+      });
+    });
+
+    it('propaga a falha do Auth sem tocar no banco', async () => {
+      mockarUsuarioExistente();
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'auth-9', email: 'antigo@bigpecas.com' }] },
+        error: null,
+      });
+      mockSupabaseAdmin.auth.admin.updateUserById.mockResolvedValue({
+        data: null,
+        error: new Error('email ja usado'),
+      });
+
+      const resposta = await request(app).patch('/api/admin/usuarios/9').send({ email: 'novo@bigpecas.com' });
+
+      expect(resposta.status).toBe(500);
+      expect(mockSupabaseAdmin.__callsFor('users')).toHaveLength(1);
+    });
+
+    it.each([
+      ['nenhum campo conhecido', { is_admin: true }, 'Informe ao menos um campo para atualizar.'],
+      ['email invalido', { email: 'sem-arroba' }, 'Informe um email valido.'],
+    ])('recusa a edicao com %s', async (_descricao, corpo, mensagem) => {
+      const resposta = await request(app).patch('/api/admin/usuarios/9').send(corpo);
+
+      expect(resposta.status).toBe(400);
+      expect(resposta.body.error).toBe(mensagem);
+    });
+
+    it('valida o id do usuario', async () => {
+      const resposta = await request(app).patch('/api/admin/usuarios/abc').send({ full_name: 'X' });
+
+      expect(resposta.status).toBe(400);
+    });
+
+    it('responde 404 quando o usuario nao existe', async () => {
+      mockSupabaseAdmin.__mockTable('users', { data: null, error: null });
+
+      const resposta = await request(app).patch('/api/admin/usuarios/9').send({ full_name: 'X' });
+
+      expect(resposta.status).toBe(404);
+      expect(resposta.body.error).toBe('Usuario nao encontrado.');
+    });
+  });
+
+  describe('DELETE /usuarios/:id', () => {
+    it('exclui o usuario e remove a conta no Supabase Auth', async () => {
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'auth-9', email: 'EX@bigpecas.com' }] },
+        error: null,
+      });
+      mockSupabaseAdmin.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+      const resposta = await request(app).delete('/api/admin/usuarios/9');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toEqual({ message: 'Usuario excluido com sucesso.' });
+      expect(mockSupabaseAdmin.auth.admin.deleteUser).toHaveBeenCalledWith('auth-9');
+    });
+
+    it('anonimiza o usuario quando ha pedidos vinculados', async () => {
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: null, error: { code: '23503' } });
+      mockSupabaseAdmin.__queueTable('users', {
+        data: { id: 9, email: 'deleted+9@removed.bigpecas' },
+        error: null,
+      });
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({ data: { users: [] }, error: null });
+
+      const resposta = await request(app).delete('/api/admin/usuarios/9');
+
+      expect(resposta.status).toBe(200);
+      expect(consultaEm('users', 2).argumentos('update')[0]).toMatchObject({
+        email: 'deleted+9@removed.bigpecas',
+        full_name: 'Usuario excluido',
+        is_admin: false,
+        nome_loja: null,
+      });
+    });
+
+    it('propaga a falha da anonimizacao', async () => {
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: null, error: { code: '23503' } });
+      mockSupabaseAdmin.__queueTable('users', { data: null, error: new Error('falhou') });
+
+      expect((await request(app).delete('/api/admin/usuarios/9')).status).toBe(500);
+    });
+
+    it('propaga um erro de exclusao que nao seja de chave estrangeira', async () => {
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: null, error: { code: '42501' } });
+
+      expect((await request(app).delete('/api/admin/usuarios/9')).status).toBe(500);
+    });
+
+    it('propaga a falha ao remover a conta no Auth', async () => {
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.__queueTable('users', { data: { id: 9, email: 'ex@bigpecas.com' }, error: null });
+      mockSupabaseAdmin.auth.admin.listUsers.mockResolvedValue({
+        data: { users: [{ id: 'auth-9', email: 'ex@bigpecas.com' }] },
+        error: null,
+      });
+      mockSupabaseAdmin.auth.admin.deleteUser.mockResolvedValue({ error: new Error('sem permissao') });
+
+      expect((await request(app).delete('/api/admin/usuarios/9')).status).toBe(500);
+    });
+
+    it('impede que o administrador exclua a propria conta', async () => {
+      const resposta = await request(app).delete(`/api/admin/usuarios/${ADMIN.id}`);
+
+      expect(resposta.status).toBe(409);
+      expect(resposta.body.error).toBe('Voce nao pode excluir a propria conta administrativa.');
+      expect(mockSupabaseAdmin.__callsFor('users')).toHaveLength(0);
+    });
+
+    it('responde 404 quando o usuario nao existe', async () => {
+      mockSupabaseAdmin.__mockTable('users', { data: null, error: null });
+
+      expect((await request(app).delete('/api/admin/usuarios/9')).status).toBe(404);
+    });
+  });
+
+  describe('PATCH /pecas/:id', () => {
+    it('atualiza nome, preco e estoque da peca', async () => {
+      mockSupabaseAdmin.__mockTable('pecas', { data: { id: 10 }, error: null });
+
+      const resposta = await request(app)
+        .patch('/api/admin/pecas/10')
+        .send({ nome_peca: '  Friso  ', preco: 400, estoque_atual: 7 });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.message).toBe('Peca atualizada com sucesso.');
+      expect(consultaEm('pecas').argumentos('update')[0]).toEqual({
+        nome_peca: 'Friso',
+        preco_base: 400,
+        estoque_atual: 7,
+      });
+    });
+
+    it('aceita estoque zero', async () => {
+      mockSupabaseAdmin.__mockTable('pecas', { data: { id: 10 }, error: null });
+
+      const resposta = await request(app).patch('/api/admin/pecas/10').send({ estoque_atual: 0 });
+
+      expect(resposta.status).toBe(200);
+      expect(consultaEm('pecas').argumentos('update')[0]).toEqual({ estoque_atual: 0 });
+    });
+
+    it.each([
+      ['sem nenhum campo', {}],
+      ['com nome vazio', { nome_peca: '   ' }],
+      ['com preco zero', { preco: 0 }],
+      ['com preco negativo', { preco: -1 }],
+      ['com preco nao numerico', { preco: 'abc' }],
+      ['com estoque negativo', { estoque_atual: -1 }],
+      ['com estoque fracionario', { estoque_atual: 1.5 }],
+    ])('recusa a edicao %s', async (_descricao, corpo) => {
+      const resposta = await request(app).patch('/api/admin/pecas/10').send(corpo);
+
+      expect(resposta.status).toBe(400);
+      expect(resposta.body.error).toBe('Revise o nome, preco e estoque da peca.');
+    });
+
+    it('responde 404 quando a peca nao existe', async () => {
+      mockSupabaseAdmin.__mockTable('pecas', { data: null, error: null });
+
+      expect((await request(app).patch('/api/admin/pecas/10').send({ preco: 10 })).status).toBe(404);
+    });
+  });
+
+  describe('PATCH /avaliacoes/:tipo/:id', () => {
+    it('atualiza a nota e o comentario da avaliacao', async () => {
+      mockSupabaseAdmin.__mockTable('avaliacoes_produto', { data: { id: 3, nota: 4 }, error: null });
+
+      const resposta = await request(app)
+        .patch('/api/admin/avaliacoes/produtos/3')
+        .send({ nota: 4, comentario: '  Bom estado  ' });
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.message).toBe('Avaliacao atualizada com sucesso.');
+      expect(consultaEm('avaliacoes_produto').argumentos('update')[0]).toEqual({
+        nota: 4,
+        comentario: 'Bom estado',
+      });
+    });
+
+    it('guarda o comentario vazio como nulo', async () => {
+      mockSupabaseAdmin.__mockTable('avaliacoes_fornecedor', { data: { id: 3 }, error: null });
+
+      await request(app).patch('/api/admin/avaliacoes/fornecedores/3').send({ nota: 5 });
+
+      expect(consultaEm('avaliacoes_fornecedor').argumentos('update')[0]).toEqual({
+        nota: 5,
+        comentario: null,
+      });
+    });
+
+    it.each([
+      ['nota zero', { nota: 0 }],
+      ['nota acima de cinco', { nota: 6 }],
+      ['nota fracionaria', { nota: 4.5 }],
+      ['nota ausente', {}],
+      ['comentario longo demais', { nota: 5, comentario: 'x'.repeat(1001) }],
+    ])('recusa a edicao com %s', async (_descricao, corpo) => {
+      const resposta = await request(app).patch('/api/admin/avaliacoes/produtos/3').send(corpo);
+
+      expect(resposta.status).toBe(400);
+      expect(resposta.body.error).toBe(
+        'Informe nota entre 1 e 5 e comentario de ate 1000 caracteres.',
+      );
+    });
+
+    it('recusa um tipo de avaliacao desconhecido', async () => {
+      const resposta = await request(app).patch('/api/admin/avaliacoes/vendedores/3').send({ nota: 5 });
+
+      expect(resposta.status).toBe(400);
+    });
+
+    it('responde 404 quando a avaliacao nao existe', async () => {
+      mockSupabaseAdmin.__mockTable('avaliacoes_produto', { data: null, error: null });
+
+      const resposta = await request(app).patch('/api/admin/avaliacoes/produtos/3').send({ nota: 5 });
+
+      expect(resposta.status).toBe(404);
     });
   });
 });

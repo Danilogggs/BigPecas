@@ -99,6 +99,8 @@ function createSupabaseMock() {
 
   const supabase = {
     from: jest.fn((table) => criarBuilder(table, resolver, calls)),
+    /** Funcoes do Postgres chamadas via `db.rpc(nome, argumentos)`. */
+    rpc: jest.fn(() => Promise.resolve({ data: null, error: null })),
     auth: {
       getUser: jest.fn(),
       signUp: jest.fn(),
@@ -138,6 +140,8 @@ function createSupabaseMock() {
       padroes.clear();
       filas.clear();
       calls.length = 0;
+      supabase.rpc.mockReset();
+      supabase.rpc.mockResolvedValue({ data: null, error: null });
     },
   };
 

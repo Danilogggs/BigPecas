@@ -32,11 +32,19 @@ const PECA = {
   id: 10,
   nome_peca: 'Friso Opala',
   preco: 350,
+  preco_base: 350,
+  moeda_base: 'BRL',
   imagem: 'friso.png',
   sku: 'FR-1',
   estoque_atual: 5,
   fornecedor_id: 5,
 };
+
+/** Cambio consultado ao montar um pedido: converte `preco_base` para reais. */
+const TAXAS_CAMBIO = [
+  { moeda: 'BRL', unidades_por_brl: 1 },
+  { moeda: 'USD', unidades_por_brl: 0.2 },
+];
 
 function pedidoSalvo(overrides = {}) {
   return {
@@ -283,9 +291,10 @@ describe('pedidosRoutes', () => {
       forma_pagamento: { nome: 'Pix' },
     };
 
-    function mockarCriacao(pecas = [PECA]) {
+    function mockarCriacao(pecas = [PECA], taxas = TAXAS_CAMBIO) {
       mockarUsuarioAtual(COMPRADOR);
       mockSupabaseAdmin.__mockTable('pecas', { data: pecas, error: null });
+      mockSupabaseAdmin.__mockTable('taxas_cambio', { data: taxas, error: null });
       mockSupabaseAdmin.__mockTable('users', { data: [VENDEDOR], error: null });
       mockSupabaseAdmin.__mockTable('pedidos', { data: pedidoSalvo(), error: null });
     }
