@@ -86,7 +86,7 @@ export default function ChatsPage() {
               <h1
                 style={{
                   color: COLORS.DARK_TEXT,
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
                   lineHeight: 1.15,
                   margin: 0,

@@ -7,6 +7,7 @@ import {
 } from '../../../services/avaliacoesService';
 import { ORDER_STATUS } from '../domain/pedido';
 import DetailCard from './DetailCard';
+import { AppIcon } from '../../../components/Icons';
 
 export default function PostPurchaseReviews({ order }) {
   const { t } = useLanguage();
@@ -63,7 +64,7 @@ export default function PostPurchaseReviews({ order }) {
     return (
       <DetailCard title={t('postPurchaseReviews')}>
         <div className="review-locked">
-          <span aria-hidden="true">🔒</span>
+          <span aria-hidden="true"><AppIcon name="lock" size={18} /></span>
           <div>
             <strong>{t('reviewsLocked')}</strong>
             <p>{t('reviewsLockedDescription')}</p>

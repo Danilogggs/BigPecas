@@ -257,7 +257,7 @@ export default function FornecedorPerfil() {
                   <h1
                     style={{
                       color: COLORS.BORDEAUX,
-                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontFamily: 'var(--font-serif)',
                       fontSize: '2.2rem',
                       lineHeight: 1.15,
                       margin: 0,

@@ -11,6 +11,7 @@ import {
 } from '../styles/theme';
 import { useLanguage } from '../contexts/LanguageContext';
 import useListaFavoritos from '../features/favoritos/application/useListaFavoritos';
+import { AppIcon } from '../components/Icons';
 
 function formatarPreco(valor) {
   const numero = Number(valor);
@@ -95,7 +96,7 @@ export default function WishPage() {
               <h1
                 style={{
                   margin: 0,
-                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
                   lineHeight: 1.15,
                 }}
@@ -177,7 +178,7 @@ export default function WishPage() {
                 textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: SPACING.MD }}>♡</div>
+              <div style={{ marginBottom: SPACING.MD, display: 'flex', justifyContent: 'center' }}><AppIcon name="heart" size={42} /></div>
               <h2 style={{ margin: 0, color: COLORS.DARK_TEXT }}>{t('Sua lista de desejos ainda está vazia')}</h2>
               <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>
                 {t('Abra o catálogo e clique no coração das peças que deseja guardar.')}

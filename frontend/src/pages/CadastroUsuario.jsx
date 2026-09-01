@@ -212,14 +212,7 @@ export default function CadastroUsuario() {
         <div className="auth-panel-left__glow" />
         <div className="auth-panel-left__content">
           <div className="auth-panel-left__logo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bp-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2Z" />
-              <path d="M9 12l2 2 4-4" strokeWidth="2" />
-            </svg>
-            <span className="auth-panel-left__logo-text">
-              <span style={{ color: '#fff' }}>Big</span>
-              <span style={{ color: 'var(--bp-gold)' }}>Peças</span>
-            </span>
+            <img src="/logobigpecas_semtexto.png" alt="BigPeças" />
           </div>
           <h1 className="auth-panel-left__heading">
             {t('joinClassicCommunity')}<br />{t('communitySubtitle')}

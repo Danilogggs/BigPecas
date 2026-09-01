@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="bp-footer__grid">
           {/* Brand */}
           <div>
-            <div className="bp-footer__brand-name">Big<span>Peças</span></div>
+            <img className="bp-footer__brand-logo" src="/logobigpecas_semtexto.png" alt="BigPeças" />
             <p className="bp-footer__tagline">
               {t('marketplaceTag')} para carros clássicos.<br />
               {t('verifiedListings')}, anúncios curados e procedência garantida.

@@ -128,7 +128,7 @@ function InfoModal({ open, title, text, onClose }) {
               margin: 0,
               color: 'var(--bp-on-primary)',
               fontSize: '1.25rem',
-              fontFamily: 'Georgia, serif',
+              fontFamily: 'var(--font-serif)',
             }}
           >
             {title}
@@ -686,7 +686,7 @@ export default function CadastroPecas() {
 
         {!loadingProfile && profileError && (
           <section style={{ ...CARD_STYLE, padding: SPACING.XL, textAlign: 'center' }}>
-            <h2 style={{ margin: 0, color: COLORS.DARK_TEXT, fontFamily: 'Georgia, serif' }}>
+            <h2 style={{ margin: 0, color: COLORS.DARK_TEXT, fontFamily: 'var(--font-serif)' }}>
               {t('storeCheckFailedTitle')}
             </h2>
             <p style={{ color: COLORS.MUTED_TEXT, lineHeight: 1.6 }}>{profileError}</p>
@@ -721,7 +721,7 @@ export default function CadastroPecas() {
                   margin: 0,
                   color: COLORS.DARK_TEXT,
                   fontSize: '1.45rem',
-                  fontFamily: 'Georgia, serif',
+                  fontFamily: 'var(--font-serif)',
                 }}
               >
                 {t('tellUsAboutStore')}
@@ -803,7 +803,7 @@ export default function CadastroPecas() {
                   margin: 0,
                   color: COLORS.DARK_TEXT,
                   fontSize: '1.2rem',
-                  fontFamily: 'Georgia, serif',
+                  fontFamily: 'var(--font-serif)',
                 }}
               >
                 {t('mainData')}
@@ -952,7 +952,7 @@ export default function CadastroPecas() {
                   margin: 0,
                   color: COLORS.DARK_TEXT,
                   fontSize: '1.2rem',
-                  fontFamily: 'Georgia, serif',
+                  fontFamily: 'var(--font-serif)',
                 }}
               >
                 {t('imageAndSpecs')}
@@ -1138,7 +1138,7 @@ export default function CadastroPecas() {
                   margin: 0,
                   color: COLORS.DARK_TEXT,
                   fontSize: '1.2rem',
-                  fontFamily: 'Georgia, serif',
+                  fontFamily: 'var(--font-serif)',
                 }}
               >
                 {t('technicalDescription')}

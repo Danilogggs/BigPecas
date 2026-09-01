@@ -93,10 +93,7 @@ export default function Header() {
     <header className="bp-header">
       {/* Logo */}
       <button className="bp-header__logo" onClick={() => navigate('/')}>
-        <ShieldIcon className="bp-header__logo-icon" />
-        <div className="bp-header__logo-text">
-          <span>Big</span><span>Peças</span>
-        </div>
+        <img className="bp-header__logo-image" src="/logobigpecas_semtexto.png" alt="BigPeças" />
       </button>
 
       {/* Nav links */}
@@ -221,15 +218,6 @@ export default function Header() {
 }
 
 /* ── Inline SVG icons ── */
-function ShieldIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2Z" />
-      <path d="M9 12l2 2 4-4" strokeWidth="2" />
-    </svg>
-  );
-}
-
 function SearchIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useCart } from '../contexts/CartContext';
-import { TrashIcon } from '../components/Icons';
+import { AppIcon, TrashIcon } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   calcularFrete,
@@ -240,7 +240,7 @@ export default function CarrinhoPage() {
               fontWeight: 700,
               color: DARK,
               margin: 0,
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: 'var(--font-serif)',
             }}
           >
             {t('myCartTitle')}
@@ -460,7 +460,7 @@ export default function CarrinhoPage() {
                                   style={{ width: 28, height: 28, objectFit: 'contain' }}
                                 />
                               ) : (
-                                <span style={{ fontSize: '1.1rem' }}>🚚</span>
+                                <AppIcon name="truck" size={18} />
                               )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -774,7 +774,7 @@ export default function CarrinhoPage() {
                     border: `1px solid ${BORDER}`,
                   }}
                 >
-                  🔒 Pagamento 100% seguro • Compra protegida
+                  <AppIcon name="lock" size={16} /> Pagamento 100% seguro • Compra protegida
                 </div>
               </Card>
             </div>
@@ -868,7 +868,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
-          <span style={{ fontSize: '1.8rem' }}>🔧</span>
+          <AppIcon name="part" size={28} />
         )}
       </div>
 
@@ -1046,14 +1046,14 @@ function EmptyCart({ navigate }) {
           fontSize: '2.5rem',
         }}
       >
-        🛒
+        <AppIcon name="cart" size={32} />
       </div>
       <h2
         style={{
           color: DARK,
           fontSize: '1.4rem',
           margin: '0 0 8px',
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: 'var(--font-serif)',
         }}
       >
         Seu carrinho está vazio

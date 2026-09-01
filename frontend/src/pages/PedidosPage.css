@@ -1,7 +1,7 @@
 .history-page { min-height: 100vh; background: #ede4cc; color: #1a2820; }
 .history-container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 36px 0 64px; }
 .history-heading { display: flex; justify-content: space-between; gap: 24px; align-items: flex-end; margin-bottom: 28px; }
-.history-heading h1, .detail-header h1 { margin: 7px 0 5px; color: #152218; font: 700 clamp(1.8rem, 4vw, 2.5rem)/1.15 'Playfair Display', Georgia, serif; }
+.history-heading h1, .detail-header h1 { margin: 7px 0 5px; color: #152218; font: 700 clamp(1.8rem, 4vw, 2.5rem)/1.15 var(--font-serif); }
 .history-heading p, .history-section-heading p, .detail-header p { margin: 0; color: #627166; }
 .history-breadcrumb { display: flex; gap: 8px; align-items: center; color: #6b7d6e; font-size: .82rem; }
 .history-breadcrumb button { padding: 0; border: 0; color: inherit; background: none; cursor: pointer; }

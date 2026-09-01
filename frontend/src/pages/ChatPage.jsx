@@ -68,7 +68,7 @@ export default function ChatPage() {
 
         .chat-title {
           color: ${COLORS.BORDEAUX};
-          font-family: 'Georgia', serif;
+          font-family: var(--font-serif);
           font-size: 1.7rem;
           line-height: 1.2;
           margin: ${SPACING.MD} 0 0;

@@ -169,19 +169,17 @@ export default function ResetPasswordPage() {
         }}
       >
         <div style={{ marginBottom: SPACING.XL }}>
-          <span
+          <img
+            src="/logobigpecas_semtexto.png"
+            alt="BigPeças"
             style={{
-              display: 'inline-block',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: COLORS.BORDEAUX,
-              fontWeight: 700,
+              display: 'block',
+              width: '52px',
+              height: '52px',
+              objectFit: 'contain',
               marginBottom: SPACING.MD,
             }}
-          >
-            BigPeças
-          </span>
+          />
 
           <h1 style={{ margin: 0, ...TYPOGRAPHY.H1, color: COLORS.DARK_TEXT, marginBottom: SPACING.SM }}>
             {t('resetPasswordTitle')}

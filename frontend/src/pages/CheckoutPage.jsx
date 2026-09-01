@@ -15,6 +15,7 @@ import {
   formatarValidadeCartao as formatarValidade,
 } from '../features/carrinho/domain/carrinho';
 import { formatarMoedaCarrinho as formatBRL } from '../features/carrinho/presentation/carrinhoPresentation';
+import { AppIcon } from '../components/Icons';
 
 const BORDEAUX = 'var(--bp-green-800)';
 const CREAM = 'var(--bp-cream)';
@@ -314,7 +315,7 @@ export default function CheckoutPage() {
               fontWeight: 700,
               color: BORDEAUX,
               margin: 0,
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: 'var(--font-serif)',
             }}
           >
             {etapa === 4 ? t('purchaseCompleted') : t('checkout')}
@@ -379,7 +380,7 @@ export default function CheckoutPage() {
                   fontWeight: 600,
                 }}
               >
-                ⚠️ {erroFinal}
+                <AppIcon name="alert" size={18} /> {erroFinal}
               </div>
             )}
 
@@ -518,7 +519,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
         style={{
           margin: '0.6rem 0',
           color: BORDEAUX,
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: 'var(--font-serif)',
           fontSize: '2rem',
         }}
       >
@@ -828,7 +829,7 @@ function PagamentoForm({
                   fontSize: '1.2rem',
                 }}
               >
-                {forma.icone}
+                <AppIcon name={forma.icone} size={20} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, color: DARK }}>{t(forma.id === 'pix' ? 'pixPayment' : forma.id === 'cartao' ? 'cardPayment' : 'bankSlip')}</div>
@@ -965,14 +966,14 @@ function PagamentoForm({
 
       {pagamento === 'pix' && (
         <InfoBox
-          icone="📱"
+          icone={<AppIcon name="phone" size={22} />}
           titulo={t('pixPayment')}
           texto={t('pixDescription')}
         />
       )}
       {pagamento === 'boleto' && (
         <InfoBox
-          icone="🧾"
+          icone={<AppIcon name="receipt" size={22} />}
           titulo={t('bankSlip')}
           texto={t('bankSlipDescription')}
         />
@@ -1044,7 +1045,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
 
       <BlocoRevisao titulo={t('payment')}>
         <div style={{ color: DARK, fontWeight: 600 }}>
-          {pagamento.icone} {pagamento.nome}
+          <AppIcon name={pagamento.icone} size={18} /> {pagamento.nome}
         </div>
         <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
           {pagamento.descricao}
@@ -1159,7 +1160,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (
-                <span>🔧</span>
+                <AppIcon name="part" size={22} />
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1258,7 +1259,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
           border: `1px solid ${BORDER}`,
         }}
       >
-        🔒 {t('protectedData')}
+        <AppIcon name="lock" size={16} /> {t('protectedData')}
       </div>
     </section>
   );

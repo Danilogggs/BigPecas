@@ -7,10 +7,11 @@ import Footer from '../components/Footer';
 import { useCart } from '../contexts/CartContext';
 import { listarPecas, listarCategorias } from '../services/pecasService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { AppIcon } from '../components/Icons';
 
 const CATEGORIA_ICONS = {
-  Motor: '⚙️', Lataria: '🚗', Elétrica: '🔌', Interior: '🪑',
-  Suspensão: '🛞', Freios: '🛑', Transmissão: '⚡', Carroceria: '🔩',
+  Motor: 'engine', Lataria: 'car', Elétrica: 'plug', Interior: 'seat',
+  Suspensão: 'wheel', Freios: 'brake', Transmissão: 'bolt', Carroceria: 'part',
 };
 
 const formatBRL = (v) =>
@@ -82,7 +83,6 @@ export default function HomePage() {
 
         {/* ── HERO ── */}
         <section className="bp-hero">
-          <div className="bp-hero__bg" />
           <div className="bp-hero__glow" />
 
           {/* Conteúdo esquerdo */}
@@ -92,7 +92,8 @@ export default function HomePage() {
             </div>
 
             <h1 className="bp-hero__title">
-              {t('heroTitle')}
+              <span>{t('heroTitle')}</span>
+              <strong>{t('heroTitleHighlight')}</strong>
             </h1>
 
             <p className="bp-hero__sub">
@@ -190,7 +191,7 @@ export default function HomePage() {
                       className="cat-card"
                       onClick={() => navigate(`/buscaPecas?categoria_id=${cat.id}`)}
                     >
-                      <div className="cat-card__icon">{CATEGORIA_ICONS[cat.nome] || '🔧'}</div>
+                      <div className="cat-card__icon"><AppIcon name={CATEGORIA_ICONS[cat.nome] || 'part'} size={28} /></div>
                       <div className="cat-card__name">{t(cat.nome)}</div>
                     </div>
                   ))
@@ -303,13 +304,13 @@ export default function HomePage() {
               gap: '1.25rem',
             }}>
               {[
-                { value: loading ? '...' : stats.total, label: t('partsInCatalog'), icon: '🔩' },
-                { value: loading ? '...' : stats.categorias, label: t('categories'), icon: '📂' },
-                { value: t('history'), label: t('trackableOrders'), icon: '📦' },
-                { value: t('direct'), label: t('sellerContact'), icon: '💬' },
+                { value: loading ? '...' : stats.total, label: t('partsInCatalog'), icon: 'part' },
+                { value: loading ? '...' : stats.categorias, label: t('categories'), icon: 'folder' },
+                { value: t('history'), label: t('trackableOrders'), icon: 'package' },
+                { value: t('direct'), label: t('sellerContact'), icon: 'message' },
               ].map(({ value, label, icon }) => (
                 <div key={label} className="card card-pad" style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.75rem', marginBottom: '.5rem' }}>{icon}</div>
+                  <div style={{ marginBottom: '.5rem', display: 'flex', justifyContent: 'center' }}><AppIcon name={icon} size={26} /></div>
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--bp-text)', fontFamily: 'var(--font-serif)' }}>
                     {value}
                   </div>

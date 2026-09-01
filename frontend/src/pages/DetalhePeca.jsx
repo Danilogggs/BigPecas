@@ -2,6 +2,7 @@ import Money from '../components/Money';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
+import { AppIcon } from '../components/Icons';
 import { useCart } from '../contexts/CartContext';
 import {
   buscarAvaliacoesFornecedor,
@@ -902,7 +903,7 @@ export default function DetalhePeca() {
                       <h1
                         style={{
                           color: COLORS.DARK_TEXT,
-                          fontFamily: "'Playfair Display', Georgia, serif",
+                          fontFamily: 'var(--font-serif)',
                           fontSize: '2rem',
                           lineHeight: 1.15,
                           margin: 0,
@@ -986,7 +987,7 @@ export default function DetalhePeca() {
                         color: itemNoCarrinho ? 'var(--bp-on-primary)' : 'var(--bp-action-text)',
                       }}
                     >
-                      {itemNoCarrinho ? `✗ ${t('removeFromCart')}` : `🛒︎ ${t('addToCart')}`}
+                      <AppIcon name="cart" size={18} /> {itemNoCarrinho ? t('removeFromCart') : t('addToCart')}
                     </button>
 
                     <button
@@ -1002,7 +1003,7 @@ export default function DetalhePeca() {
                         cursor: loadingWish ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {salvoNaWish ? `♥ ${t('removeFromWishlist')}` : `♡ ${t('addToWishlist')}`}
+                      <AppIcon name="heart" size={18} filled={salvoNaWish} /> {salvoNaWish ? t('removeFromWishlist') : t('addToWishlist')}
                     </button>
                   </div>
 

@@ -12,7 +12,7 @@ export async function reviewRequest(path, method = 'GET', body) {
   return data;
 }
 export default {
-  getPecasPendentes: (limit = 20, offset = 0) => reviewRequest('/avaliador/pecas-pendentes?limit=' + limit + '&offset=' + offset),
+  getPecasPendentes: (limit = 20, offset = 0, order = 'recent') => reviewRequest('/avaliador/pecas-pendentes?limit=' + limit + '&offset=' + offset + '&order=' + order),
   getValidacaoPeca: id => reviewRequest('/avaliador/validacao/' + id),
   getEstatisticas: () => reviewRequest('/avaliador/estatisticas'),
   getChecklistCriterios: () => reviewRequest('/avaliador/checklist-criterios'),

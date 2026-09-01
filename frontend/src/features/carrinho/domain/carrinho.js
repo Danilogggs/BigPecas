@@ -1,7 +1,7 @@
 export const FORMAS_PAGAMENTO = Object.freeze([
-  Object.freeze({ id: 'pix', nome: 'PIX', descricao: 'Aprovação imediata', icone: '📱', desconto: 0.05 }),
-  Object.freeze({ id: 'cartao', nome: 'Cartão de Crédito', descricao: 'Em até 12x sem juros', icone: '💳', desconto: 0 }),
-  Object.freeze({ id: 'boleto', nome: 'Boleto Bancário', descricao: 'Compensação em até 2 dias úteis', icone: '🧾', desconto: 0.03 }),
+  Object.freeze({ id: 'pix', nome: 'PIX', descricao: 'Aprovação imediata', icone: 'phone', desconto: 0.05 }),
+  Object.freeze({ id: 'cartao', nome: 'Cartão de Crédito', descricao: 'Em até 12x sem juros', icone: 'card', desconto: 0 }),
+  Object.freeze({ id: 'boleto', nome: 'Boleto Bancário', descricao: 'Compensação em até 2 dias úteis', icone: 'receipt', desconto: 0.03 }),
 ]);
 
 export function adicionarItemCarrinho(itens, item) {

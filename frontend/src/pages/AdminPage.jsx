@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { SearchIcon, StarIcon, TrashIcon, UserIcon, WrenchIcon } from '../components/Icons';
+import { AppIcon, SearchIcon, StarIcon, TrashIcon, UserIcon, WrenchIcon } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import useAdminDashboard from '../features/admin/application/useAdminDashboard';
@@ -267,13 +267,13 @@ export default function AdminPage() {
 
   return <div className="admin-page"><Header /><div className="admin-shell">
     <aside className="admin-sidebar">
-      <div className="admin-sidebar-brand"><span>BP</span><div><strong>Admin</strong><small>Central de gestão</small></div></div>
+      <div className="admin-sidebar-brand"><img src="/logobigpecas_semtexto.png" alt="BigPeças" /><div><strong>Admin</strong><small>Central de gestão</small></div></div>
       <nav>{adminNav.map(([id, label, icon]) => <button key={id} className={section === id ? 'is-active' : ''} onClick={() => setSection(id)}><Icon name={icon} />{label}</button>)}</nav>
       <div className="admin-sidebar-user"><span>{(dash.state.admin.full_name || 'A')[0]}</span><div><strong>{dash.state.admin.full_name || 'Administrador'}</strong><small>{dash.state.admin.email}</small></div></div>
     </aside>
 
     <main className="admin-main">
-      <header className="admin-page-heading"><div><span className="admin-eyebrow">{tr('Painel administrativo')}</span><h1>{title}</h1><p>{descriptions[section]}</p></div><div className="admin-heading-actions">{section === 'overview' && !dash.customizing && <button className="admin-layout-trigger" onClick={dash.toggleCustomizing} title={tr('Organizar dashboard')} aria-label={tr('Organizar dashboard')}>⚙</button>}<button className="admin-primary" onClick={() => setModal(true)}>＋ {tr('Novo administrador')}</button></div></header>
+      <header className="admin-page-heading"><div><span className="admin-eyebrow">{tr('Painel administrativo')}</span><h1>{title}</h1><p>{descriptions[section]}</p></div><div className="admin-heading-actions">{section === 'overview' && !dash.customizing && <button className="admin-layout-trigger" onClick={dash.toggleCustomizing} title={tr('Organizar dashboard')} aria-label={tr('Organizar dashboard')}><AppIcon name="engine" size={18} /></button>}<button className="admin-primary" onClick={() => setModal(true)}>＋ {tr('Novo administrador')}</button></div></header>
       {notice.text && <div className={`admin-notice admin-notice--${notice.type}`}>{notice.text}<button onClick={() => setNotice({ type: '', text: '' })}>×</button></div>}
       {section === 'overview' && <>
         {dash.customizing && <div className="admin-layout-toolbar"><div><span className="admin-live"><i /> {tr('EDIÇÃO AO VIVO')}</span><strong>{tr('Organize seu dashboard')}</strong><small>{tr('Arraste os cards pela alça para mudar a ordem.')}</small></div><aside><button className="admin-reset-button" onClick={() => dash.savePreferences(WIDGETS_PADRAO)}>↺ {t('restoreDefault')}</button><button onClick={dash.toggleCustomizing}>{t('cancel')}</button><button className="admin-primary" disabled={dash.saving} onClick={() => dash.savePreferences()}>{dash.saving ? t('saving') : tr('Salvar layout')}</button></aside></div>}
@@ -286,7 +286,7 @@ export default function AdminPage() {
           {(section === 'usuarios' || section === 'pecas') && <form className="admin-search" onSubmit={(e) => { e.preventDefault(); load(); }}><SearchIcon size={18} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`${tr('Buscar')} ${title.toLowerCase()}…`} /><button>{tr('Buscar')}</button></form>}
           {section === 'pedidos' && <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">{tr('Todos os status')}</option>{STATUS.map((item) => <option key={item} value={item}>{translatedStatus[item]}</option>)}</select>}
           {section === 'avaliacoes' && <div className="admin-segmented"><button className={reviewType === 'produtos' ? 'is-active' : ''} onClick={() => setReviewType('produtos')}>{tr('Produtos')}</button><button className={reviewType === 'fornecedores' ? 'is-active' : ''} onClick={() => setReviewType('fornecedores')}>{tr('Fornecedores')}</button></div>}
-          {section === 'validacoes' && <button className="admin-checklist-button" onClick={() => navigate('/admin/checklist')}>⚙ {tr('Configurar checklist')}</button>}
+          {section === 'validacoes' && <button className="admin-checklist-button" onClick={() => navigate('/admin/checklist')}><AppIcon name="engine" size={16} /> {tr('Configurar checklist')}</button>}
           <span className="admin-result-count">{records.length} {tr('registros')}</span>
         </div>
         {section === 'avaliacoes' && reviewType === 'fornecedores' && !loadingList && supplierRanking.length > 0 && <div className="admin-supplier-ranking"><div className="admin-ranking-heading"><div><span className="admin-eyebrow">Reputação dos parceiros</span><h3>Fornecedores mais bem avaliados</h3><p>Ranking pela média das avaliações recebidas.</p></div><span>★ Média geral</span></div><div className="admin-ranking-bars">{supplierRanking.map((supplier, index) => <article key={supplier.id}><span className="admin-ranking-position">{index + 1}</span><div className="admin-ranking-name"><strong>{supplier.name}</strong><small>{supplier.count} {supplier.count === 1 ? 'avaliação' : 'avaliações'}</small></div><div className="admin-ranking-track"><i style={{ width: `${(supplier.average / 5) * 100}%` }} /></div><b>{supplier.average.toFixed(1)}</b><span className="admin-ranking-star">★</span></article>)}</div></div>}

@@ -9,18 +9,23 @@ function result({ data, error }) {
   return data;
 }
 module.exports = {
-  async getPecasPendentes(_id, limit = 20, offset = 0) {
+  async getPecasPendentes(_id, limit = 20, offset = 0, order = 'recent') {
     limit = Math.min(100, Math.max(1, Math.floor(Number(limit) || 20)));
     offset = Math.max(0, Math.floor(Number(offset) || 0));
     return result(await db.from('pecas').select('*, users!pecas_fornecedor_id_fkey(full_name)')
-      .eq('status_publicacao', 'pendente_validacao').order('data_cadastro').range(offset, offset + limit - 1));
+      .eq('status_publicacao', 'pendente_validacao')
+      .order('data_cadastro', { ascending: order === 'oldest' })
+      .range(offset, offset + limit - 1));
   },
   async getValidacaoPeca(pecaId) {
     const peca = result(await db.from('pecas').select('*').eq('id', pecaId).maybeSingle());
     if (!peca) throw new AppError(404, 'Peça não encontrada.');
     const validacao = result(await db.from('avaliacoes_pecas').select('*').eq('peca_id', pecaId)
       .eq('revisao', peca.revisao_avaliacao).maybeSingle());
-    return { peca, validacao, criterios: validacao?.criterios_snapshot || [] };
+    const criterios = peca.status_publicacao === 'pendente_validacao'
+      ? await this.getChecklistCriterios()
+      : validacao?.criterios_snapshot || [];
+    return { peca, validacao, criterios };
   },
   async getChecklistCriterios() {
     return result(await db.from('checklist_validacao_peca').select('*').eq('ativo', true).order('ordem').order('id'));

@@ -25,7 +25,7 @@ const pageStyles = `
     min-height: 100vh;
     background: var(--bp-cream);
     box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
     color: var(--bp-text);
   }
 

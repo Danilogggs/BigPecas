@@ -10,6 +10,7 @@ import DetailCard from './DetailCard';
 import PedidosShell from './PedidosShell';
 import PostPurchaseReviews from './PostPurchaseReviews';
 import StatusBadge from './StatusBadge';
+import { AppIcon } from '../../../components/Icons';
 import {
   formatarDataPedido,
   formatarMoeda,
@@ -80,7 +81,7 @@ export default function PedidoDetalhe({
 
       <section className="detail-status-card">
         <div>
-          <strong>{meta.icone} {meta.label}</strong>
+          <strong><AppIcon name={meta.icone} size={18} /> {meta.label}</strong>
           <p>{meta.descricao}</p>
         </div>
         {isSale && order.pode_atualizar_status && nextStatus && (
@@ -103,7 +104,7 @@ export default function PedidoDetalhe({
               {order.itens.map((item) => (
                 <div className="detail-item" key={`${order.id}-${item.id}`}>
                   <div className="detail-item-image">
-                    {item.imagem ? <img src={item.imagem} alt={obterNomeItem(item)} /> : <span>⚙</span>}
+                    {item.imagem ? <img src={item.imagem} alt={obterNomeItem(item)} /> : <span><AppIcon name="part" size={22} /></span>}
                   </div>
                   <div>
                     <strong>{obterNomeItem(item)}</strong>
@@ -125,7 +126,7 @@ export default function PedidoDetalhe({
                 const eventMeta = obterMetaStatus(event.status, t);
                 return (
                   <div key={`${event.status}-${event.data}-${index}`}>
-                    <span style={{ backgroundColor: eventMeta.color }}>{eventMeta.icone}</span>
+                    <span style={{ backgroundColor: eventMeta.color }}><AppIcon name={eventMeta.icone} size={17} /></span>
                     <div>
                       <strong>{eventMeta.label}</strong>
                       <small>{formatarDataPedido(event.data, formatDate)}</small>

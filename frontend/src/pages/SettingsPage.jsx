@@ -16,6 +16,20 @@ const THEME_OPTIONS = [
     description: 'Reduz o brilho e mantém a leitura confortável à noite.',
     colors: ['#101712', '#18221B', '#F4F0E4', '#D4B65E'],
   },
+  {
+    id: 'custom',
+    name: 'Personalizado',
+    description: 'Crie uma paleta exclusiva para todo o site.',
+    colors: [],
+  },
+];
+
+const CUSTOM_COLOR_FIELDS = [
+  ['background', 'Fundo'],
+  ['surface', 'Cards e superfícies'],
+  ['primary', 'Cor principal'],
+  ['accent', 'Cor de destaque'],
+  ['text', 'Texto'],
 ];
 
 const TEXT_SCALE_OPTIONS = [
@@ -37,7 +51,7 @@ const TEXT_SCALE_OPTIONS = [
 ];
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, customTheme, updateCustomTheme, resetCustomTheme } = useTheme();
   const {
     preferences,
     setPreferences,
@@ -88,7 +102,7 @@ export default function SettingsPage() {
                           </span>
                         </span>
                         <span className="theme-option__palette" aria-hidden="true">
-                          {option.colors.map((color, colorIndex) => (
+                          {(option.id === 'custom' ? Object.values(customTheme).slice(0, 4) : option.colors).map((color, colorIndex) => (
                             <span key={`${option.id}-${colorIndex}`} style={{ backgroundColor: color }} />
                           ))}
                         </span>
@@ -96,6 +110,32 @@ export default function SettingsPage() {
                     </label>
                   );
                 })}
+              </div>
+            </fieldset>
+
+            <fieldset className={`custom-theme-editor ${theme === 'custom' ? 'custom-theme-editor--active' : ''}`} disabled={theme !== 'custom'} aria-disabled={theme !== 'custom'}>
+              <div className="custom-theme-editor__heading">
+                <div>
+                  <h2>Tema personalizado</h2>
+                  <p>Escolha as cores principais. Tons intermediários e contrastes são calculados automaticamente.</p>
+                </div>
+                <button type="button" className="btn btn-outline" onClick={resetCustomTheme} disabled={theme !== 'custom'}>Restaurar paleta</button>
+              </div>
+              <div className="custom-theme-editor__grid">
+                {CUSTOM_COLOR_FIELDS.map(([key, label]) => <label className="custom-color-field" key={key}>
+                  <span>{label}</span>
+                  <span className="custom-color-field__control">
+                    <input type="color" value={customTheme[key]} disabled={theme !== 'custom'} onChange={(event) => updateCustomTheme({ [key]: event.target.value })} aria-label={label} />
+                    <output>{customTheme[key].toUpperCase()}</output>
+                  </span>
+                </label>)}
+              </div>
+              <div className="custom-theme-preview" aria-label="Prévia do tema personalizado">
+                <span style={{ background: customTheme.background }} />
+                <span style={{ background: customTheme.surface }} />
+                <span style={{ background: customTheme.primary }} />
+                <span style={{ background: customTheme.accent }} />
+                <span style={{ background: customTheme.text }} />
               </div>
             </fieldset>
           </div>

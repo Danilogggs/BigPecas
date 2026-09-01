@@ -1,5 +1,6 @@
 import { useCurrency } from '../contexts/CurrencyContext';
 import Money from '../components/Money';
+import { AppIcon } from '../components/Icons';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import useCatalogoPecas from '../features/pecas/application/useCatalogoPecas';
@@ -510,7 +511,7 @@ export default function BuscaPecas() {
                     opacity: wishLoadingId === item.id ? 0.7 : 1,
                   }}
                 >
-                  {wishIds.has(String(item.id)) ? '♥' : '♡'}
+                  <AppIcon name="heart" size={18} filled={wishIds.has(String(item.id))} />
                 </button>
                 {item.imagem ? (
                   <img
@@ -538,7 +539,7 @@ export default function BuscaPecas() {
                       padding: SPACING.MD,
                     }}
                   >
-                    <span style={{ fontSize: '2rem', marginBottom: SPACING.SM }}>🔧</span>
+                    <span style={{ marginBottom: SPACING.SM }}><AppIcon name="part" size={30} /></span>
                     <span>{t('noImage')}</span>
                   </div>
                 )}
