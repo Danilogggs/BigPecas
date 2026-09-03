@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useCart } from '../contexts/CartContext';
-import { listarPecas, listarCategorias } from '../services/pecasService';
+import { buscarRecomendacoesPorHistorico, listarPecas, listarCategorias } from '../services/pecasService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { AppIcon } from '../components/Icons';
 
@@ -29,6 +29,8 @@ export default function HomePage() {
   const [loading, setLoading]       = useState(true);
   const [addedId, setAddedId]       = useState(null);
   const [heroSearch, setHeroSearch] = useState('');
+  const [recomendadas, setRecomendadas] = useState([]);
+  const [recomendacaoHistorica, setRecomendacaoHistorica] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -43,6 +45,10 @@ export default function HomePage() {
         setPecas(p);
         setCategorias(c);
         setStats({ total: pecasRes?.total ?? p.length, categorias: c.length });
+        buscarRecomendacoesPorHistorico(8).then((resultado) => {
+          setRecomendadas(resultado.recomendacoes);
+          setRecomendacaoHistorica(resultado.baseadoEmHistorico);
+        }).catch(() => { setRecomendadas([]); setRecomendacaoHistorica(false); });
       } catch (e) {
         console.error('Erro ao carregar homepage:', e);
       } finally {
@@ -201,6 +207,24 @@ export default function HomePage() {
         </section>
 
         {/* ── PEÇAS EM DESTAQUE ── */}
+        {recomendadas.length > 0 && (
+          <section className="bp-section bp-recommendations">
+            <div className="container">
+              <div className="bp-section__header">
+                <div>
+                  <span className="label-sm">{t('personalizedSelection')}</span>
+                  <h2 className="bp-section__title">{t('recommendedForYou')}</h2>
+                  <p className="bp-section__sub">{t(recomendacaoHistorica ? 'basedOnPurchaseHistory' : 'recommendationFallback')}</p>
+                </div>
+                <button className="btn btn-outline btn-sm" onClick={() => navigate('/buscaPecas')}>{t('viewAll')}</button>
+              </div>
+              <div className="grid-auto">
+                {recomendadas.slice(0, 4).map((peca) => <PecaCard key={peca.id} peca={peca} onDetail={() => navigate(`/pecas/${peca.id}`)} onAdd={() => handleAddToCart(peca)} added={addedId === peca.id} inCart={jaNoCarrinho(peca.id)} />)}
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="bp-section" style={{ background: 'rgba(0,0,0,.02)', borderTop: '1px solid var(--bp-border-light)', borderBottom: '1px solid var(--bp-border-light)' }}>
           <div className="container">
             <div className="bp-section__header">

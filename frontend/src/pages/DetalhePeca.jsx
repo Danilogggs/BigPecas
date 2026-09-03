@@ -751,7 +751,7 @@ export default function DetalhePeca() {
                     fontWeight: 800,
                   }}
                 >
-                  {fornecedorItem.total_pecas} {t('productsLabel').toLowerCase()} • {fornecedorItem.pecas_com_estoque} {t('stockLabel').toLowerCase()}
+                  ★ {Number(fornecedorItem.media_avaliacoes || 0).toFixed(1)} • {fornecedorItem.total_avaliacoes || 0} {t((fornecedorItem.total_avaliacoes || 0) === 1 ? 'verifiedReviews' : 'verifiedReviewsPlural')}
                 </div>
 
                 <div
@@ -762,7 +762,7 @@ export default function DetalhePeca() {
                     fontWeight: 700,
                   }}
                 >
-                  {t('relevance')}: {fornecedorItem.score_recomendacao} {t('points')}
+                  {fornecedorItem.total_pecas} {t('productsLabel').toLowerCase()} • {fornecedorItem.pecas_com_estoque} {t('stockLabel').toLowerCase()}
                 </div>
               </button>
             );

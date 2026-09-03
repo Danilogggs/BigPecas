@@ -114,18 +114,16 @@ function calcularSimilaridadePeca(pecaBase, candidata) {
   return score;
 }
 
-function calcularScoreFornecedor(fornecedor, pecas = []) {
-  const pecasComEstoque = pecas.filter((peca) => Number(peca.estoque_atual) > 0);
-  let score = pecas.length * 10 + pecasComEstoque.length * 5;
-  if (fornecedor.nome_loja) score += 15;
-  if (fornecedor.descricao_loja) score += 10;
-  if (fornecedor.telefone) score += 5;
-  if (fornecedor.email_verificado === true) score += 10;
-  return score;
+function calcularScoreFornecedor(_fornecedor, _pecas = [], resumoAvaliacoes = {}) {
+  return Number(resumoAvaliacoes.total || 0);
 }
 
-function montarFornecedorPublico(fornecedor, pecas = []) {
+function montarFornecedorPublico(fornecedor, pecas = [], resumoAvaliacoes = {}) {
   const pecasComEstoque = pecas.filter((peca) => Number(peca.estoque_atual) > 0);
+  const totalAvaliacoes = Number(resumoAvaliacoes.total || 0);
+  const mediaAvaliacoes = totalAvaliacoes
+    ? Number(resumoAvaliacoes.soma || 0) / totalAvaliacoes
+    : 0;
   return {
     id: fornecedor.id,
     full_name: fornecedor.full_name,
@@ -137,8 +135,22 @@ function montarFornecedorPublico(fornecedor, pecas = []) {
     email_verificado: fornecedor.email_verificado,
     total_pecas: pecas.length,
     pecas_com_estoque: pecasComEstoque.length,
-    score_recomendacao: calcularScoreFornecedor(fornecedor, pecas),
+    total_avaliacoes: totalAvaliacoes,
+    media_avaliacoes: Math.round(mediaAvaliacoes * 10) / 10,
+    score_recomendacao: calcularScoreFornecedor(fornecedor, pecas, resumoAvaliacoes),
   };
+}
+
+function calcularScoreHistorico(compradas, candidata) {
+  const similares = compradas.map((comprada) => calcularSimilaridadePeca(comprada, candidata));
+  const melhorSimilaridade = Math.max(0, ...similares);
+  const recorrenciaCategoria = compradas.filter(
+    (comprada) => comprada.categoria_id && comprada.categoria_id === candidata.categoria_id,
+  ).length;
+  const recorrenciaMaterial = compradas.filter(
+    (comprada) => comprada.material_id && comprada.material_id === candidata.material_id,
+  ).length;
+  return melhorSimilaridade + Math.min(recorrenciaCategoria * 8, 24) + Math.min(recorrenciaMaterial * 4, 12);
 }
 
 function usuarioPodeCadastrarPeca(usuario) {
@@ -238,6 +250,7 @@ function criarPaginacao(page, limit) {
 }
 
 module.exports = {
+  calcularScoreHistorico,
   calcularSimilaridadePeca,
   criarPaginacao,
   limparPayload,

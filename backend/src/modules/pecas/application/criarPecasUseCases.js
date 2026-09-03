@@ -1,5 +1,6 @@
 const AppError = require('../../../utils/AppError');
 const {
+  calcularScoreHistorico,
   calcularSimilaridadePeca,
   criarPaginacao,
   limparPayload,
@@ -89,16 +90,19 @@ function criarPecasUseCases({ repository }) {
     const fornecedores = (await repository.listarFornecedores()).filter(usuarioPodeCadastrarPeca);
     if (fornecedores.length === 0) return { total: 0, fornecedores: [] };
 
-    const pecas = await repository.listarPecasDosFornecedores(
-      fornecedores.map((fornecedor) => fornecedor.id),
-    );
+    const idsFornecedores = fornecedores.map((fornecedor) => fornecedor.id);
+    const [pecas, avaliacoes] = await Promise.all([
+      repository.listarPecasDosFornecedores(idsFornecedores),
+      repository.resumirAvaliacoesFornecedores(idsFornecedores),
+    ]);
     const ranking = fornecedores
       .map((fornecedor) => montarFornecedorPublico(
         fornecedor,
         pecas.filter((peca) => String(peca.fornecedor_id) === String(fornecedor.id)),
+        avaliacoes.get(String(fornecedor.id)),
       ))
       .filter((fornecedor) => fornecedor.total_pecas > 0)
-      .sort((a, b) => b.score_recomendacao - a.score_recomendacao)
+      .sort((a, b) => b.total_avaliacoes - a.total_avaliacoes || b.media_avaliacoes - a.media_avaliacoes)
       .slice(0, limite);
 
     return { total: ranking.length, fornecedores: ranking };
@@ -112,8 +116,46 @@ function criarPecasUseCases({ repository }) {
       throw new AppError(404, 'Este usuário não possui perfil de vendedor.');
     }
 
-    const pecas = await repository.listarPecasPorFornecedor(id);
-    return { fornecedor: montarFornecedorPublico(fornecedor, pecas), pecas };
+    const [pecas, avaliacoes] = await Promise.all([
+      repository.listarPecasPorFornecedor(id),
+      repository.resumirAvaliacoesFornecedores([id]),
+    ]);
+    return { fornecedor: montarFornecedorPublico(fornecedor, pecas, avaliacoes.get(String(id))), pecas };
+  }
+
+  async function recomendarPorHistorico(identidade, limiteInformado) {
+    const email = obterEmailUsuarioAutenticado(identidade);
+    if (!email) throw new AppError(401, 'Não foi possível identificar o usuário autenticado.');
+    const usuario = await repository.buscarUsuarioPorEmail(email);
+    if (!usuario?.id) throw new AppError(404, 'Usuário não encontrado.');
+
+    const limite = Math.min(validarNumeroConsulta(limiteInformado, 'limite') || 8, 20);
+    const compras = await repository.listarComprasDoUsuario(usuario.id);
+    const idsComprados = [...new Set(compras.flatMap((pedido) =>
+      (Array.isArray(pedido.itens) ? pedido.itens : []).map((item) => item?.id).filter(Boolean),
+    ).map(String))];
+    const [compradas, candidatas] = await Promise.all([
+      repository.listarPecasPorIds(idsComprados),
+      repository.listarPecasPublicadas(),
+    ]);
+    const compradasIds = new Set(idsComprados);
+    const disponiveis = candidatas.filter((peca) => !compradasIds.has(String(peca.id)));
+
+    const recomendacoes = (compradas.length
+      ? disponiveis.map((peca) => ({
+        ...peca,
+        score_recomendacao: calcularScoreHistorico(compradas, peca),
+        origem_recomendacao: 'historico_compras',
+      })).filter((peca) => peca.score_recomendacao > 0)
+      : disponiveis.map((peca) => ({
+        ...peca,
+        score_recomendacao: 0,
+        origem_recomendacao: 'catalogo_popular',
+      })))
+      .sort((a, b) => b.score_recomendacao - a.score_recomendacao || Number(b.id) - Number(a.id))
+      .slice(0, limite);
+
+    return { baseado_em_historico: compradas.length > 0, total: recomendacoes.length, recomendacoes };
   }
 
   async function recomendar(idInformado, limiteInformado) {
@@ -188,6 +230,7 @@ function criarPecasUseCases({ repository }) {
     listarMateriais: () => repository.listarMateriais(),
     obterPerfilFornecedor,
     recomendar,
+    recomendarPorHistorico,
   });
 }
 

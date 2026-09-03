@@ -1,5 +1,5 @@
 function criarSupabasePecasRepository({ supabase, tabelas }) {
-  const { pecas, usuarios, categorias, materiais } = tabelas;
+  const { pecas, usuarios, categorias, materiais, pedidos, avaliacoesFornecedor } = tabelas;
 
   return Object.freeze({
     async buscarFornecedorPorEmail(email) {
@@ -56,6 +56,55 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
         .from(pecas)
         .select('id, nome_peca, fornecedor_id, preco, estoque_atual, imagem')
         .in('fornecedor_id', ids).eq('status_publicacao', 'publicada');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async resumirAvaliacoesFornecedores(ids) {
+      if (!ids.length) return new Map();
+      const { data, error } = await supabase
+        .from(avaliacoesFornecedor)
+        .select('fornecedor_id, nota')
+        .in('fornecedor_id', ids)
+        .eq('verificada', true);
+      if (error) throw error;
+      return new Map((data || []).reduce((acc, avaliacao) => {
+        const chave = String(avaliacao.fornecedor_id);
+        const atual = acc.get(chave) || { total: 0, soma: 0 };
+        atual.total += 1;
+        atual.soma += Number(avaliacao.nota || 0);
+        acc.set(chave, atual);
+        return acc;
+      }, new Map()));
+    },
+
+    async buscarUsuarioPorEmail(email) {
+      const { data, error } = await supabase
+        .from(usuarios).select('id, email').eq('email', email).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
+    async listarComprasDoUsuario(usuarioId) {
+      const { data, error } = await supabase
+        .from(pedidos).select('id, itens, status, criado_em')
+        .eq('user_id', usuarioId).neq('status', 'cancelado')
+        .order('criado_em', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async listarPecasPublicadas() {
+      const { data, error } = await supabase
+        .from(pecas).select('*').eq('status_publicacao', 'publicada')
+        .gt('estoque_atual', 0).limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+
+    async listarPecasPorIds(ids) {
+      if (!ids.length) return [];
+      const { data, error } = await supabase.from(pecas).select('*').in('id', ids);
       if (error) throw error;
       return data || [];
     },

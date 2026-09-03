@@ -439,13 +439,21 @@ describe('pecasRoutes', () => {
     const LOJA_A = { ...FORNECEDOR, id: 5, nome_loja: 'Loja A', telefone: '11999999999' };
     const LOJA_B = { ...FORNECEDOR, id: 6, nome_loja: 'Loja B', telefone: null, email_verificado: false };
 
-    it('ordena os fornecedores pelo score e limita o resultado', async () => {
+    it('ordena os fornecedores pela quantidade de avaliacoes e usa a media como desempate', async () => {
       mockSupabaseAdmin.__queueTable('users', { data: [LOJA_A, LOJA_B], error: null });
       mockSupabaseAdmin.__mockTable('pecas', {
         data: [
           { id: 1, fornecedor_id: 6, estoque_atual: 0 },
           { id: 2, fornecedor_id: 5, estoque_atual: 4 },
           { id: 3, fornecedor_id: 5, estoque_atual: 1 },
+        ],
+        error: null,
+      });
+      mockSupabaseAdmin.__mockTable('avaliacoes_fornecedor', {
+        data: [
+          { fornecedor_id: 6, nota: 5 },
+          { fornecedor_id: 5, nota: 3 },
+          { fornecedor_id: 5, nota: 4 },
         ],
         error: null,
       });
@@ -458,6 +466,8 @@ describe('pecasRoutes', () => {
         id: 5,
         total_pecas: 2,
         pecas_com_estoque: 2,
+        total_avaliacoes: 2,
+        media_avaliacoes: 3.5,
       });
       expect(resposta.body.fornecedores[0].score_recomendacao)
         .toBeGreaterThan(resposta.body.fornecedores[1].score_recomendacao);
@@ -607,6 +617,27 @@ describe('pecasRoutes', () => {
       const resposta = await request(app).get('/api/pecas/10/recomendacoes?limite=2');
 
       expect(resposta.body.recomendacoes).toHaveLength(2);
+    });
+  });
+
+  describe('GET /recomendacoes/historico', () => {
+    it('recomenda pecas semelhantes ao historico e nao repete itens comprados', async () => {
+      mockSupabaseAdmin.__mockTable('users', { data: { id: 20, email: USUARIO_AUTENTICADO.email }, error: null });
+      mockSupabaseAdmin.__mockTable('pedidos', {
+        data: [{ id: 1, status: 'entregue', itens: [{ id: 10 }], criado_em: '2026-01-01' }],
+        error: null,
+      });
+      mockSupabaseAdmin.__queueTable('pecas',
+        { data: [PECA], error: null },
+        { data: [PECA, { ...PECA, id: 11, nome_peca: 'Friso Caravan', estoque_atual: 2 }], error: null },
+      );
+
+      const resposta = await request(app).get('/api/pecas/recomendacoes/historico');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.baseado_em_historico).toBe(true);
+      expect(resposta.body.recomendacoes.map((peca) => peca.id)).toEqual([11]);
+      expect(resposta.body.recomendacoes[0].score_recomendacao).toBeGreaterThan(0);
     });
   });
 });

@@ -49,6 +49,10 @@ function criarPecasController(useCases) {
       res.json(await useCases.recomendar(req.params.id, req.query.limite));
     }),
 
+    recomendacoesHistorico: adaptar(async (req, res) => {
+      res.json(await useCases.recomendarPorHistorico(obterIdentidade(req), req.query.limite));
+    }),
+
     detalhar: adaptar(async (req, res) => {
       res.json(await useCases.detalhar(req.params.id, obterIdentidade(req)));
     }),

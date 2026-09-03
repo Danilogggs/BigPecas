@@ -245,6 +245,23 @@ export const buscarRecomendacoesPorPeca = async (id, limite = 4) => {
   }
 };
 
+export const buscarRecomendacoesPorHistorico = async (limite = 8) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/pecas/recomendacoes/historico?limite=${limite}`, {
+      method: 'GET', headers,
+    });
+    if (!response.ok) {
+      const message = await parseErrorResponse(response, 'Não foi possível carregar suas recomendações agora.');
+      throw createFriendlyError(message);
+    }
+    const data = await response.json();
+    return { recomendacoes: data?.recomendacoes || [], baseadoEmHistorico: Boolean(data?.baseado_em_historico) };
+  } catch (error) {
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar suas recomendações agora.'));
+  }
+};
+
 export const buscarFornecedoresRecomendados = async (limite = 4) => {
   try {
     const headers = await getAuthHeaders();

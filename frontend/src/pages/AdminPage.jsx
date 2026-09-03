@@ -59,7 +59,6 @@ export default function AdminPage() {
   const [dashboardStatus, setDashboardStatus] = useState('');
   const [dashboardSupplier, setDashboardSupplier] = useState('');
   const [chartGranularity, setChartGranularity] = useState('semanal');
-
   async function load(target = section) {
     if (target === 'overview') return;
     setLoadingList(true);

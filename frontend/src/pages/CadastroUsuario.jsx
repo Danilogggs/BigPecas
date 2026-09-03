@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, ButtonPrimary, AlertError, AlertSuccess } from '../components/StyledComponents';
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, FLEX_CENTER, GRID_TWO_COLUMNS } from '../styles/theme';
+import { COLORS, SPACING } from '../styles/theme';
 import { mapSupabaseAuthError } from '../utils/friendlyErrors';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -231,19 +231,8 @@ export default function CadastroUsuario() {
       </div>
 
       {/* Painel direito — scrollável */}
-      <div className="auth-panel-right" style={{ alignItems: 'flex-start', overflowY: 'auto', padding: '2rem' }}>
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '680px',
-          backgroundColor: 'var(--bp-surface)',
-          borderRadius: 'var(--r-2xl)',
-          border: '1px solid var(--bp-border-light)',
-          padding: '2.5rem',
-          boxShadow: 'var(--shadow-md)',
-          margin: 'auto',
-        }}
-      >
+      <div className="auth-panel-right auth-register-panel">
+      <div className="auth-register-card">
         <div style={{ marginBottom: '1.75rem' }}>
           <p className="auth-form-tag">{t('newAccount')}</p>
           <h2 className="auth-form-title" style={{ marginBottom: 0 }}>{t('createAccount')}</h2>
@@ -263,8 +252,9 @@ export default function CadastroUsuario() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <label style={{ display: 'block', marginBottom: 20 }}>{t('profile')}
-            <select name="tipo_usuario" value={form.tipo_usuario || 'ambos'} onChange={handleChange}>
+          <label className="auth-register-profile">
+            <span>{t('profile')}</span>
+            <select className="auth-register-select" name="tipo_usuario" value={form.tipo_usuario || 'ambos'} onChange={handleChange}>
               <option value="ambos">{t('buyerSeller')}</option>
               <option value="avaliador">{t('evaluatorRole')}</option>
             </select>
@@ -297,7 +287,7 @@ export default function CadastroUsuario() {
               {t('genderLabel')}
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACING.SM }}>
+            <div className="auth-gender-options">
               {GENDER_OPTIONS.map((option) => {
                 const selected = form.gender === option.value;
 
@@ -306,18 +296,7 @@ export default function CadastroUsuario() {
                     key={option.value || option.labelKey}
                     type="button"
                     onClick={() => handleGenderSelect(option.value)}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: '999px',
-                      border: selected ? `1.5px solid ${COLORS.BORDEAUX}` : `1px solid ${COLORS.BORDEAUX}24`,
-                      backgroundColor: selected ? `${COLORS.BORDEAUX}12` : '#fff',
-                      color: selected ? COLORS.BORDEAUX : COLORS.DARK_TEXT,
-                      fontSize: '0.92rem',
-                      fontWeight: selected ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: selected ? `0 4px 10px ${COLORS.BORDEAUX}14` : 'none',
-                    }}
+                    className={`auth-gender-option ${selected ? 'is-selected' : ''}`}
                   >
                     {t(option.labelKey)}
                   </button>
@@ -326,7 +305,7 @@ export default function CadastroUsuario() {
             </div>
           </div>
 
-          <div style={{ ...GRID_TWO_COLUMNS, marginBottom: SPACING.LG }}>
+          <div className="auth-register-grid" style={{ marginBottom: SPACING.LG }}>
             <Field label={t('phone')} required>
               <Input
                 type="text"
@@ -370,7 +349,7 @@ export default function CadastroUsuario() {
             </Field>
           </div>
 
-          <div style={{ ...GRID_TWO_COLUMNS, marginBottom: SPACING.XL }}>
+          <div className="auth-register-grid" style={{ marginBottom: SPACING.XL }}>
             <Field label={t('password')} required>
               <Input
                 type="password"
@@ -399,22 +378,7 @@ export default function CadastroUsuario() {
           <ButtonPrimary
             type="submit"
             disabled={loading}
-            style={{
-              width: '100%',
-              padding: '14px 18px',
-              border: 'none',
-              outline: 'none',
-              borderRadius: BORDER_RADIUS.MD,
-              backgroundColor: COLORS.BORDEAUX,
-              color: '#fff',
-              fontSize: '1rem',
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
-              transition: 'all 0.2s ease',
-            }}
+            className="auth-register-submit"
           >
             {loading ? t('creatingAccount') : t('createAccountAction')}
           </ButtonPrimary>
