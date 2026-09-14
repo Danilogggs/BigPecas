@@ -8,6 +8,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --runInBand --coverage --json --outputFile=test-results.json",
     "test:review": "node --test scripts/review-regression.test.cjs"
   },
   "dependencies": {

@@ -37,7 +37,7 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
 
       query = query.order(ordenacao.campo === 'preco' ? campoPreco : ordenacao.campo, { ascending: ordenacao.ascendente });
       const { data, error, count } = await query
-        .select('*', { count: 'estimated' })
+        .select('*', { count: 'exact' })
         .range(paginacao.inicio, paginacao.fim);
       if (error) throw error;
       return { itens: data || [], total: count ?? 0 };

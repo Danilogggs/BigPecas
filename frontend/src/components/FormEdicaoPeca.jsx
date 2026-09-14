@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { FormInput, FormSelect, FormTextarea } from './FormComponents';
 import { useLanguage } from '../contexts/LanguageContext';
+import PartReviewStatus from './PartReviewStatus';
 
 const FormEdicaoPeca = memo(function FormEdicaoPeca({
   formData,
@@ -9,6 +10,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
   onImageChange,
   onRemoveImage,
   imagemPreview,
+  imageError,
   imageInputRef,
   categorias,
   materiais,
@@ -20,18 +22,19 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
 }) {
   const { t } = useLanguage();
   const conditions = [
-    { id: 'NOS', label: t('NOS (Novo em Estoque)') },
-    { id: 'USED', label: t('USED (Usado)') },
-    { id: 'REFURBISHED', label: t('REFURBISHED (Refabricado)') },
+    { id: 'NOS', nome: t('NOS (Novo em Estoque)') },
+    { id: 'EXCELENTE', nome: t('Excelente') },
+    { id: 'BOM', nome: t('Bom') },
+    { id: 'ACEITÁVEL', nome: t('Aceitável') },
+    { id: 'USED', nome: t('Usado') },
+    { id: 'REFURBISHED', nome: t('Refabricado') },
   ];
 
   return (
     <div className="editar-form-container">
       <h2 className="form-title">{t('Editar Peça')}</h2>
+      <PartReviewStatus status={reviewStatus?.status} reason={reviewStatus?.reason} />
 
-      {message.text && (
-        <div className={`form-message ${message.type}`}>{message.text}</div>
-      )}
 
       <form onSubmit={onSubmit} noValidate className="editar-form">
         <div className="form-grid">
@@ -163,7 +166,7 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           />
         </div>
 
-        <p role="status">{reviewStatus}</p><label style={{display:'block',margin:'16px 0'}}>{t('partVideoUrl')}
+        <label style={{display:'block',margin:'16px 0'}}>{t('partVideoUrl')}
                 <input type="url" name="url_video" value={formData.url_video || ''} onChange={onInputChange} style={{width:'100%',padding:12}} placeholder="https://..." />
               </label>
               <label>{t('baseCurrency')}
@@ -239,6 +242,12 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
             {t('Limpar formulário')}
           </button>
         </div>
+        {imageError && <p role="alert" className="form-message error">{imageError}</p>}
+        {message.text && (
+          <div role={message.type === 'error' ? 'alert' : 'status'} className={`form-message ${message.type}`}>
+            {message.text}
+          </div>
+        )}
       </form>
     </div>
   );

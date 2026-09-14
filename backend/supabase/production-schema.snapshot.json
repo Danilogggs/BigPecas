@@ -1,0 +1,2788 @@
+{
+  "source": "Exportacoes fornecidas pelo usuario em 2026-09-14; somente metadados public, sem dados/credenciais.",
+  "limitations": "Exportacao nao inclui limites varchar, precisao numeric, collations, parametros de sequences, Storage ou Auth.",
+  "columns": [
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "admin_dashboard_preferences",
+      "column_name": "user_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "admin_dashboard_preferences",
+      "column_name": "config",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'{\"widgets\": [\"usuarios\", \"pecas\", \"pedidos\", \"pedidos_pendentes\", \"avaliacoes\"]}'::jsonb",
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "admin_dashboard_preferences",
+      "column_name": "updated_at",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "fornecedor_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "comprador_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "venda_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "nota",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "comentario",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "qualidade_peca",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "comunicacao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "rapidez_entrega",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "embalagem",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "verificada",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "false",
+      "ordinal_position": 11,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "data_avaliacao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_TIMESTAMP",
+      "ordinal_position": 12,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "avaliacoes_fornecedor",
+      "column_name": "pedido_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 13,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "peca_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "revisao",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "avaliador_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "status",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'pendente'::text",
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "criterios_snapshot",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "respostas",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'[]'::jsonb",
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "comentarios",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "criada_em",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "avaliacoes_pecas",
+      "column_name": "decidida_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_produto",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "BY DEFAULT"
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "avaliacoes_produto",
+      "column_name": "pedido_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_produto",
+      "column_name": "venda_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_produto",
+      "column_name": "peca_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_produto",
+      "column_name": "fornecedor_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "avaliacoes_produto",
+      "column_name": "comprador_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "avaliacoes_produto",
+      "column_name": "nota",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "avaliacoes_produto",
+      "column_name": "comentario",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "avaliacoes_produto",
+      "column_name": "verificada",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "avaliacoes_produto",
+      "column_name": "data_avaliacao",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "categorias",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "categorias",
+      "column_name": "nome",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "nome_criterio",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "descricao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "obrigatorio",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "ativo",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "ordem",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "criado_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "now()",
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "checklist_validacao_peca",
+      "column_name": "atualizado_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "marcas",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "marcas",
+      "column_name": "nome",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "materiais",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "materiais",
+      "column_name": "nome",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "mensagens",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "BY DEFAULT"
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "mensagens",
+      "column_name": "created_at",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "mensagens",
+      "column_name": "id_remetente",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "mensagens",
+      "column_name": "id_destinatario",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "mensagens",
+      "column_name": "mensagem",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "modelos",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "modelos",
+      "column_name": "marca_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "modelos",
+      "column_name": "nome",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "notificacoes",
+      "column_name": "id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "user_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "pedido_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "tipo",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "titulo",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "mensagem",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "status_envio",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'pendente'::text",
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "notificacoes",
+      "column_name": "lida_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "notificacoes",
+      "column_name": "criada_em",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "notificacoes",
+      "column_name": "email_destino",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "notificacoes",
+      "column_name": "peca_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "parcelas_venda",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "parcelas_venda",
+      "column_name": "venda_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "parcelas_venda",
+      "column_name": "numero_parcela",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "parcelas_venda",
+      "column_name": "valor_parcela",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "parcelas_venda",
+      "column_name": "valor_pago",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "0",
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "parcelas_venda",
+      "column_name": "data_vencimento",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "parcelas_venda",
+      "column_name": "data_pagamento",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "parcelas_venda",
+      "column_name": "status",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'pendente'::character varying",
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "peca_compatibilidade",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "peca_compatibilidade",
+      "column_name": "peca_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "peca_compatibilidade",
+      "column_name": "modelo_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "peca_compatibilidade",
+      "column_name": "ano_inicio",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "peca_compatibilidade",
+      "column_name": "ano_fim",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "peca_compatibilidade",
+      "column_name": "observacao_ajuste",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "pecas",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "BY DEFAULT"
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "nome_peca",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "sku",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "oem_number",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "num_serie",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "pecas",
+      "column_name": "categoria_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "pecas",
+      "column_name": "material_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "condicao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "pecas",
+      "column_name": "peso_gramas",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "pecas",
+      "column_name": "comprimento_mm",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "pecas",
+      "column_name": "largura_mm",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "pecas",
+      "column_name": "altura_mm",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 12,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pecas",
+      "column_name": "detalhes_gravacao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 13,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pecas",
+      "column_name": "historico_proveniencia",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 14,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "pecas",
+      "column_name": "fornecedor_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 15,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "pecas",
+      "column_name": "preco",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 16,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "pecas",
+      "column_name": "estoque_atual",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "0",
+      "ordinal_position": 17,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "status",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'disponivel'::character varying",
+      "ordinal_position": 18,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "pecas",
+      "column_name": "data_cadastro",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_TIMESTAMP",
+      "ordinal_position": 19,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "pecas",
+      "column_name": "updated_at",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_TIMESTAMP",
+      "ordinal_position": 20,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pecas",
+      "column_name": "imagem",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 21,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "fabricante",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 23,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "status_publicacao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'pendente_validacao'::character varying",
+      "ordinal_position": 27,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pecas",
+      "column_name": "url_video",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 28,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pecas",
+      "column_name": "motivo_rejeicao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 29,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pecas",
+      "column_name": "dados_api_validacao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 30,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "status_api_serie",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'nao_verificado'::character varying",
+      "ordinal_position": 31,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "pecas",
+      "column_name": "verificado_serie_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 32,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "pecas",
+      "column_name": "requer_revalidacao",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 33,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "pecas",
+      "column_name": "revisao_avaliacao",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "1",
+      "ordinal_position": 34,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "pecas",
+      "column_name": "publicada_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 35,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "pecas",
+      "column_name": "moeda_base",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'BRL'::character varying",
+      "ordinal_position": 36,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "pecas",
+      "column_name": "preco_base",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 37,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pedidos",
+      "column_name": "id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "pedidos",
+      "column_name": "user_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pedidos",
+      "column_name": "status",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'aguardando_pagamento'::text",
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pedidos",
+      "column_name": "itens",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pedidos",
+      "column_name": "frete",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pedidos",
+      "column_name": "cupom",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pedidos",
+      "column_name": "endereco",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pedidos",
+      "column_name": "forma_pagamento",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "pedidos",
+      "column_name": "subtotal",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "pedidos",
+      "column_name": "desconto",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "0",
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "pedidos",
+      "column_name": "valor_frete",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "0",
+      "ordinal_position": 11,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "pedidos",
+      "column_name": "total",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 12,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pedidos",
+      "column_name": "codigo_rastreio",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 13,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "pedidos",
+      "column_name": "historico",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'[]'::jsonb",
+      "ordinal_position": 14,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "pedidos",
+      "column_name": "criado_em",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "now()",
+      "ordinal_position": 15,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "pedidos",
+      "column_name": "data_preferida",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "pedidos",
+      "column_name": "urgencia_entrega",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 17,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "taxas_cambio",
+      "column_name": "moeda",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "taxas_cambio",
+      "column_name": "unidades_por_brl",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "taxas_cambio",
+      "column_name": "atualizado_em",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "taxas_cambio",
+      "column_name": "fonte",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "'configuracao'::text",
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "users",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "email",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "full_name",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "gender",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "cep",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "tipo_usuario",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'comprador'::character varying",
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "nome_loja",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "users",
+      "column_name": "descricao_loja",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "telefone",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "users",
+      "column_name": "created_at",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_TIMESTAMP",
+      "ordinal_position": 11,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "users",
+      "column_name": "updated_at",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_TIMESTAMP",
+      "ordinal_position": 12,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "users",
+      "column_name": "email_verificado",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "false",
+      "ordinal_position": 14,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "users",
+      "column_name": "time_futebol",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 19,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "users",
+      "column_name": "sabor_pizza",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 20,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "users",
+      "column_name": "receber_email_notificacao_venda",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 21,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "users",
+      "column_name": "is_admin",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 22,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "moeda_padrao",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'BRL'::character varying",
+      "ordinal_position": 23,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "users",
+      "column_name": "pais_origem",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'BR'::character varying",
+      "ordinal_position": 24,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "vendas",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "ALWAYS"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "vendas",
+      "column_name": "peca_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "vendas",
+      "column_name": "fornecedor_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "vendas",
+      "column_name": "comprador_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "vendas",
+      "column_name": "quantidade",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "1",
+      "ordinal_position": 5,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "vendas",
+      "column_name": "preco_unitario",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "vendas",
+      "column_name": "preco_total",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "vendas",
+      "column_name": "forma_pagamento",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 8,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "vendas",
+      "column_name": "parcelado",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "false",
+      "ordinal_position": 9,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "vendas",
+      "column_name": "numero_parcelas",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "1",
+      "ordinal_position": 10,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "vendas",
+      "column_name": "primeira_parcela_data",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "vendas",
+      "column_name": "juros_percentual",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "0",
+      "ordinal_position": 12,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "varchar",
+      "data_type": "character varying",
+      "table_name": "vendas",
+      "column_name": "status",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "'pendente'::character varying",
+      "ordinal_position": 13,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "vendas",
+      "column_name": "data_venda",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": "CURRENT_TIMESTAMP",
+      "ordinal_position": 14,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "vendas",
+      "column_name": "data_entrega",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 15,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamp",
+      "data_type": "timestamp without time zone",
+      "table_name": "vendas",
+      "column_name": "cancelled_at",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "vendas",
+      "column_name": "pedido_id",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 17,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "vendas",
+      "column_name": "item_indice",
+      "is_identity": "NO",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 18,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "wishlist",
+      "column_name": "id",
+      "is_identity": "YES",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1,
+      "identity_generation": "BY DEFAULT"
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "wishlist",
+      "column_name": "user_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "wishlist",
+      "column_name": "peca_id",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "identity_generation": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "wishlist",
+      "column_name": "created_at",
+      "is_identity": "NO",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4,
+      "identity_generation": null
+    }
+  ],
+  "constraints": [
+    {
+      "nome": "pecas_sku_key",
+      "tabela": "pecas",
+      "definicao": "UNIQUE (sku)"
+    },
+    {
+      "nome": "users_pkey",
+      "tabela": "users",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "users_email_key",
+      "tabela": "users",
+      "definicao": "UNIQUE (email)"
+    },
+    {
+      "nome": "marcas_pkey",
+      "tabela": "marcas",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "marcas_nome_key",
+      "tabela": "marcas",
+      "definicao": "UNIQUE (nome)"
+    },
+    {
+      "nome": "modelos_pkey",
+      "tabela": "modelos",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "modelos_marca_id_fkey",
+      "tabela": "modelos",
+      "definicao": "FOREIGN KEY (marca_id) REFERENCES marcas(id)"
+    },
+    {
+      "nome": "categorias_pkey",
+      "tabela": "categorias",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "categorias_nome_key",
+      "tabela": "categorias",
+      "definicao": "UNIQUE (nome)"
+    },
+    {
+      "nome": "materiais_pkey",
+      "tabela": "materiais",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "materiais_nome_key",
+      "tabela": "materiais",
+      "definicao": "UNIQUE (nome)"
+    },
+    {
+      "nome": "pecas_pkey",
+      "tabela": "pecas",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "pecas_categoria_id_fkey",
+      "tabela": "pecas",
+      "definicao": "FOREIGN KEY (categoria_id) REFERENCES categorias(id)"
+    },
+    {
+      "nome": "pecas_material_id_fkey",
+      "tabela": "pecas",
+      "definicao": "FOREIGN KEY (material_id) REFERENCES materiais(id)"
+    },
+    {
+      "nome": "pecas_fornecedor_id_fkey",
+      "tabela": "pecas",
+      "definicao": "FOREIGN KEY (fornecedor_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "peca_compatibilidade_pkey",
+      "tabela": "peca_compatibilidade",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "peca_compatibilidade_peca_id_fkey",
+      "tabela": "peca_compatibilidade",
+      "definicao": "FOREIGN KEY (peca_id) REFERENCES pecas(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "peca_compatibilidade_modelo_id_fkey",
+      "tabela": "peca_compatibilidade",
+      "definicao": "FOREIGN KEY (modelo_id) REFERENCES modelos(id)"
+    },
+    {
+      "nome": "vendas_pkey",
+      "tabela": "vendas",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "vendas_peca_id_fkey",
+      "tabela": "vendas",
+      "definicao": "FOREIGN KEY (peca_id) REFERENCES pecas(id)"
+    },
+    {
+      "nome": "vendas_fornecedor_id_fkey",
+      "tabela": "vendas",
+      "definicao": "FOREIGN KEY (fornecedor_id) REFERENCES users(id)"
+    },
+    {
+      "nome": "vendas_comprador_id_fkey",
+      "tabela": "vendas",
+      "definicao": "FOREIGN KEY (comprador_id) REFERENCES users(id)"
+    },
+    {
+      "nome": "parcelas_venda_pkey",
+      "tabela": "parcelas_venda",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "parcelas_venda_venda_id_numero_parcela_key",
+      "tabela": "parcelas_venda",
+      "definicao": "UNIQUE (venda_id, numero_parcela)"
+    },
+    {
+      "nome": "parcelas_venda_venda_id_fkey",
+      "tabela": "parcelas_venda",
+      "definicao": "FOREIGN KEY (venda_id) REFERENCES vendas(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_nota_check",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "CHECK (((nota >= 1) AND (nota <= 5)))"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_qualidade_peca_check",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "CHECK (((qualidade_peca >= 1) AND (qualidade_peca <= 5)))"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_comunicacao_check",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "CHECK (((comunicacao >= 1) AND (comunicacao <= 5)))"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_rapidez_entrega_check",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "CHECK (((rapidez_entrega >= 1) AND (rapidez_entrega <= 5)))"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_embalagem_check",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "CHECK (((embalagem >= 1) AND (embalagem <= 5)))"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_pkey",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_venda_id_key",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "UNIQUE (venda_id)"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_fornecedor_id_fkey",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "FOREIGN KEY (fornecedor_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_comprador_id_fkey",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "FOREIGN KEY (comprador_id) REFERENCES users(id)"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_venda_id_fkey",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "FOREIGN KEY (venda_id) REFERENCES vendas(id) ON DELETE SET NULL"
+    },
+    {
+      "nome": "whitelist_user_id_fkey",
+      "tabela": "wishlist",
+      "definicao": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "whitelist_peca_id_fkey",
+      "tabela": "wishlist",
+      "definicao": "FOREIGN KEY (peca_id) REFERENCES pecas(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "wishlist_user_peca_unique",
+      "tabela": "wishlist",
+      "definicao": "UNIQUE (user_id, peca_id)"
+    },
+    {
+      "nome": "wishlist_pkey",
+      "tabela": "wishlist",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "mensagens_pkey",
+      "tabela": "mensagens",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "pedidos_pkey",
+      "tabela": "pedidos",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "pedidos_user_id_fkey",
+      "tabela": "pedidos",
+      "definicao": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_produto_fornecedor_id_fkey",
+      "tabela": "avaliacoes_produto",
+      "definicao": "FOREIGN KEY (fornecedor_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_produto_comprador_id_fkey",
+      "tabela": "avaliacoes_produto",
+      "definicao": "FOREIGN KEY (comprador_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "admin_dashboard_preferences_user_id_fkey",
+      "tabela": "admin_dashboard_preferences",
+      "definicao": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "vendas_pedido_id_fkey",
+      "tabela": "vendas",
+      "definicao": "FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_pedido_id_fkey",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_fornecedor_criterios_check",
+      "tabela": "avaliacoes_fornecedor",
+      "definicao": "CHECK ((((qualidade_peca >= 1) AND (qualidade_peca <= 5)) AND ((comunicacao >= 1) AND (comunicacao <= 5)) AND ((rapidez_entrega >= 1) AND (rapidez_entrega <= 5)) AND ((embalagem >= 1) AND (embalagem <= 5))))"
+    },
+    {
+      "nome": "avaliacoes_produto_nota_check",
+      "tabela": "avaliacoes_produto",
+      "definicao": "CHECK (((nota >= 1) AND (nota <= 5)))"
+    },
+    {
+      "nome": "avaliacoes_produto_pkey",
+      "tabela": "avaliacoes_produto",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "avaliacoes_produto_compra_unique",
+      "tabela": "avaliacoes_produto",
+      "definicao": "UNIQUE (pedido_id, venda_id, comprador_id)"
+    },
+    {
+      "nome": "avaliacoes_produto_pedido_id_fkey",
+      "tabela": "avaliacoes_produto",
+      "definicao": "FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_produto_venda_id_fkey",
+      "tabela": "avaliacoes_produto",
+      "definicao": "FOREIGN KEY (venda_id) REFERENCES vendas(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "avaliacoes_produto_peca_id_fkey",
+      "tabela": "avaliacoes_produto",
+      "definicao": "FOREIGN KEY (peca_id) REFERENCES pecas(id) ON DELETE CASCADE"
+    },
+    {
+      "nome": "admin_dashboard_preferences_pkey",
+      "tabela": "admin_dashboard_preferences",
+      "definicao": "PRIMARY KEY (user_id)"
+    },
+    {
+      "nome": "notificacoes_pkey",
+      "tabela": "notificacoes",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "notificacoes_peca_id_fkey",
+      "tabela": "notificacoes",
+      "definicao": "FOREIGN KEY (peca_id) REFERENCES pecas(id) ON DELETE SET NULL"
+    },
+    {
+      "nome": "checklist_validacao_peca_pkey",
+      "tabela": "checklist_validacao_peca",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "avaliacoes_pecas_revisao_check",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "CHECK ((revisao > 0))"
+    },
+    {
+      "nome": "avaliacoes_pecas_status_check",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "CHECK ((status = ANY (ARRAY['pendente'::text, 'aprovada'::text, 'rejeitada'::text, 'substituida'::text])))"
+    },
+    {
+      "nome": "avaliacoes_pecas_criterios_snapshot_check",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "CHECK ((jsonb_typeof(criterios_snapshot) = 'array'::text))"
+    },
+    {
+      "nome": "avaliacoes_pecas_pkey",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "PRIMARY KEY (id)"
+    },
+    {
+      "nome": "avaliacoes_pecas_peca_id_revisao_key",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "UNIQUE (peca_id, revisao)"
+    },
+    {
+      "nome": "avaliacoes_pecas_peca_id_fkey",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "FOREIGN KEY (peca_id) REFERENCES pecas(id)"
+    },
+    {
+      "nome": "avaliacoes_pecas_avaliador_id_fkey",
+      "tabela": "avaliacoes_pecas",
+      "definicao": "FOREIGN KEY (avaliador_id) REFERENCES users(id)"
+    },
+    {
+      "nome": "taxas_cambio_moeda_check",
+      "tabela": "taxas_cambio",
+      "definicao": "CHECK (((moeda)::text ~ '^[A-Z]{3}$'::text))"
+    },
+    {
+      "nome": "taxas_cambio_unidades_por_brl_check",
+      "tabela": "taxas_cambio",
+      "definicao": "CHECK ((unidades_por_brl > (0)::numeric))"
+    },
+    {
+      "nome": "taxas_cambio_check",
+      "tabela": "taxas_cambio",
+      "definicao": "CHECK ((((moeda)::text <> 'BRL'::text) OR (unidades_por_brl = (1)::numeric)))"
+    },
+    {
+      "nome": "taxas_cambio_pkey",
+      "tabela": "taxas_cambio",
+      "definicao": "PRIMARY KEY (moeda)"
+    },
+    {
+      "nome": "pecas_api_serie_status_check",
+      "tabela": "pecas",
+      "definicao": "CHECK (((status_api_serie)::text = ANY ((ARRAY['nao_verificado'::character varying, 'pendente'::character varying, 'aprovado'::character varying, 'reprovado'::character varying, 'erro'::character varying])::text[]))) NOT VALID"
+    }
+  ],
+  "views": [
+    {
+      "viewname": "fornecedor_stats",
+      "definition": " SELECT f.id,\n    f.full_name,\n    f.nome_loja,\n    count(DISTINCT v.id) AS total_vendas,\n    count(DISTINCT av.id) AS total_avaliacoes,\n    round(avg(av.nota), 2) AS nota_media,\n    count(DISTINCT p.id) AS total_pecas_ativas,\n    sum(v.preco_total) AS total_vendido\n   FROM (((users f\n     LEFT JOIN vendas v ON (((f.id = v.fornecedor_id) AND ((v.status)::text <> 'cancelada'::text))))\n     LEFT JOIN avaliacoes_fornecedor av ON ((f.id = av.fornecedor_id)))\n     LEFT JOIN pecas p ON (((f.id = p.fornecedor_id) AND ((p.status)::text = 'disponivel'::text))))\n  WHERE ((f.tipo_usuario)::text = ANY ((ARRAY['fornecedor'::character varying, 'ambos'::character varying])::text[]))\n  GROUP BY f.id, f.full_name, f.nome_loja;",
+      "schemaname": "public"
+    },
+    {
+      "viewname": "vendas_ativas",
+      "definition": " SELECT v.id,\n    p.nome_peca,\n    f.full_name AS nome_fornecedor,\n    c.full_name AS nome_comprador,\n    v.preco_total,\n    v.forma_pagamento,\n    v.numero_parcelas,\n    v.status,\n    v.data_venda\n   FROM (((vendas v\n     JOIN pecas p ON ((v.peca_id = p.id)))\n     JOIN users f ON ((v.fornecedor_id = f.id)))\n     JOIN users c ON ((v.comprador_id = c.id)))\n  WHERE ((v.status)::text = ANY ((ARRAY['pendente'::character varying, 'confirmada'::character varying])::text[]));",
+      "schemaname": "public"
+    },
+    {
+      "viewname": "precos_publicos_moeda",
+      "definition": " SELECT p.id,\n    p.nome_peca,\n    p.sku,\n    p.oem_number,\n    p.num_serie,\n    p.categoria_id,\n    p.material_id,\n    p.condicao,\n    p.peso_gramas,\n    p.comprimento_mm,\n    p.largura_mm,\n    p.altura_mm,\n    p.detalhes_gravacao,\n    p.historico_proveniencia,\n    p.fornecedor_id,\n    p.preco,\n    p.estoque_atual,\n    p.status,\n    p.data_cadastro,\n    p.updated_at,\n    p.imagem,\n    p.fabricante,\n    p.status_publicacao,\n    p.url_video,\n    p.motivo_rejeicao,\n    p.dados_api_validacao,\n    p.status_api_serie,\n    p.verificado_serie_em,\n    p.requer_revalidacao,\n    p.revisao_avaliacao,\n    p.publicada_em,\n    p.moeda_base,\n    p.preco_base,\n    t.moeda AS moeda_exibicao,\n    round(((p.preco_base / origem.unidades_por_brl) * t.unidades_por_brl), 2) AS preco_exibicao\n   FROM ((pecas p\n     JOIN taxas_cambio origem ON ((((origem.moeda)::text = (p.moeda_base)::text) AND (origem.unidades_por_brl IS NOT NULL))))\n     CROSS JOIN taxas_cambio t)\n  WHERE (((p.status_publicacao)::text = 'publicada'::text) AND (t.unidades_por_brl IS NOT NULL));",
+      "schemaname": "public"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "((status_publicacao)::text = 'publicada'::text)",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "tablename": "pecas",
+      "permissive": "PERMISSIVE",
+      "policyname": "bigpecas_publicadas_leitura",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((status_publicacao)::text = 'publicada'::text)",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "tablename": "pecas",
+      "permissive": "RESTRICTIVE",
+      "policyname": "bigpecas_publicadas_restricao",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "functions": [
+    {
+      "name": "atualizar_preco_total_venda",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.atualizar_preco_total_venda()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    NEW.preco_total := NEW.quantidade * NEW.preco_unitario;\r\n    IF NEW.parcelado AND NEW.numero_parcelas > 0 THEN\r\n        NEW.preco_total := NEW.preco_total * (1 + NEW.juros_percentual / 100);\r\n    END IF;\r\n    RETURN NEW;\r\nEND;\r\n$function$\n",
+      "identity_arguments": ""
+    },
+    {
+      "name": "decidir_avaliacao_peca",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.decidir_avaliacao_peca(p_peca bigint, p_avaliador bigint, p_revisao integer, p_respostas jsonb, p_comentarios text DEFAULT ''::text, p_rejeitar boolean DEFAULT false)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\nDECLARE p public.pecas; a public.avaliacoes_pecas; c jsonb; r jsonb; aprovada boolean;\r\nBEGIN\r\n  IF NOT EXISTS (SELECT 1 FROM public.users WHERE id=p_avaliador AND (tipo_usuario='avaliador' OR is_admin)) THEN\r\n    RAISE EXCEPTION 'Usuário sem permissão para avaliar.';\r\n  END IF;\r\n  SELECT * INTO p FROM public.pecas WHERE id=p_peca FOR UPDATE;\r\n  IF NOT FOUND OR p.status_publicacao <> 'pendente_validacao' OR p.revisao_avaliacao <> p_revisao THEN\r\n    RAISE EXCEPTION 'O anúncio mudou ou já foi avaliado. Recarregue a fila.';\r\n  END IF;\r\n  IF p.fornecedor_id=p_avaliador THEN RAISE EXCEPTION 'Não é permitido avaliar o próprio anúncio.'; END IF;\r\n  SELECT * INTO a FROM public.avaliacoes_pecas WHERE peca_id=p_peca AND revisao=p_revisao FOR UPDATE;\r\n  IF NOT FOUND OR a.status <> 'pendente' THEN RAISE EXCEPTION 'Avaliação indisponível.'; END IF;\r\n  IF jsonb_typeof(p_respostas) IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Checklist inválido.'; END IF;\r\n  IF jsonb_array_length(p_respostas) <> jsonb_array_length(a.criterios_snapshot) THEN\r\n    RAISE EXCEPTION 'Responda todos os critérios desta revisão.';\r\n  END IF;\r\n  IF EXISTS (SELECT 1 FROM jsonb_array_elements(p_respostas) x\r\n    GROUP BY x->>'criterio_id' HAVING count(*)>1) THEN RAISE EXCEPTION 'Critérios duplicados.'; END IF;\r\n  aprovada := jsonb_array_length(a.criterios_snapshot)>0;\r\n  FOR c IN SELECT * FROM jsonb_array_elements(a.criterios_snapshot) LOOP\r\n    SELECT x INTO r FROM jsonb_array_elements(p_respostas) x WHERE x->>'criterio_id'=c->>'id';\r\n    IF r IS NULL OR jsonb_typeof(r->'resposta') IS DISTINCT FROM 'boolean' THEN\r\n      RAISE EXCEPTION 'Resposta ausente ou inválida.';\r\n    END IF;\r\n    IF (c->>'obrigatorio')::boolean AND NOT (r->>'resposta')::boolean THEN aprovada:=false; END IF;\r\n  END LOOP;\r\n  IF p_rejeitar THEN\r\n    IF length(trim(COALESCE(p_comentarios,'')))=0 THEN RAISE EXCEPTION 'Informe o motivo da reprovação.'; END IF;\r\n    aprovada:=false;\r\n  ELSIF NOT aprovada THEN\r\n    RAISE EXCEPTION 'Marque positivamente todos os critérios obrigatórios ou reprove com motivo.';\r\n  END IF;\r\n  UPDATE public.avaliacoes_pecas SET avaliador_id=p_avaliador, respostas=p_respostas,\r\n    comentarios=p_comentarios, decidida_em=now(), status=CASE WHEN aprovada THEN 'aprovada' ELSE 'rejeitada' END\r\n    WHERE id=a.id;\r\n  UPDATE public.pecas SET status_publicacao=CASE WHEN aprovada THEN 'publicada' ELSE 'rejeitada' END,\r\n    publicada_em=CASE WHEN aprovada THEN now() ELSE NULL END,\r\n    motivo_rejeicao=CASE WHEN aprovada THEN NULL ELSE p_comentarios END, requer_revalidacao=NOT aprovada\r\n    WHERE id=p_peca;\r\n  INSERT INTO public.notificacoes(user_id,tipo,titulo,mensagem,status_envio,peca_id)\r\n    VALUES (p.fornecedor_id::text,CASE WHEN aprovada THEN 'validacao_aprovada' ELSE 'validacao_rejeitada' END,\r\n      CASE WHEN aprovada THEN 'Peça aprovada e publicada' ELSE 'Peça reprovada' END,\r\n      CASE WHEN aprovada THEN 'Seu anúncio está disponível no catálogo.' ELSE p_comentarios END,'enviada',p_peca);\r\n  RETURN jsonb_build_object('publicada',aprovada,'status',CASE WHEN aprovada THEN 'aprovada' ELSE 'rejeitada' END);\r\nEND $function$\n",
+      "identity_arguments": "p_peca bigint, p_avaliador bigint, p_revisao integer, p_respostas jsonb, p_comentarios text, p_rejeitar boolean"
+    },
+    {
+      "name": "enfileirar_avaliacao_peca",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.enfileirar_avaliacao_peca()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\nBEGIN\r\n  IF TG_OP = 'UPDATE' THEN\r\n    IF NEW.revisao_avaliacao = OLD.revisao_avaliacao THEN RETURN NEW; END IF;\r\n    UPDATE public.avaliacoes_pecas SET status='substituida'\r\n      WHERE peca_id=NEW.id AND status='pendente';\r\n  END IF;\r\n  INSERT INTO public.avaliacoes_pecas(peca_id, revisao, criterios_snapshot)\r\n    VALUES (NEW.id, NEW.revisao_avaliacao, public.snapshot_checklist_peca());\r\n  INSERT INTO public.notificacoes(user_id, tipo, titulo, mensagem, status_envio, peca_id)\r\n    SELECT id::text, 'nova_peca_para_validar', 'Nova peça aguardando avaliação',\r\n      'Avalie o anúncio: ' || NEW.nome_peca, 'enviada', NEW.id\r\n    FROM public.users WHERE tipo_usuario='avaliador' AND id <> NEW.fornecedor_id;\r\n  RETURN NEW;\r\nEND $function$\n",
+      "identity_arguments": ""
+    },
+    {
+      "name": "excluir_peca_permanentemente",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.excluir_peca_permanentemente(p_peca_id bigint)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\nDECLARE afetadas bigint;\r\nBEGIN\r\n  IF NOT EXISTS (SELECT 1 FROM public.pecas WHERE id = p_peca_id) THEN RETURN false; END IF;\r\n  PERFORM set_config('app.exclusao_permanente', 'on', true);\r\n\r\n  UPDATE public.notificacoes SET peca_id = NULL WHERE peca_id = p_peca_id;\r\n  DELETE FROM public.avaliacoes_produto WHERE peca_id = p_peca_id\r\n    OR venda_id IN (SELECT id FROM public.vendas WHERE peca_id = p_peca_id);\r\n  DELETE FROM public.avaliacoes_fornecedor WHERE venda_id IN (SELECT id FROM public.vendas WHERE peca_id = p_peca_id);\r\n  DELETE FROM public.parcelas_venda WHERE venda_id IN (SELECT id FROM public.vendas WHERE peca_id = p_peca_id);\r\n  DELETE FROM public.vendas WHERE peca_id = p_peca_id;\r\n  DELETE FROM public.wishlist WHERE peca_id = p_peca_id;\r\n  DELETE FROM public.peca_compatibilidade WHERE peca_id = p_peca_id;\r\n  -- Estruturas do protótipo antigo podem não existir no schema atual.\r\n  IF to_regclass('public.faixas_preco') IS NOT NULL THEN\r\n    EXECUTE 'DELETE FROM public.faixas_preco WHERE peca_id = $1' USING p_peca_id;\r\n  END IF;\r\n  IF to_regclass('public.validacao_peca') IS NOT NULL THEN\r\n    IF to_regclass('public.checklist_respostas_validacao') IS NOT NULL THEN\r\n      EXECUTE 'DELETE FROM public.checklist_respostas_validacao WHERE validacao_id IN\r\n        (SELECT id FROM public.validacao_peca WHERE peca_id = $1)' USING p_peca_id;\r\n    END IF;\r\n    EXECUTE 'DELETE FROM public.validacao_peca WHERE peca_id = $1' USING p_peca_id;\r\n  END IF;\r\n  DELETE FROM public.avaliacoes_pecas WHERE peca_id = p_peca_id;\r\n  DELETE FROM public.pecas WHERE id = p_peca_id;\r\n  GET DIAGNOSTICS afetadas = ROW_COUNT;\r\n  RETURN afetadas > 0;\r\nEND $function$\n",
+      "identity_arguments": "p_peca_id bigint"
+    },
+    {
+      "name": "excluir_usuario_permanentemente",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.excluir_usuario_permanentemente(p_usuario_id bigint)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\nDECLARE p record; afetadas bigint;\r\nBEGIN\r\n  IF NOT EXISTS (SELECT 1 FROM public.users WHERE id = p_usuario_id) THEN RETURN false; END IF;\r\n  PERFORM set_config('app.exclusao_permanente', 'on', true);\r\n\r\n  FOR p IN SELECT id FROM public.pecas WHERE fornecedor_id = p_usuario_id LOOP\r\n    PERFORM public.excluir_peca_permanentemente(p.id);\r\n  END LOOP;\r\n\r\n  DELETE FROM public.avaliacoes_produto WHERE comprador_id = p_usuario_id OR fornecedor_id = p_usuario_id\r\n    OR venda_id IN (SELECT id FROM public.vendas WHERE comprador_id = p_usuario_id OR fornecedor_id = p_usuario_id)\r\n    OR pedido_id IN (SELECT id FROM public.pedidos WHERE user_id = p_usuario_id);\r\n  DELETE FROM public.avaliacoes_fornecedor WHERE comprador_id = p_usuario_id OR fornecedor_id = p_usuario_id\r\n    OR venda_id IN (SELECT id FROM public.vendas WHERE comprador_id = p_usuario_id OR fornecedor_id = p_usuario_id)\r\n    OR pedido_id IN (SELECT id FROM public.pedidos WHERE user_id = p_usuario_id);\r\n  DELETE FROM public.parcelas_venda WHERE venda_id IN\r\n    (SELECT id FROM public.vendas WHERE comprador_id = p_usuario_id OR fornecedor_id = p_usuario_id\r\n      OR pedido_id IN (SELECT id FROM public.pedidos WHERE user_id = p_usuario_id));\r\n  DELETE FROM public.vendas WHERE comprador_id = p_usuario_id OR fornecedor_id = p_usuario_id\r\n    OR pedido_id IN (SELECT id FROM public.pedidos WHERE user_id = p_usuario_id);\r\n  DELETE FROM public.pedidos WHERE user_id = p_usuario_id;\r\n  DELETE FROM public.wishlist WHERE user_id = p_usuario_id;\r\n  DELETE FROM public.admin_dashboard_preferences WHERE user_id = p_usuario_id;\r\n  IF to_regclass('public.validacao_peca') IS NOT NULL THEN\r\n    IF to_regclass('public.checklist_respostas_validacao') IS NOT NULL THEN\r\n      EXECUTE 'DELETE FROM public.checklist_respostas_validacao WHERE validacao_id IN\r\n        (SELECT id FROM public.validacao_peca WHERE avaliador_id = $1)' USING p_usuario_id;\r\n    END IF;\r\n    EXECUTE 'DELETE FROM public.validacao_peca WHERE avaliador_id = $1' USING p_usuario_id;\r\n  END IF;\r\n  UPDATE public.avaliacoes_pecas SET avaliador_id = NULL WHERE avaliador_id = p_usuario_id;\r\n  DELETE FROM public.notificacoes WHERE user_id = p_usuario_id::text;\r\n  DELETE FROM public.mensagens WHERE id_remetente = p_usuario_id OR id_destinatario = p_usuario_id;\r\n  DELETE FROM public.users WHERE id = p_usuario_id;\r\n  GET DIAGNOSTICS afetadas = ROW_COUNT;\r\n  RETURN afetadas > 0;\r\nEND $function$\n",
+      "identity_arguments": "p_usuario_id bigint"
+    },
+    {
+      "name": "preparar_avaliacao_peca",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.preparar_avaliacao_peca()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\nDECLARE taxa numeric; alterou boolean;\r\nBEGIN\r\n  IF TG_OP = 'INSERT' THEN\r\n    NEW.status_publicacao := 'pendente_validacao';\r\n    NEW.revisao_avaliacao := 1;\r\n    NEW.publicada_em := NULL;\r\n    NEW.status_api_serie := 'nao_verificado';\r\n    NEW.dados_api_validacao := NULL;\r\n    NEW.verificado_serie_em := NULL;\r\n  ELSE\r\n    -- Estoque e campos internos de pagamento não invalidam a avaliação.\r\n    alterou := (to_jsonb(NEW) - ARRAY['estoque_atual','status','updated_at','preco',\r\n      'status_publicacao','revisao_avaliacao','publicada_em','motivo_rejeicao','requer_revalidacao',\r\n      'status_api_serie','dados_api_validacao','verificado_serie_em'])\r\n      IS DISTINCT FROM\r\n      (to_jsonb(OLD) - ARRAY['estoque_atual','status','updated_at','preco',\r\n      'status_publicacao','revisao_avaliacao','publicada_em','motivo_rejeicao','requer_revalidacao',\r\n      'status_api_serie','dados_api_validacao','verificado_serie_em']);\r\n    IF alterou THEN\r\n      NEW.status_publicacao := 'pendente_validacao';\r\n      NEW.revisao_avaliacao := OLD.revisao_avaliacao + 1;\r\n      NEW.publicada_em := NULL;\r\n      NEW.motivo_rejeicao := NULL;\r\n      NEW.requer_revalidacao := true;\r\n    END IF;\r\n    IF NEW.num_serie IS DISTINCT FROM OLD.num_serie THEN\r\n      NEW.status_api_serie := 'nao_verificado';\r\n      NEW.dados_api_validacao := NULL;\r\n      NEW.verificado_serie_em := NULL;\r\n    END IF;\r\n  END IF;\r\n  NEW.moeda_base := upper(COALESCE(NEW.moeda_base, 'BRL'));\r\n  NEW.preco_base := COALESCE(NEW.preco_base, NEW.preco);\r\n  SELECT unidades_por_brl INTO taxa FROM public.taxas_cambio WHERE moeda = NEW.moeda_base;\r\n  IF taxa IS NULL OR NEW.preco_base IS NULL OR NEW.preco_base <= 0 THEN\r\n    RAISE EXCEPTION 'Preço ou moeda base inválidos; configure a taxa de câmbio.';\r\n  END IF;\r\n  -- preco legado continua em BRL para pedidos, frete e vendas existentes.\r\n  NEW.preco := round(NEW.preco_base / taxa, 2);\r\n  IF NEW.status_publicacao = 'publicada' AND NOT EXISTS (\r\n    SELECT 1 FROM public.avaliacoes_pecas WHERE peca_id = NEW.id\r\n      AND revisao = NEW.revisao_avaliacao AND status = 'aprovada'\r\n  ) THEN RAISE EXCEPTION 'Publicação exige uma avaliação aprovada da revisão atual.'; END IF;\r\n  RETURN NEW;\r\nEND $function$\n",
+      "identity_arguments": ""
+    },
+    {
+      "name": "proteger_historico_avaliacao",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.proteger_historico_avaliacao()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\nBEGIN\r\n  IF current_setting('app.exclusao_permanente', true) = 'on' THEN\r\n    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;\r\n  END IF;\r\n  IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'O histórico de avaliação não pode ser excluído.'; END IF;\r\n  IF NEW.criterios_snapshot IS DISTINCT FROM OLD.criterios_snapshot OR\r\n     NEW.peca_id IS DISTINCT FROM OLD.peca_id OR NEW.revisao IS DISTINCT FROM OLD.revisao OR\r\n     OLD.status <> 'pendente' THEN\r\n    RAISE EXCEPTION 'O histórico de avaliação é imutável. Crie uma nova revisão.';\r\n  END IF;\r\n  RETURN NEW;\r\nEND $function$\n",
+      "identity_arguments": ""
+    },
+    {
+      "name": "proteger_is_admin",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.proteger_is_admin()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if new.is_admin is distinct from old.is_admin\r\n     and current_user not in ('postgres', 'service_role', 'supabase_admin') then\r\n    raise exception 'A permissao administrativa so pode ser alterada pelo backend administrativo.'\r\n      using errcode = '42501';\r\n  end if;\r\n  return new;\r\nend;\r\n$function$\n",
+      "identity_arguments": ""
+    },
+    {
+      "name": "snapshot_checklist_peca",
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.snapshot_checklist_peca()\n RETURNS jsonb\n LANGUAGE sql\n STABLE\n SET search_path TO 'public', 'pg_temp'\nAS $function$\r\n SELECT COALESCE(jsonb_agg(jsonb_build_object(\r\n  'id', id, 'nome_criterio', nome_criterio, 'descricao', descricao,\r\n  'obrigatorio', COALESCE(obrigatorio,true), 'ordem', ordem) ORDER BY ordem NULLS LAST, id), '[]'::jsonb)\r\n FROM public.checklist_validacao_peca WHERE ativo = true\r\n$function$\n",
+      "identity_arguments": ""
+    }
+  ],
+  "triggers": [
+    {
+      "name": "proteger_historico_avaliacao",
+      "table": "avaliacoes_pecas",
+      "schema": "public",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER proteger_historico_avaliacao BEFORE DELETE OR UPDATE ON public.avaliacoes_pecas FOR EACH ROW EXECUTE FUNCTION proteger_historico_avaliacao()"
+    },
+    {
+      "name": "enfileirar_avaliacao_peca",
+      "table": "pecas",
+      "schema": "public",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER enfileirar_avaliacao_peca AFTER INSERT OR UPDATE ON public.pecas FOR EACH ROW EXECUTE FUNCTION enfileirar_avaliacao_peca()"
+    },
+    {
+      "name": "preparar_avaliacao_peca",
+      "table": "pecas",
+      "schema": "public",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER preparar_avaliacao_peca BEFORE INSERT OR UPDATE ON public.pecas FOR EACH ROW EXECUTE FUNCTION preparar_avaliacao_peca()"
+    },
+    {
+      "name": "users_proteger_is_admin",
+      "table": "users",
+      "schema": "public",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER users_proteger_is_admin BEFORE UPDATE OF is_admin ON public.users FOR EACH ROW EXECUTE FUNCTION proteger_is_admin()"
+    },
+    {
+      "name": "trigger_atualizar_preco_venda",
+      "table": "vendas",
+      "schema": "public",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trigger_atualizar_preco_venda BEFORE INSERT OR UPDATE ON public.vendas FOR EACH ROW EXECUTE FUNCTION atualizar_preco_total_venda()"
+    }
+  ],
+  "indexes": [
+    {
+      "indexdef": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)",
+      "indexname": "users_pkey",
+      "tablename": "users",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)",
+      "indexname": "users_email_key",
+      "tablename": "users",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX users_is_admin_idx ON public.users USING btree (is_admin) WHERE (is_admin = true)",
+      "indexname": "users_is_admin_idx",
+      "tablename": "users",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_produto_pkey ON public.avaliacoes_produto USING btree (id)",
+      "indexname": "avaliacoes_produto_pkey",
+      "tablename": "avaliacoes_produto",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_produto_compra_unique ON public.avaliacoes_produto USING btree (pedido_id, venda_id, comprador_id)",
+      "indexname": "avaliacoes_produto_compra_unique",
+      "tablename": "avaliacoes_produto",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX avaliacoes_produto_peca_idx ON public.avaliacoes_produto USING btree (peca_id, data_avaliacao DESC)",
+      "indexname": "avaliacoes_produto_peca_idx",
+      "tablename": "avaliacoes_produto",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX materiais_pkey ON public.materiais USING btree (id)",
+      "indexname": "materiais_pkey",
+      "tablename": "materiais",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX materiais_nome_key ON public.materiais USING btree (nome)",
+      "indexname": "materiais_nome_key",
+      "tablename": "materiais",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX admin_dashboard_preferences_pkey ON public.admin_dashboard_preferences USING btree (user_id)",
+      "indexname": "admin_dashboard_preferences_pkey",
+      "tablename": "admin_dashboard_preferences",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX peca_compatibilidade_pkey ON public.peca_compatibilidade USING btree (id)",
+      "indexname": "peca_compatibilidade_pkey",
+      "tablename": "peca_compatibilidade",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX parcelas_venda_pkey ON public.parcelas_venda USING btree (id)",
+      "indexname": "parcelas_venda_pkey",
+      "tablename": "parcelas_venda",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX parcelas_venda_venda_id_numero_parcela_key ON public.parcelas_venda USING btree (venda_id, numero_parcela)",
+      "indexname": "parcelas_venda_venda_id_numero_parcela_key",
+      "tablename": "parcelas_venda",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_parcelas_venda ON public.parcelas_venda USING btree (venda_id)",
+      "indexname": "idx_parcelas_venda",
+      "tablename": "parcelas_venda",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_parcelas_status ON public.parcelas_venda USING btree (status)",
+      "indexname": "idx_parcelas_status",
+      "tablename": "parcelas_venda",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX vendas_pkey ON public.vendas USING btree (id)",
+      "indexname": "vendas_pkey",
+      "tablename": "vendas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_vendas_fornecedor ON public.vendas USING btree (fornecedor_id)",
+      "indexname": "idx_vendas_fornecedor",
+      "tablename": "vendas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_vendas_comprador ON public.vendas USING btree (comprador_id)",
+      "indexname": "idx_vendas_comprador",
+      "tablename": "vendas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_vendas_peca ON public.vendas USING btree (peca_id)",
+      "indexname": "idx_vendas_peca",
+      "tablename": "vendas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_vendas_status ON public.vendas USING btree (status)",
+      "indexname": "idx_vendas_status",
+      "tablename": "vendas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX vendas_pedido_item_uidx ON public.vendas USING btree (pedido_id, item_indice)",
+      "indexname": "vendas_pedido_item_uidx",
+      "tablename": "vendas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX marcas_pkey ON public.marcas USING btree (id)",
+      "indexname": "marcas_pkey",
+      "tablename": "marcas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX marcas_nome_key ON public.marcas USING btree (nome)",
+      "indexname": "marcas_nome_key",
+      "tablename": "marcas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX modelos_pkey ON public.modelos USING btree (id)",
+      "indexname": "modelos_pkey",
+      "tablename": "modelos",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX categorias_pkey ON public.categorias USING btree (id)",
+      "indexname": "categorias_pkey",
+      "tablename": "categorias",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX categorias_nome_key ON public.categorias USING btree (nome)",
+      "indexname": "categorias_nome_key",
+      "tablename": "categorias",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_fornecedor_pkey ON public.avaliacoes_fornecedor USING btree (id)",
+      "indexname": "avaliacoes_fornecedor_pkey",
+      "tablename": "avaliacoes_fornecedor",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_fornecedor_venda_id_key ON public.avaliacoes_fornecedor USING btree (venda_id)",
+      "indexname": "avaliacoes_fornecedor_venda_id_key",
+      "tablename": "avaliacoes_fornecedor",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_avaliacoes_fornecedor ON public.avaliacoes_fornecedor USING btree (fornecedor_id)",
+      "indexname": "idx_avaliacoes_fornecedor",
+      "tablename": "avaliacoes_fornecedor",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_avaliacoes_comprador ON public.avaliacoes_fornecedor USING btree (comprador_id)",
+      "indexname": "idx_avaliacoes_comprador",
+      "tablename": "avaliacoes_fornecedor",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_fornecedor_compra_uidx ON public.avaliacoes_fornecedor USING btree (pedido_id, fornecedor_id, comprador_id)",
+      "indexname": "avaliacoes_fornecedor_compra_uidx",
+      "tablename": "avaliacoes_fornecedor",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX avaliacoes_fornecedor_fornecedor_idx ON public.avaliacoes_fornecedor USING btree (fornecedor_id, data_avaliacao DESC)",
+      "indexname": "avaliacoes_fornecedor_fornecedor_idx",
+      "tablename": "avaliacoes_fornecedor",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX wishlist_pkey ON public.wishlist USING btree (id)",
+      "indexname": "wishlist_pkey",
+      "tablename": "wishlist",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX wishlist_user_peca_unique ON public.wishlist USING btree (user_id, peca_id)",
+      "indexname": "wishlist_user_peca_unique",
+      "tablename": "wishlist",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX wishlist_user_id_idx ON public.wishlist USING btree (user_id)",
+      "indexname": "wishlist_user_id_idx",
+      "tablename": "wishlist",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX wishlist_peca_id_idx ON public.wishlist USING btree (peca_id)",
+      "indexname": "wishlist_peca_id_idx",
+      "tablename": "wishlist",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX notificacoes_pkey ON public.notificacoes USING btree (id)",
+      "indexname": "notificacoes_pkey",
+      "tablename": "notificacoes",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX pedidos_pkey ON public.pedidos USING btree (id)",
+      "indexname": "pedidos_pkey",
+      "tablename": "pedidos",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX mensagens_pkey ON public.mensagens USING btree (id)",
+      "indexname": "mensagens_pkey",
+      "tablename": "mensagens",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX checklist_validacao_peca_pkey ON public.checklist_validacao_peca USING btree (id)",
+      "indexname": "checklist_validacao_peca_pkey",
+      "tablename": "checklist_validacao_peca",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_pecas_peca_id_revisao_key ON public.avaliacoes_pecas USING btree (peca_id, revisao)",
+      "indexname": "avaliacoes_pecas_peca_id_revisao_key",
+      "tablename": "avaliacoes_pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_avaliacoes_pecas_avaliador ON public.avaliacoes_pecas USING btree (avaliador_id)",
+      "indexname": "idx_avaliacoes_pecas_avaliador",
+      "tablename": "avaliacoes_pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX avaliacoes_pecas_pkey ON public.avaliacoes_pecas USING btree (id)",
+      "indexname": "avaliacoes_pecas_pkey",
+      "tablename": "avaliacoes_pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX taxas_cambio_pkey ON public.taxas_cambio USING btree (moeda)",
+      "indexname": "taxas_cambio_pkey",
+      "tablename": "taxas_cambio",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX pecas_pkey ON public.pecas USING btree (id)",
+      "indexname": "pecas_pkey",
+      "tablename": "pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX pecas_sku_key ON public.pecas USING btree (sku)",
+      "indexname": "pecas_sku_key",
+      "tablename": "pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_pecas_fornecedor ON public.pecas USING btree (fornecedor_id)",
+      "indexname": "idx_pecas_fornecedor",
+      "tablename": "pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_pecas_categoria ON public.pecas USING btree (categoria_id)",
+      "indexname": "idx_pecas_categoria",
+      "tablename": "pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_pecas_status ON public.pecas USING btree (status)",
+      "indexname": "idx_pecas_status",
+      "tablename": "pecas",
+      "schemaname": "public",
+      "tablespace": null
+    },
+    {
+      "indexdef": "CREATE INDEX idx_pecas_fila ON public.pecas USING btree (status_publicacao, data_cadastro)",
+      "indexname": "idx_pecas_fila",
+      "tablename": "pecas",
+      "schemaname": "public",
+      "tablespace": null
+    }
+  ]
+}
