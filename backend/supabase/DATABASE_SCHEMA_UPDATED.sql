@@ -1,5 +1,13 @@
--- REFERÊNCIA LEGADA: para o schema vigente aplique 20260830_avaliacao_moeda_segura.sql.
--- A migration inclui revisões, snapshots, RLS, preço/moeda base e taxas de câmbio.
+-- ARQUIVO LEGADO — SOMENTE CONSULTA. NÃO EXECUTE.
+--
+-- O schema agora é versionado em supabase/migrations/ (veja supabase/README.md).
+-- Banco novo:      npm run migrate
+-- Banco existente: npm run migrate:baseline
+--
+-- Este arquivo não é executável: as tabelas estão fora da ordem de
+-- dependência de chave estrangeira (vendas referencia pedidos, declarado
+-- depois). Ele também não reflete mais as migrations posteriores, então
+-- tende a divergir do banco real com o tempo.
 -- UPDATED DATABASE SCHEMA
 -- Includes: Avaliador Profile, Piece Validation System, and Currency Internationalization
 -- WARNING: This schema is for context only and is not meant to be run.

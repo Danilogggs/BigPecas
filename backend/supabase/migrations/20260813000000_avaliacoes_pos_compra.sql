@@ -1,4 +1,4 @@
-begin;
+-- Transacao gerenciada pelo runner de migrations (supabase db push / npm run migrate).
 
 -- As tabelas antigas foram criadas pelo editor visual e podem não ter sequência
 -- automática no bigint da chave primária. Garante IDs sem alterar instalações
@@ -135,4 +135,4 @@ create index if not exists avaliacoes_fornecedor_fornecedor_idx
 alter table public.avaliacoes_fornecedor enable row level security;
 alter table public.avaliacoes_produto enable row level security;
 
-commit;
+-- Fim da migration; o commit e feito pelo runner.

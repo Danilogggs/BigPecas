@@ -76,8 +76,11 @@ BigPecas/
 │   │   ├── routes/          # Endpoints da API
 │   │   ├── services/        # Regras de negócio
 │   │   └── utils/           # Logs e utilitários
+│   ├── scripts/
+│   │   └── migrate.js       # Runner de migrations
 │   ├── supabase/
-│   │   └── migrations/      # Evoluções do banco de dados
+│   │   ├── config.toml      # Supabase CLI
+│   │   └── migrations/      # Schema versionado (fonte da verdade)
 │   ├── .env.example
 │   └── package.json
 ├── frontend/
@@ -113,15 +116,30 @@ cd BigPecas
 
 ### 2. Configure o Supabase
 
-Crie ou conecte um projeto Supabase com o schema base do BigPeças. As tabelas de usuários, peças, catálogos, pedidos, vendas e favoritos devem existir antes de executar as migrations complementares.
+Crie ou conecte um projeto Supabase. O schema inteiro é versionado em `backend/supabase/migrations/` — não é preciso criar tabela alguma à mão.
 
-No **SQL Editor** do Supabase, execute as migrations em `backend/supabase/migrations/`. A migration atual adiciona os vínculos entre pedidos e vendas e cria a estrutura de avaliações de produtos pós-compra:
+Informe a conexão direta do Postgres em `backend/.env` (Dashboard > Settings > Database > Connection string):
 
-```text
-backend/supabase/migrations/20260813_avaliacoes_pos_compra.sql
-backend/supabase/migrations/20260820_administradores.sql
-backend/supabase/migrations/20260820_admin_dashboard_preferences.sql
+```bash
+SUPABASE_DB_URL=postgresql://postgres.SEU_PROJETO:[SENHA]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
 ```
+
+Aplique as migrations:
+
+```bash
+cd backend
+npm install
+npm run migrate:status   # o que já foi aplicado e o que falta
+npm run migrate          # aplica as pendentes, em ordem
+```
+
+Se o banco **já existe** e recebeu esses scripts manualmente pelo SQL Editor, registre o estado atual uma única vez antes do primeiro `npm run migrate`:
+
+```bash
+npm run migrate:baseline
+```
+
+Convenções, comandos e histórico das migrations: [`backend/supabase/README.md`](backend/supabase/README.md).
 
 ### 3. Configure o backend
 
@@ -276,7 +294,6 @@ O projeto ainda não possui uma suíte automatizada de testes. Adicionar testes 
 
 - Integrar um gateway de pagamentos com confirmação por webhook.
 - Automatizar o acompanhamento de entregas.
-- Consolidar todo o schema base do Supabase em migrations versionadas.
 - Adicionar testes automatizados e integração contínua.
 - Implementar observabilidade e monitoramento para produção.
 

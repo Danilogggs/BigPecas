@@ -220,11 +220,34 @@ O backend espera tabelas Supabase para:
 - `avaliacoes_produto`
 - `admin_dashboard_preferences`
 
+## Migrations
+
+O schema e versionado em `supabase/migrations/`. Detalhes e convencoes em
+[`supabase/README.md`](supabase/README.md).
+
+```bash
+npm run migrate:status            # o que ja foi aplicado e o que falta
+npm run migrate                   # aplica as pendentes
+npm run migrate:create -- nome    # cria uma migration nova
+npm run migrate:baseline          # registra o estado atual sem executar
+```
+
+Requer `SUPABASE_DB_URL` no `.env` (Dashboard > Settings > Database >
+Connection string). Quem tiver o Supabase CLI pode usar `supabase db push`:
+os dois compartilham a mesma tabela de controle.
+
+Num banco que ja recebeu esses scripts pelo SQL Editor, rode
+`npm run migrate:baseline` uma unica vez antes do primeiro `npm run migrate`.
+
 Migrations existentes:
 
-- `supabase/migrations/20260813_avaliacoes_pos_compra.sql`
-- `supabase/migrations/20260820_administradores.sql`
-- `supabase/migrations/20260820_admin_dashboard_preferences.sql`
+- `supabase/migrations/20260101000000_baseline_schema.sql`
+- `supabase/migrations/20260801000000_rascunho_avaliador_substituido.sql`
+- `supabase/migrations/20260813000000_avaliacoes_pos_compra.sql`
+- `supabase/migrations/20260820000000_administradores.sql`
+- `supabase/migrations/20260820000100_admin_dashboard_preferences.sql`
+- `supabase/migrations/20260830000000_avaliacao_moeda_segura.sql`
+- `supabase/migrations/20260831000000_exclusao_permanente_admin.sql`
 
 Tabela simples de notificacoes usada pelo projeto:
 

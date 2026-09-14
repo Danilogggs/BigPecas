@@ -1,0 +1,48 @@
+# Configuracao do Supabase CLI para o BigPecas.
+# Execute os comandos a partir de backend/ (onde vive a pasta supabase/).
+#
+#   supabase link --project-ref <ref-do-projeto>
+#   supabase migration new <nome>
+#   supabase db push
+#
+# project_id nomeia os containers locais; nao e o ref do projeto remoto.
+project_id = "bigpecas"
+
+[db]
+# Versao do Postgres usada pelo Supabase; mantenha alinhada com o projeto remoto
+# (Dashboard > Settings > Infrastructure).
+major_version = 15
+port = 54322
+shadow_port = 54320
+
+[db.migrations]
+schema_paths = []
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/login?emailConfirmado=1"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+[inbucket]
+enabled = true
+port = 54324
+
+[analytics]
+enabled = false

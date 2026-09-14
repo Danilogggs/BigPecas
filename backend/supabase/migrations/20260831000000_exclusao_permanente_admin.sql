@@ -1,6 +1,6 @@
 -- Exclusão permanente administrativa. Executar como owner no Supabase.
 -- Remove dependências em uma única transação e fica acessível somente ao service_role.
-BEGIN;
+-- Transacao gerenciada pelo runner de migrations (supabase db push / npm run migrate).
 
 CREATE OR REPLACE FUNCTION public.excluir_peca_permanentemente(p_peca_id bigint)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
@@ -94,4 +94,4 @@ REVOKE ALL ON FUNCTION public.excluir_usuario_permanentemente(bigint) FROM PUBLI
 GRANT EXECUTE ON FUNCTION public.excluir_peca_permanentemente(bigint) TO service_role;
 GRANT EXECUTE ON FUNCTION public.excluir_usuario_permanentemente(bigint) TO service_role;
 
-COMMIT;
+-- Fim da migration; o commit e feito pelo runner.
