@@ -1,0 +1,110 @@
+name: CI BigPecas
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  infrastructure:
+    name: Validate infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci --prefix scripts/devops --no-audit --no-fund
+      - run: npm test --prefix scripts/devops
+      - name: Compilar Bicep sem acessar assinatura
+        run: |
+          az bicep install --version v0.47.16
+          for file in bootstrap platform apps; do
+            az bicep build --file "infra/azure/$file.bicep" --stdout > /dev/null
+          done
+      - name: Validar imagens sem publicar
+        run: |
+          docker build -t bigpecas-api:ci backend
+          docker build -t bigpecas-web:ci --build-arg VITE_API_URL=https://api.example.invalid --build-arg VITE_SUPABASE_URL=https://example.supabase.co --build-arg VITE_SUPABASE_ANON_KEY=anon-de-teste frontend
+          docker run --rm bigpecas-web:ci nginx -t
+  tests:
+    name: Tests (${{ matrix.component }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.component }}
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      SUPABASE_URL: https://projeto-de-teste.supabase.co
+      SUPABASE_ANON_KEY: anon-de-teste
+      SUPABASE_SERVICE_ROLE_KEY: service-role-de-teste
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: ${{ matrix.component }}/package-lock.json
+      - name: Instalar dependencias do lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Testes e limites de cobertura
+        run: npm run test:ci
+      - name: Testes de regressao do backend
+        if: ${{ !cancelled() && matrix.component == 'backend' }}
+        run: npm run test:review
+      - name: Guardar resultados e cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: testes-${{ matrix.component }}
+          path: |
+            ${{ matrix.component }}/coverage/
+            ${{ matrix.component }}/test-results.json
+          retention-days: 14
+          if-no-files-found: warn
+
+  build:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      CI: 'true'
+      # Build de verificacao: sem credenciais reais e sem destino de deploy.
+      VITE_API_URL: http://localhost:3001
+      VITE_SUPABASE_URL: https://projeto-de-teste.supabase.co
+      VITE_SUPABASE_ANON_KEY: anon-de-teste
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - name: Guardar build de verificacao
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-verificacao
+          path: frontend/dist/
+          retention-days: 14
+          if-no-files-found: error

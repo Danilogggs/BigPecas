@@ -385,6 +385,7 @@ export default function EditarPecas() {
   const {
     imageInputRef,
     imagemPreview,
+    imageError,
     setImagemPreview,
     handleImageChange,
     removerImagem,
@@ -453,7 +454,7 @@ export default function EditarPecas() {
 
       try {
         const peca = await buscarPecaPorId(pecaId);
-        setReviewStatus((peca.status_publicacao || '') + (peca.motivo_rejeicao ? ': ' + peca.motivo_rejeicao : ''));
+        setReviewStatus({ status: peca.status_publicacao, reason: peca.motivo_rejeicao });
 
         setFormData({
           nome_peca: peca?.nome_peca || '',
@@ -463,16 +464,16 @@ export default function EditarPecas() {
           categoria_id: peca?.categoria_id || '',
           material_id: peca?.material_id || '',
           condicao: peca?.condicao || 'NOS',
-          peso_gramas: peca?.peso_gramas || '',
-          comprimento_mm: peca?.comprimento_mm || '',
-          largura_mm: peca?.largura_mm || '',
-          altura_mm: peca?.altura_mm || '',
+          peso_gramas: String(peca?.peso_gramas ?? ''),
+          comprimento_mm: String(peca?.comprimento_mm ?? ''),
+          largura_mm: String(peca?.largura_mm ?? ''),
+          altura_mm: String(peca?.altura_mm ?? ''),
           detalhes_gravacao: peca?.detalhes_gravacao || '',
           historico_proveniencia: peca?.historico_proveniencia || '',
           preco: String(peca?.preco_base ?? peca?.preco ?? ''),
           moeda_base: peca?.moeda_base || 'BRL',
           url_video: peca?.url_video || '',
-          estoque_atual: peca?.estoque_atual || '',
+          estoque_atual: String(peca?.estoque_atual ?? ''),
           imagem: peca?.imagem || '',
         });
 
@@ -562,6 +563,9 @@ export default function EditarPecas() {
 
       try {
         const response = await atualizarPeca(selectedPecaId, payload);
+        if (response.peca) {
+          setReviewStatus({ status: response.peca.status_publicacao, reason: response.peca.motivo_rejeicao });
+        }
 
         setMessage({
           type: 'success',
@@ -650,6 +654,7 @@ export default function EditarPecas() {
               onImageChange={handleImageChangeWrapper}
               onRemoveImage={handleRemoveImage}
               imagemPreview={imagemPreview}
+              imageError={imageError}
               imageInputRef={imageInputRef}
               categorias={categorias}
               materiais={materiais}

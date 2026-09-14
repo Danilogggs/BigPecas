@@ -10,7 +10,7 @@ jest.mock('../../services/avaliadorService', () => ({
   __esModule: true, default: { getValidacaoPeca: jest.fn(), submitValidacao: jest.fn(), rejectValidacao: jest.fn() },
 }));
 const fixture = {
-  peca: { id: 10, nome_peca: 'Motor teste', status_publicacao: 'pendente_validacao', revisao_avaliacao: 3 },
+  peca: { id: 10, nome_peca: 'Motor teste', imagem: 'https://example.com/peca.jpg', status_publicacao: 'pendente_validacao', revisao_avaliacao: 3 },
   validacao: { respostas: [] },
   criterios: [{id:1,nome_criterio:'Peça real?',obrigatorio:true}, {id:2,nome_criterio:'Documentação extra',obrigatorio:false}],
 };
@@ -20,6 +20,17 @@ function open() {
   </Routes></MemoryRouter></LanguageProvider>);
 }
 beforeEach(() => { jest.clearAllMocks(); service.getValidacaoPeca.mockResolvedValue(fixture); });
+test('bloqueia aprovação sem mídia mesmo com checklist marcado e traduz status', async () => {
+  service.getValidacaoPeca.mockResolvedValue({...fixture, peca:{...fixture.peca, imagem:' ', status_api_serie:'nao_verificado'}});
+  open();
+  const button = await screen.findByRole('button', {name:'Concluir e publicar'});
+  fireEvent.click(screen.getByRole('checkbox', {name:/Peça real/}));
+  expect(button).toBeDisabled();
+  expect(screen.getByRole('alert')).toHaveTextContent('imagem ou vídeo');
+  expect(screen.getByText('Aguardando avaliação')).toBeInTheDocument();
+  expect(screen.queryByText(/nao_verificado/)).not.toBeInTheDocument();
+  expect(service.submitValidacao).not.toHaveBeenCalled();
+});
 test('publica somente após checks obrigatórios e envia a revisão visualizada', async () => {
   service.submitValidacao.mockResolvedValue({publicada:true});
   open();

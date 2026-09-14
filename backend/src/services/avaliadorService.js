@@ -36,6 +36,14 @@ module.exports = {
     if (typeof comentarios !== 'string' || comentarios.length > 5000 || (rejeitar && !comentarios.trim())) {
       throw new AppError(400, 'Informe um comentário válido; a reprovação exige motivo.');
     }
+    if (!rejeitar) {
+      const peca = result(await db.from('pecas').select('imagem,url_video,revisao_avaliacao').eq('id', pecaId).maybeSingle());
+      if (!peca) throw new AppError(404, 'Peça não encontrada.');
+      if (peca.revisao_avaliacao !== revisao) throw new AppError(409, 'O anúncio mudou. Recarregue a avaliação.');
+      if (![peca.imagem, peca.url_video].some(value => typeof value === 'string' && value.trim())) {
+        throw new AppError(400, 'A peça precisa de uma imagem ou vídeo antes de ser aprovada. Solicite a correção ao vendedor.');
+      }
+    }
     return result(await db.rpc('decidir_avaliacao_peca', {
       p_peca: pecaId, p_avaliador: avaliadorId, p_revisao: revisao,
       p_respostas: respostas, p_comentarios: comentarios, p_rejeitar: rejeitar,

@@ -497,7 +497,9 @@ describe('adminRoutes', () => {
       const resposta = await request(app).get(`/api/admin/avaliacoes/${tipo}`);
 
       expect(resposta.status).toBe(200);
-      expect(resposta.body.data).toEqual([{ id: 1 }]);
+      expect(resposta.body.data).toEqual([{
+        id: 1, fornecedor_loja: null, fornecedor_nome: null, peca_nome: null,
+      }]);
       expect(consultaEm(tabela).argumentos('order')).toEqual(['data_avaliacao', { ascending: false }]);
     });
 

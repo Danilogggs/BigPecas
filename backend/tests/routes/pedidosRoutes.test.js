@@ -32,6 +32,9 @@ const PECA = {
   id: 10,
   nome_peca: 'Friso Opala',
   preco: 350,
+  preco_base: 350,
+  moeda_base: 'BRL',
+  status_publicacao: 'publicada',
   imagem: 'friso.png',
   sku: 'FR-1',
   estoque_atual: 5,
@@ -69,6 +72,9 @@ function mockarUsuarioAtual(usuario) {
 describe('pedidosRoutes', () => {
   beforeEach(() => {
     mockSupabaseAdmin.__reset();
+    mockSupabaseAdmin.__mockTable('taxas_cambio', {
+      data: [{ moeda: 'BRL', unidades_por_brl: 1 }], error: null,
+    });
     mockGarantirVendasDoPedido.mockImplementation(async (pedido) => pedido);
     mockSincronizarStatusVendas.mockResolvedValue(undefined);
     mockEnviarNotificacaoStatusPedidoCliente.mockResolvedValue({ sent: true });
