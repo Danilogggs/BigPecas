@@ -80,6 +80,12 @@ jobs:
           BACKEND_IMAGE: ${{ steps.platform.outputs.registryServer }}/backend@${{ steps.api.outputs.digest }}
           FRONTEND_IMAGE: ${{ steps.platform.outputs.registryServer }}/frontend@${{ steps.web.outputs.digest }}
         run: node scripts/devops/config.mjs --write
+      - name: Associar identidade antes do primeiro uso do registro privado
+        shell: bash
+        run: |
+          if ! az containerapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "web-bigpecas-$DEPLOY_ENVIRONMENT" --output none 2>/dev/null; then
+            az deployment group create --name "identity-bootstrap-${GITHUB_RUN_ID}" --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" bootstrapIdentity=true --output none
+          fi
       - name: Planejar aplicacoes
         run: az deployment group what-if --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" --result-format ResourceIdOnly
       - name: Deploy por digest imutavel
