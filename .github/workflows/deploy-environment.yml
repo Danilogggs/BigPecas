@@ -80,10 +80,17 @@ jobs:
           BACKEND_IMAGE: ${{ steps.platform.outputs.registryServer }}/backend@${{ steps.api.outputs.digest }}
           FRONTEND_IMAGE: ${{ steps.platform.outputs.registryServer }}/frontend@${{ steps.web.outputs.digest }}
         run: node scripts/devops/config.mjs --write
-      - name: Associar identidade antes do primeiro uso do registro privado
+      - name: Criar Container Apps antes de associar identidade
         shell: bash
         run: |
           if ! az containerapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "web-bigpecas-$DEPLOY_ENVIRONMENT" --output none 2>/dev/null; then
+            az deployment group create --name "app-bootstrap-${GITHUB_RUN_ID}" --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps-bootstrap.bicep --parameters environment="$DEPLOY_ENVIRONMENT" --output none
+          fi
+      - name: Associar identidade antes do primeiro uso do registro privado
+        shell: bash
+        run: |
+          IDENTITY_COUNT="$(az containerapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "web-bigpecas-$DEPLOY_ENVIRONMENT" --query 'length(identity.userAssignedIdentities || `{}`)' --output tsv)"
+          if [ "$IDENTITY_COUNT" != "1" ]; then
             az deployment group create --name "identity-bootstrap-${GITHUB_RUN_ID}" --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" bootstrapIdentity=true --output none
           fi
       - name: Planejar aplicacoes

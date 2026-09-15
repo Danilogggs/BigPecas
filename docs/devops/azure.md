@@ -255,3 +255,4 @@ de deploy. Nao excluir recursos antigos, grupos ou imagens sem aprovacao.
 - [OIDC no Azure](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect)
 - [OIDC e protecao de ambientes GitHub](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-azure)
 - [Container Apps Bicep](https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps)
+O primeiro provisionamento dos Container Apps ocorre em três fases: imagem pública sem identidade, associação da identidade gerenciada e, por fim, imagem privada por digest. Essa sequência evita a validação antecipada da identidade pelo Azure Container Apps.
