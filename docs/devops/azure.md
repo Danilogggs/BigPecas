@@ -194,8 +194,15 @@ ja existente. Ela contorna a validacao antecipada do ACR pelo Container Apps.
 Na primeira execucao, registrar as URLs mostradas no job e adicionar no Supabase:
 Site URL do frontend e redirects `/login?emailConfirmado=1` e `/redefinir-senha`.
 Testar manualmente cadastro, confirmacao, login, recuperacao, catalogo e pedidos
-com dados ficticios em dev/test. Smoke HTTP nao comprova esses fluxos: a rota
-health verifica apenas o processo HTTP e nao realiza consulta ao banco.
+com dados ficticios em dev/test. O smoke de `test` comprova HTTPS, CORS e uma
+leitura real da configuracao de moedas no Supabase sem alterar dados. Ele nao
+substitui testes de login, cadastro, permissoes, carrinho ou pedidos.
+
+Os builds Docker usam cache compartilhado do GitHub Actions em modo maximo. O
+backend tende a reutilizar praticamente todas as camadas entre ambientes; o
+frontend reaproveita dependencias, mas recompila a etapa afetada pelas URLs e
+chaves publicas especificas de cada ambiente. Cada ACR continua recebendo sua
+propria imagem e o deploy permanece fixado por digest SHA256.
 
 ### Docker local
 

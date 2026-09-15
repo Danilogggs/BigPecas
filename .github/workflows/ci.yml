@@ -3,8 +3,6 @@ name: CI BigPecas
 on:
   pull_request:
     branches: [develop]
-  push:
-    branches: [develop, main]
   workflow_dispatch:
   workflow_call:
 
@@ -30,7 +28,7 @@ jobs:
       - name: Compilar Bicep sem acessar assinatura
         run: |
           az bicep install --version v0.47.16
-          for file in bootstrap platform apps; do
+          for file in bootstrap platform apps-bootstrap apps; do
             az bicep build --file "infra/azure/$file.bicep" --stdout > /dev/null
           done
       - name: Validar imagens sem publicar
