@@ -184,6 +184,12 @@ com permissao restrita no runner, nao em artefatos, e sao removidos ao terminar.
 Nao habilitar debug/tracing de comandos com secrets. O modo de deploy e
 incremental: recursos removidos do Bicep nao sao apagados automaticamente.
 
+Na primeira implantacao, a pipeline cria os Container Apps com uma imagem publica
+de inicializacao para o Azure concluir a associacao da identidade gerenciada.
+Em seguida aplica o estado final com as imagens privadas por digest. Essa etapa
+e condicional: execucoes posteriores nao substituem temporariamente uma aplicacao
+ja existente. Ela contorna a validacao antecipada do ACR pelo Container Apps.
+
 Na primeira execucao, registrar as URLs mostradas no job e adicionar no Supabase:
 Site URL do frontend e redirects `/login?emailConfirmado=1` e `/redefinir-senha`.
 Testar manualmente cadastro, confirmacao, login, recuperacao, catalogo e pedidos

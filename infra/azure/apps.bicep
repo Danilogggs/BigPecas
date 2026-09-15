@@ -3,6 +3,8 @@ param environment string
 param location string = resourceGroup().location
 param backendImage string
 param frontendImage string
+@description('Cria inicialmente os Container Apps com imagem publica para associar a identidade antes do ACR privado.')
+param bootstrapIdentity bool = false
 param supabaseUrl string
 @secure()
 param supabaseAnonKey string
@@ -22,6 +24,14 @@ resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing =
 resource pullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = { name: 'id-${prefix}-pull' }
 var webUrl = 'https://web-${prefix}.${hosting.properties.defaultDomain}'
 var commonTags = { project: 'BigPecas', environment: environment, managedBy: 'Bicep' }
+var backendProbes = [for kind in ['Liveness', 'Readiness', 'Startup']: {
+  type: kind
+  httpGet: { path: '/api/health', port: 3001, scheme: 'HTTP' }
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: kind == 'Startup' ? 30 : 3
+}]
 
 resource backend 'Microsoft.App/containerApps@2024-03-01' = {
   name: 'api-${prefix}'
@@ -33,8 +43,8 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
     workloadProfileName: 'Consumption'
     configuration: {
       activeRevisionsMode: 'Single'
-      ingress: { external: true, targetPort: 3001, transport: 'http', allowInsecure: false }
-      registries: [{ server: registry.properties.loginServer, identity: pullIdentity.id }]
+      ingress: { external: true, targetPort: bootstrapIdentity ? 80 : 3001, transport: 'http', allowInsecure: false }
+      registries: bootstrapIdentity ? [] : [{ server: registry.properties.loginServer, identity: pullIdentity.id }]
       secrets: concat([
         { name: 'supabase-anon', value: supabaseAnonKey }
         { name: 'supabase-service-role', value: supabaseServiceRoleKey }
@@ -43,7 +53,7 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
     template: {
       containers: [{
         name: 'api'
-        image: backendImage
+        image: bootstrapIdentity ? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest' : backendImage
         resources: { cpu: json('0.25'), memory: '0.5Gi' }
         env: concat([
           { name: 'NODE_ENV', value: 'production' }
@@ -58,14 +68,7 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
           { name: 'EMAIL_NOTIFICACAO_VENDA_ENABLED', value: 'false' }
           { name: 'MELHOR_ENVIO_URL', value: shippingUrl }
         ], empty(shippingToken) ? [] : [{ name: 'MELHOR_ENVIO_ACCESS_TOKEN', secretRef: 'shipping-token' }])
-        probes: [for kind in ['Liveness', 'Readiness', 'Startup']: {
-          type: kind
-          httpGet: { path: '/api/health', port: 3001, scheme: 'HTTP' }
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 3
-          failureThreshold: kind == 'Startup' ? 30 : 3
-        }]
+        probes: bootstrapIdentity ? [] : backendProbes
       }]
       scale: { minReplicas: minReplicas, maxReplicas: 1, rules: [{ name: 'http', http: { metadata: { concurrentRequests: '20' } } }] }
     }
@@ -82,14 +85,14 @@ resource frontend 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       activeRevisionsMode: 'Single'
       ingress: { external: true, targetPort: 80, transport: 'http', allowInsecure: false }
-      registries: [{ server: registry.properties.loginServer, identity: pullIdentity.id }]
+      registries: bootstrapIdentity ? [] : [{ server: registry.properties.loginServer, identity: pullIdentity.id }]
     }
     template: {
       containers: [{
         name: 'web'
-        image: frontendImage
+        image: bootstrapIdentity ? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest' : frontendImage
         resources: { cpu: json('0.25'), memory: '0.5Gi' }
-        probes: [{ type: 'Readiness', httpGet: { path: '/', port: 80 }, periodSeconds: 10 }]
+        probes: bootstrapIdentity ? [] : [{ type: 'Readiness', httpGet: { path: '/', port: 80 }, periodSeconds: 10 }]
       }]
       scale: { minReplicas: minReplicas, maxReplicas: 1, rules: [{ name: 'http', http: { metadata: { concurrentRequests: '20' } } }] }
     }
