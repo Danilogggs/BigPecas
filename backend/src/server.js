@@ -20,7 +20,9 @@ const logger = require('./utils/logger');
 const PORT = process.env.PORT || 3001;
 
 async function startServer() {
-  await initializeDatabaseData();
+  if (process.env.INITIALIZE_DATABASE_DATA !== 'false') {
+    await initializeDatabaseData();
+  }
 
   app.listen(PORT, () => {
     logger.info(`BigPecas backend rodando na porta ${PORT}`);

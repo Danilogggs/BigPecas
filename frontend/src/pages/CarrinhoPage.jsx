@@ -832,6 +832,7 @@ function Linha({ label, valor, cor = DARK }) {
 }
 
 function CartItem({ item, isLast, onRemove, onChange, onClick }) {
+  const { t } = useLanguage();
   const subtotal = Number(item.preco) * item.quantidade;
 
   return (

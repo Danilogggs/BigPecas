@@ -27,6 +27,7 @@ const {
 } = require('./middlewares/rateLimiter');
 
 const app = express();
+app.use(require('./middlewares/requestTelemetry'));
 
 configurarConfiancaNoProxy(app);
 
@@ -44,7 +45,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  return res.json({ status: 'ok', message: 'BigPecas API conectada ao Supabase.' });
+  return res.json({ status: 'ok', message: 'BigPecas API em execução.' });
 });
 
 app.use('/api/auth/register', registroLimiter);

@@ -24,6 +24,9 @@ const PECA = {
   id: 10,
   nome_peca: 'Friso Opala',
   preco: 350,
+  preco_base: 350,
+  moeda_base: 'BRL',
+  status_publicacao: 'publicada',
   categoria_id: 1,
   material_id: 2,
   condicao: 'NOS',
@@ -50,6 +53,7 @@ function mockarFornecedor(data = FORNECEDOR) {
 describe('pecasRoutes', () => {
   beforeEach(() => {
     mockSupabaseAdmin.__reset();
+    mockSupabaseAdmin.__mockTable('avaliacoes_fornecedor', { data: [], error: null });
   });
 
   describe('POST /cadastrar', () => {
@@ -70,14 +74,16 @@ describe('pecasRoutes', () => {
       const resposta = await request(app).post('/api/pecas/cadastrar').send(corpoValido);
 
       expect(resposta.status).toBe(201);
-      expect(resposta.body.message).toBe('Peça cadastrada com sucesso!');
+      expect(resposta.body.message).toBe('Peça cadastrada e enviada para avaliação. Ela ficará pública após aprovação.');
 
       const payload = mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('insert')[0];
       expect(payload).toMatchObject({
         nome_peca: 'Friso Opala',
         categoria_id: 1,
         material_id: 2,
-        preco: 350.5,
+        preco_base: 350.5,
+        moeda_base: 'BRL',
+        status_publicacao: 'pendente_validacao',
         estoque_atual: 3,
         peso_gramas: 800,
         condicao: 'NOS',
@@ -160,7 +166,7 @@ describe('pecasRoutes', () => {
 
   describe('GET /', () => {
     it('aplica paginacao padrao e expoe os metadados nos headers', async () => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [PECA], error: null, count: 137 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [PECA], error: null, count: 137 });
 
       const resposta = await request(app).get('/api/pecas');
 
@@ -170,15 +176,15 @@ describe('pecasRoutes', () => {
       expect(resposta.headers['x-page-size']).toBe('40');
       expect(resposta.headers['access-control-expose-headers']).toContain('X-Total-Count');
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('range')).toEqual([0, 39]);
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('range')).toEqual([0, 39]);
     });
 
     it('calcula o intervalo a partir de page e limit', async () => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get('/api/pecas?page=3&limit=10');
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('range')).toEqual([20, 29]);
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('range')).toEqual([20, 29]);
     });
 
     it.each([
@@ -187,21 +193,21 @@ describe('pecasRoutes', () => {
       ['page zero', 'page=0', [0, 39]],
       ['page negativa', 'page=-5', [0, 39]],
     ])('protege a paginacao contra %s', async (_descricao, query, esperado) => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get(`/api/pecas?${query}`);
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('range')).toEqual(esperado);
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('range')).toEqual(esperado);
     });
 
     it('traduz os filtros da query em clausulas do Supabase', async () => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get(
         '/api/pecas?categoria_id=1&material_id=2&condicao=NOS&oem_number=OEM-9&num_serie=S1&nome=friso&min_preco=100&max_preco=900&min_estoque=1&fornecedor_id=5',
       );
 
-      const [consulta] = mockSupabaseAdmin.__callsFor('pecas');
+      const [consulta] = mockSupabaseAdmin.__callsFor('precos_publicos_moeda');
       const igualdades = consulta.operations.filter((op) => op.method === 'eq').map((op) => op.args);
 
       expect(igualdades).toEqual(expect.arrayContaining([
@@ -214,10 +220,10 @@ describe('pecasRoutes', () => {
       ]));
       expect(consulta.argumentos('ilike')).toEqual(['nome_peca', '%friso%']);
       expect(consulta.operations.filter((op) => op.method === 'gte').map((op) => op.args)).toEqual([
-        ['preco', 100],
+        ['preco_exibicao', 100],
         ['estoque_atual', 1],
       ]);
-      expect(consulta.argumentos('lte')).toEqual(['preco', 900]);
+      expect(consulta.argumentos('lte')).toEqual(['preco_exibicao', 900]);
     });
 
     it('filtra pelo fornecedor autenticado quando minhas_pecas=true', async () => {
@@ -231,24 +237,24 @@ describe('pecasRoutes', () => {
 
     it.each([
       ['id', 'id'],
-      ['preco', 'preco'],
+      ['preco', 'preco_exibicao'],
       ['data', 'data_cadastro'],
       ['estoque', 'estoque_atual'],
       ['nome', 'nome_peca'],
     ])('traduz sort=%s para a coluna %s', async (sort, coluna) => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get(`/api/pecas?sort=${sort}`);
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('order')[0]).toBe(coluna);
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('order')[0]).toBe(coluna);
     });
 
     it('ordena pelo id quando sort nao e informado', async () => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get('/api/pecas');
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('order')[0]).toBe('id');
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('order')[0]).toBe('id');
     });
 
     it.each([
@@ -256,19 +262,19 @@ describe('pecasRoutes', () => {
       ['ASC', true],
       ['desc', false],
     ])('traduz ordem=%s em ascending=%s', async (ordem, ascending) => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get(`/api/pecas?ordem=${ordem}`);
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('order')[1]).toEqual({ ascending });
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('order')[1]).toEqual({ ascending });
     });
 
     it('deixa o ascending indefinido quando ordem nao e informada, caindo no padrao do supabase-js', async () => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: [], error: null, count: 0 });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: [], error: null, count: 0 });
 
       await request(app).get('/api/pecas');
 
-      expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('order')[1]).toEqual({
+      expect(mockSupabaseAdmin.__callsFor('precos_publicos_moeda')[0].argumentos('order')[1]).toEqual({
         ascending: undefined,
       });
     });
@@ -288,7 +294,7 @@ describe('pecasRoutes', () => {
     });
 
     it('devolve lista vazia e total zero quando nao ha resultados', async () => {
-      mockSupabaseAdmin.__mockTable('pecas', { data: null, error: null, count: null });
+      mockSupabaseAdmin.__mockTable('precos_publicos_moeda', { data: null, error: null, count: null });
 
       const resposta = await request(app).get('/api/pecas');
 
@@ -342,7 +348,7 @@ describe('pecasRoutes', () => {
 
       expect(resposta.status).toBe(200);
       expect(mockSupabaseAdmin.__callsFor('pecas')[1].argumentos('update')[0]).toEqual({
-        preco: 400,
+        preco_base: 400,
         estoque_atual: 7,
       });
     });

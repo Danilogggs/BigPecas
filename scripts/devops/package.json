@@ -1,0 +1,11 @@
+{
+  "name": "bigpecas-devops-validation",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node --test config.test.mjs && node verify-devqas-sql.cjs && node verify-security-migration.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8"
+  }
+}

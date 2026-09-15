@@ -18,6 +18,7 @@ build/
 
 # Testes
 coverage/
+test-results.json
 
 # OS
 .DS_Store

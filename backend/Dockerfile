@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
@@ -9,4 +9,5 @@ COPY src/ ./src/
 COPY scripts/migrate.js ./scripts/
 COPY supabase/ ./supabase/
 EXPOSE 3001
+USER node
 CMD ["node", "src/server.js"]
