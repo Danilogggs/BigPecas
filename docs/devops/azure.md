@@ -164,8 +164,9 @@ A federacao autoriza exatamente `repo:Danilogggs/BigPecas:environment:<ambiente>
 
 Depois de aprovar custos, concluir banco, variaveis, secrets e protecoes, definir
 CD_ENABLED=true. Executar `Release Azure por branch` pela develop: CI -> dev ->
-test (QAS). Uma falha impede o proximo ambiente. Apos homologar, abrir PR para
-main; o merge executa novamente CI -> prod, com aprovacao do Environment prod.
+test (QAS). Uma falha impede o proximo ambiente. Apos homologar, a pipeline cria
+ou reutiliza uma PR de develop para main; sua revisao e merge continuam manuais.
+O merge executa novamente CI -> prod, com aprovacao do Environment prod.
 Pushes nas duas branches tambem disparam seus respectivos fluxos. Execucao
 manual de outras branches nao implanta recursos. Manter as restricoes dos
 Environments: o YAML nao configura revisores nem protecao de branches.
