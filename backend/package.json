@@ -9,7 +9,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --runInBand --coverage --json --outputFile=test-results.json",
-    "test:review": "node --test scripts/review-regression.test.cjs"
+    "test:review": "node --test scripts/review-regression.test.cjs",
+    "migrate": "node scripts/migrate.js up",
+    "migrate:status": "node scripts/migrate.js status",
+    "migrate:baseline": "node scripts/migrate.js baseline",
+    "migrate:create": "node scripts/migrate.js create"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
@@ -20,6 +24,7 @@
     "form-data": "^4.0.1",
     "helmet": "^8.2.0",
     "mailgun.js": "^11.1.0",
+    "pg": "^8.13.1",
     "winston": "^3.19.0"
   },
   "description": "API unificada de autenticacao, pecas, pedidos, favoritos e frete do BigPecas",

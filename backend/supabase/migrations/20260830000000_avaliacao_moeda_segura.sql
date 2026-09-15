@@ -1,6 +1,6 @@
 -- BigPecas: avaliação e moedas. Executar como owner no Supabase, antes do deploy.
 -- Independente de 001 (rascunho antigo). Reexecutável; não apaga dados históricos.
-BEGIN;
+-- Transacao gerenciada pelo runner de migrations (supabase db push / npm run migrate).
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '120s';
 
@@ -278,5 +278,5 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-COMMIT;
+-- Fim da migration; o commit e feito pelo runner.
 
