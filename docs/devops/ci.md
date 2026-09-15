@@ -2,8 +2,10 @@
 
 ## Primeira etapa: build e testes
 
-O workflow `.github/workflows/ci.yml` verifica pull requests para qualquer branch,
-pushes na `develop` e `main` e execucoes manuais. Os jobs de backend, frontend e build rodam
+O workflow `.github/workflows/ci.yml` verifica pull requests destinados a `develop`,
+pushes na `develop` e `main` e execucoes manuais. A PR automatica de `develop` para
+`main` nao repete a CI: o commit ja foi validado antes da promocao e a release da
+`main` executa a mesma CI novamente antes de prod. Os jobs de backend, frontend e build rodam
 independentemente, permitindo visualizar todos os resultados mesmo quando um falha.
 
 Esta etapa nao cria recursos Azure, nao faz deploy e nao executa migrations.
