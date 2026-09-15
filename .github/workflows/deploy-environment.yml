@@ -64,6 +64,8 @@ jobs:
           context: backend
           push: true
           tags: ${{ steps.platform.outputs.registryServer }}/backend:${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          cache-from: type=gha,scope=bigpecas-backend
+          cache-to: type=gha,mode=max,scope=bigpecas-backend
       - name: Build e push frontend
         id: web
         uses: docker/build-push-action@v6
@@ -71,6 +73,8 @@ jobs:
           context: frontend
           push: true
           tags: ${{ steps.platform.outputs.registryServer }}/frontend:${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          cache-from: type=gha,scope=bigpecas-frontend
+          cache-to: type=gha,mode=max,scope=bigpecas-frontend
           build-args: |
             VITE_API_URL=${{ steps.platform.outputs.backendUrl }}
             VITE_SUPABASE_URL=${{ vars.SUPABASE_URL }}
@@ -97,7 +101,7 @@ jobs:
         run: az deployment group what-if --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" --result-format ResourceIdOnly
       - name: Deploy por digest imutavel
         run: az deployment group create --name "apps-${GITHUB_RUN_ID}" --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" --output none
-      - name: Smoke tests HTTP sem alterar banco
+      - name: Smoke HTTP e homologacao segura de test
         env:
           FRONTEND_URL: ${{ steps.platform.outputs.frontendUrl }}
           BACKEND_URL: ${{ steps.platform.outputs.backendUrl }}
