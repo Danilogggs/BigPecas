@@ -30,29 +30,33 @@ jobs:
       environment: test
     secrets: inherit
   promote:
-    name: Abrir PR para producao
+    name: Promover automaticamente para producao
     if: github.ref == 'refs/heads/develop'
     needs: test
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      actions: write
+      contents: write
       pull-requests: write
     steps:
-      - name: Criar ou reutilizar PR develop para main
+      - name: Criar, mesclar e iniciar release de producao
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --base main --head develop --state open --json number --jq '.[0].number')"
-          if [ -n "$PR_NUMBER" ]; then
-            echo "PR #$PR_NUMBER ja esta aberta para producao."
-          else
-            gh pr create \
+          if [ -z "$PR_NUMBER" ]; then
+            PR_URL="$(
+              gh pr create \
               --repo "$GITHUB_REPOSITORY" \
               --base main \
               --head develop \
               --title "Promover develop para producao" \
-              --body "CI e deployments de dev e test concluidos com sucesso. Revisar as alteracoes e realizar o merge manual para iniciar a aprovacao de producao."
+              --body "CI e deployments de dev e test concluidos com sucesso. Promocao automatica para producao."
+            )"
+            PR_NUMBER="${PR_URL##*/}"
           fi
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --merge
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main
   prod:
     if: github.ref == 'refs/heads/main'
     needs: validate

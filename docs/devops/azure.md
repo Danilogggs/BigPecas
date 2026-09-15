@@ -98,11 +98,12 @@ Nao ativar CD ainda. A CI do PR deve ficar verde no GitHub (inclusive Bicep/Dock
 ### 2. Configurar GitHub Environments
 
 Em Settings > Environments, criar `dev`, `test`, `prod`. Restringir deployments
-a branch `develop` em `dev` e `test`, e `main` em `prod`; exigir revisor em `test` e `prod`, de preferencia outro
-membro da equipe. A exigencia de revisor e uma configuracao do GitHub, nao do YAML.
-Proteger develop e main com PR/revisao e checks CI aprovados; nao permitir pushes diretos.
-Funcionalidades entram por PR na develop; apos homologacao em test, abrir PR
-de develop para main. Nao criar uma branch qas separada: test e o ambiente de QAS.
+a branch `develop` em `dev` e `test`, e `main` em `prod`. No fluxo totalmente
+automatico nao ha revisores obrigatorios nos Environments. Proteger a entrada de
+funcionalidades na develop com PR e checks CI. Depois de test, o workflow cria e
+mescla a PR de develop para main automaticamente. As regras da main precisam
+permitir esse merge pelo GitHub Actions. Nao criar uma branch qas separada: test
+e o ambiente de QAS.
 
 Variaveis de repositorio:
 
@@ -164,16 +165,15 @@ A federacao autoriza exatamente `repo:Danilogggs/BigPecas:environment:<ambiente>
 
 Depois de aprovar custos, concluir banco, variaveis, secrets e protecoes, definir
 CD_ENABLED=true. Executar `Release Azure por branch` pela develop: CI -> dev ->
-test (QAS). Uma falha impede o proximo ambiente. Apos homologar, a pipeline cria
-ou reutiliza uma PR de develop para main; sua revisao e merge continuam manuais.
-O merge executa novamente CI -> prod, com aprovacao do Environment prod.
+test (QAS). Uma falha impede o proximo ambiente. Depois de ambos passarem, a
+pipeline cria ou reutiliza uma PR de develop para main, realiza o merge e inicia
+explicitamente a release de producao. O fluxo segue sem aprovacao manual.
 Pushes nas duas branches tambem disparam seus respectivos fluxos. Execucao
 manual de outras branches nao implanta recursos. Manter as restricoes dos
 Environments: o YAML nao configura revisores nem protecao de branches.
 
-Dev e test recebem o mesmo commit de develop. Main pode gerar um novo commit
-de merge, que passa novamente pela CI; a aprovacao de prod deve conferir o PR
-e a evidencia de homologacao. Nao ha verificacao automatica dessa evidencia.
+Dev e test recebem o mesmo commit de develop. Main gera um novo commit de merge,
+que passa novamente pela CI; uma falha nessa validacao impede o deploy de prod.
 O frontend e reconstruido com
 configuracao publica por ambiente (nao e o mesmo binario). Imagens privadas sao
 implantadas por digest SHA256, registrado em artefato. Bases Node/Nginx usam
