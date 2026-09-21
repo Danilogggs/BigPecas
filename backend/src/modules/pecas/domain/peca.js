@@ -90,6 +90,10 @@ function normalizarTexto(valor) {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
+function categoriaDispensaOem(nomeCategoria) {
+  return normalizarTexto(nomeCategoria) === 'outros';
+}
+
 function calcularSimilaridadePeca(pecaBase, candidata) {
   let score = 0;
   if (pecaBase.categoria_id && pecaBase.categoria_id === candidata.categoria_id) score += 40;
@@ -198,7 +202,7 @@ function montarPayloadPeca(body = {}, fornecedorId) {
   };
 }
 
-function validarPayloadCadastro(payload) {
+function validarPayloadCadastro(payload, { oemObrigatorio = true } = {}) {
   if (!payload.fornecedor_id) {
     throw new AppError(401, 'Não foi possível vincular a peça ao usuário logado.');
   }
@@ -208,6 +212,10 @@ function validarPayloadCadastro(payload) {
   }
   if (!payload.categoria_id) throw new AppError(400, 'Informe a categoria da peça.');
   if (!payload.material_id) throw new AppError(400, 'Informe o material da peça.');
+  if (!payload.imagem) throw new AppError(400, 'Envie uma imagem da peça para extrair e validar o OEM.');
+  if (oemObrigatorio && !payload.oem_number) {
+    throw new AppError(400, 'Informe o número OEM extraído da imagem da peça.');
+  }
 }
 
 function limparPayload(payload) {
@@ -252,6 +260,7 @@ function criarPaginacao(page, limit) {
 module.exports = {
   calcularScoreHistorico,
   calcularSimilaridadePeca,
+  categoriaDispensaOem,
   criarPaginacao,
   limparPayload,
   montarFornecedorPublico,

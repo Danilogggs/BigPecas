@@ -18,6 +18,16 @@ function criarSupabasePecasRepository({ supabase, tabelas }) {
       return data;
     },
 
+    async buscarCategoriaPorId(id) {
+      const { data, error } = await supabase
+        .from(categorias)
+        .select('id, nome')
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+
     async listarPecas({ filtros, ordenacao, paginacao }) {
       let query = filtros.fornecedorAtualId
         ? supabase.from(pecas).select('*').neq('status_publicacao', 'arquivada')

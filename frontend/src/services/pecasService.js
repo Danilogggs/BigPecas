@@ -147,6 +147,31 @@ export const cadastrarPeca = async (pecaData) => {
   }
 };
 
+export const verificarOemNoCatalogo = async (oem) => {
+  try {
+    const headers = await getAuthHeaders();
+    const query = new URLSearchParams({ oem: String(oem || '').trim() });
+    const response = await fetch(`${API_BASE_URL}/pecas/verificar-oem?${query}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(
+        response,
+        'Não foi possível consultar o catálogo agora.'
+      );
+      throw createFriendlyError(message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw createFriendlyError(
+      parseUnexpectedError(error, 'Não foi possível consultar o catálogo agora.')
+    );
+  }
+};
+
 export const buscarPecaPorId = async (id) => {
   try {
     const headers = await getAuthHeaders();
