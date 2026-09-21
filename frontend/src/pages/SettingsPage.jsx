@@ -204,8 +204,8 @@ export default function SettingsPage() {
                   onChange={(event) => setPreferences({ readableFont: event.target.checked })}
                 />
                 <span className="accessibility-toggle__content">
-                  <strong>{t('Fonte de alta legibilidade')}</strong>
-                  <small>{t('Usa fonte sem serifa e aumenta o espaçamento para facilitar a leitura.')}</small>
+                  <strong>{t('Leitura facilitada')}</strong>
+                  <small>{t('Aumenta o espaçamento entre letras e linhas para deixar os textos mais confortáveis de ler.')}</small>
                 </span>
                 <span className="accessibility-toggle__state">
                   {preferences.readableFont ? t('Ativado') : t('Desativado')}
@@ -230,7 +230,7 @@ export default function SettingsPage() {
 
             <p className="accessibility-summary" aria-live="polite">
               {t('Preferência atual')}: {t(selectedScale.name)} ·{' '}
-              {preferences.readableFont ? t('fonte legível ativada') : t('fonte padrão')} ·{' '}
+              {preferences.readableFont ? t('leitura facilitada ativada') : t('leitura padrão')} ·{' '}
               {preferences.emphasizeLinks ? t('links sublinhados') : t('links padrão')}
             </p>
           </section>

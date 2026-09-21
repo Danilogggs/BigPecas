@@ -48,7 +48,7 @@ describe('SettingsPage accessibility', () => {
     renderizarPagina();
 
     await user.click(screen.getByRole('radio', { name: /Extra grande/i }));
-    await user.click(screen.getByRole('checkbox', { name: /Fonte de alta legibilidade/i }));
+    await user.click(screen.getByRole('checkbox', { name: /Leitura facilitada/i }));
     await user.click(screen.getByRole('checkbox', { name: /Sublinhar links/i }));
 
     expect(document.documentElement.dataset.textScale).toBe('extra-large');
@@ -76,8 +76,8 @@ describe('SettingsPage accessibility', () => {
   it('informa o estado sem depender somente da cor', () => {
     renderizarPagina(criarGateway({ readableFont: true }));
 
-    expect(screen.getByText(/fonte legível ativada/i)).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: /Fonte de alta legibilidade/i })).toBeChecked();
+    expect(screen.getByText(/leitura facilitada ativada/i)).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Leitura facilitada/i })).toBeChecked();
     expect(screen.getAllByText('Ativado')).not.toHaveLength(0);
   });
 });
