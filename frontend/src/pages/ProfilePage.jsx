@@ -217,7 +217,7 @@ export default function ProfilePage() {
 
         <form onSubmit={handleSubmit} noValidate>
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>{t('Nome completo')} *</label>
+            <label style={labelStyle}>{t('fullName')} *</label>
             <input
               type="text"
               name="full_name"

@@ -70,7 +70,7 @@ export default function WishPage() {
           >
             <div
               style={{
-                background: `linear-gradient(135deg, ${COLORS.BORDEAUX} 0%, #4D101C 100%)`,
+                background: 'var(--bp-primary-action)',
                 color: 'var(--bp-on-primary)',
                 borderRadius: BORDER_RADIUS.LG,
                 padding: SPACING.XL,
@@ -80,9 +80,9 @@ export default function WishPage() {
               <span
                 style={{
                   display: 'inline-flex',
-                  backgroundColor: 'rgba(240, 192, 96, 0.16)',
-                  color: '#F0C060',
-                  border: '1px solid rgba(240, 192, 96, 0.45)',
+                  backgroundColor: 'var(--bp-gold)',
+                  color: 'var(--bp-on-light)',
+                  border: '1px solid var(--bp-gold-light)',
                   borderRadius: BORDER_RADIUS.FULL,
                   padding: '0.35rem 0.75rem',
                   fontWeight: 800,
@@ -99,12 +99,13 @@ export default function WishPage() {
                   fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
                   lineHeight: 1.15,
+                  color: 'var(--bp-on-primary)',
                 }}
               >
                 {t('Minha lista de desejos')}
               </h1>
 
-              <p style={{ margin: `${SPACING.MD} 0 0`, lineHeight: 1.65, color: '#F8E9C5' }}>
+              <p style={{ margin: `${SPACING.MD} 0 0`, lineHeight: 1.65, color: 'var(--bp-on-primary)' }}>
                 {t('Salve as peças que você quer acompanhar, compare opções com calma e volte para o anúncio original com um clique.')}
               </p>
             </div>

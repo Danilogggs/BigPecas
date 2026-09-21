@@ -18,7 +18,6 @@ const INITIAL_FORM = {
 };
 
 const GENDER_OPTIONS = [
-  { value: '', labelKey: 'preferNotToInform' },
   { value: 'Masculino', labelKey: 'male' },
   { value: 'Feminino', labelKey: 'female' },
   { value: 'Não-binário', labelKey: 'nonBinary' },
