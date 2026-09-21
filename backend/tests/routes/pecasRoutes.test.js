@@ -58,16 +58,13 @@ function mockarFornecedor(data = FORNECEDOR) {
 describe('pecasRoutes', () => {
   beforeEach(() => {
     mockSupabaseAdmin.__reset();
-<<<<<<< Updated upstream
     mockSupabaseAdmin.__mockTable('avaliacoes_fornecedor', { data: [], error: null });
-=======
     mockSupabaseAdmin.__mockTable('categorias', {
       data: { id: 1, nome: 'Motores' },
       error: null,
     });
     mockVerificarOem.mockReset();
     mockVerificarOem.mockResolvedValue({ oem: 'GM-1234', found: true, count: 1, matches: [] });
->>>>>>> Stashed changes
   });
 
   describe('POST /cadastrar', () => {
@@ -91,10 +88,7 @@ describe('pecasRoutes', () => {
 
       expect(resposta.status).toBe(201);
       expect(resposta.body.message).toBe('Peça cadastrada e enviada para avaliação. Ela ficará pública após aprovação.');
-<<<<<<< Updated upstream
-=======
       expect(mockVerificarOem).toHaveBeenCalledWith('GM-1234');
->>>>>>> Stashed changes
 
       const payload = mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('insert')[0];
       expect(payload).toMatchObject({
