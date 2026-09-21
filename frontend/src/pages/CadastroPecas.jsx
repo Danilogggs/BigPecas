@@ -6,7 +6,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { cadastrarPeca, listarCategorias, listarMateriais } from '../services/pecasService';
+import {
+  cadastrarPeca,
+  listarCategorias,
+  listarMateriais,
+  verificarOemNoCatalogo,
+} from '../services/pecasService';
 import { buscarPerfilUsuario, salvarPerfilUsuario } from '../services/usuarioService';
 import {
   BORDER_RADIUS,
@@ -25,6 +30,11 @@ import {
   normalizarPrecoPeca as normalizePrice,
   REGRAS_VALIDACAO_PECA as REGEX,
 } from '../features/pecas/domain/peca';
+import {
+  compararOemComImagem,
+  extrairCandidatosOem,
+  normalizarOem,
+} from '../features/pecas/domain/oem';
 
 const fieldBaseStyle = {
   width: '100%',
@@ -68,6 +78,14 @@ function getFieldStyle(hasError, baseStyle = fieldBaseStyle) {
     backgroundColor: hasError ? '#FFF7F7' : '#fff',
     boxShadow: hasError ? '0 0 0 3px rgba(185, 28, 28, 0.10)' : 'none',
   };
+}
+
+function categoriaEhOutros(categoria) {
+  return String(categoria?.nome || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase() === 'outros';
 }
 
 function FieldError({ message }) {
@@ -187,6 +205,14 @@ export default function CadastroPecas() {
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [imagemPreview, setImagemPreview] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [ocrText, setOcrText] = useState('');
+  const [oemCandidates, setOemCandidates] = useState([]);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrError, setOcrError] = useState('');
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogResult, setCatalogResult] = useState(null);
+  const [catalogError, setCatalogError] = useState('');
   const [modal, setModal] = useState({ open: false, title: '', text: '' });
 
   const storeConfigured = Boolean(
@@ -333,6 +359,20 @@ export default function CadastroPecas() {
     }));
 
     setMessage({ type: '', text: '' });
+
+    if (name === 'oem_number') {
+      setCatalogResult(null);
+      setCatalogError('');
+    }
+  }
+
+  function limparLeituraDaImagem() {
+    setImageFile(null);
+    setOcrText('');
+    setOemCandidates([]);
+    setOcrError('');
+    setCatalogResult(null);
+    setCatalogError('');
   }
 
   function handleImageChange(e) {
@@ -341,8 +381,9 @@ export default function CadastroPecas() {
     setMessage({ type: '', text: '' });
 
     if (!file) {
-      setFormData((prev) => ({ ...prev, imagem: '' }));
+      setFormData((prev) => ({ ...prev, imagem: '', oem_number: '' }));
       setImagemPreview('');
+      limparLeituraDaImagem();
       return;
     }
 
@@ -354,8 +395,9 @@ export default function CadastroPecas() {
         text: t('Selecione uma imagem nos formatos JPG, PNG ou WEBP.'),
       });
 
-      setFormData((prev) => ({ ...prev, imagem: '' }));
+      setFormData((prev) => ({ ...prev, imagem: '', oem_number: '' }));
       setImagemPreview('');
+      limparLeituraDaImagem();
 
       if (imageInputRef.current) {
         imageInputRef.current.value = '';
@@ -373,8 +415,9 @@ export default function CadastroPecas() {
         text: t('A imagem deve ter no máximo {value}MB.', { value: tamanhoMaximoMB }),
       });
 
-      setFormData((prev) => ({ ...prev, imagem: '' }));
+      setFormData((prev) => ({ ...prev, imagem: '', oem_number: '' }));
       setImagemPreview('');
+      limparLeituraDaImagem();
 
       if (imageInputRef.current) {
         imageInputRef.current.value = '';
@@ -384,6 +427,8 @@ export default function CadastroPecas() {
     }
 
     const reader = new FileReader();
+    limparLeituraDaImagem();
+    setImageFile(file);
 
     reader.onloadend = () => {
       const imagemBase64 = reader.result;
@@ -391,6 +436,7 @@ export default function CadastroPecas() {
       setFormData((prev) => ({
         ...prev,
         imagem: imagemBase64,
+        oem_number: '',
       }));
 
       setImagemPreview(imagemBase64);
@@ -400,14 +446,76 @@ export default function CadastroPecas() {
   }
 
   function removerImagem() {
-    setFormData((prev) => ({ ...prev, imagem: '' }));
+    setFormData((prev) => ({ ...prev, imagem: '', oem_number: '' }));
     setImagemPreview('');
+    limparLeituraDaImagem();
 
     if (imageInputRef.current) {
       imageInputRef.current.value = '';
     }
 
     setMessage({ type: '', text: '' });
+  }
+
+  async function lerOemDaImagem() {
+    if (!imageFile || ocrLoading) return;
+
+    setOcrLoading(true);
+    setOcrError('');
+    setOcrText('');
+    setOemCandidates([]);
+    setCatalogResult(null);
+    setCatalogError('');
+    let worker;
+
+    try {
+      const { createWorker } = await import('tesseract.js');
+      worker = await createWorker('eng');
+      const response = await worker.recognize(imageFile);
+      const text = response?.data?.text?.trim() || '';
+      const candidates = extrairCandidatosOem(text);
+      const oemExtraido = candidates[0] || '';
+
+      setOcrText(text);
+      setOemCandidates(candidates);
+      if (candidates.length === 0) setOcrError(t('noOemFoundInImage'));
+      setFormData((previous) => ({ ...previous, oem_number: oemExtraido }));
+      if (oemExtraido) {
+        setCatalogLoading(true);
+        try {
+          setCatalogResult(await verificarOemNoCatalogo(oemExtraido));
+        } catch (error) {
+          setCatalogError(parseUnexpectedError(error, t('catalogCoverageNotice')));
+        } finally {
+          setCatalogLoading(false);
+        }
+      }
+    } catch {
+      setOcrError(t('ocrReadFailed'));
+    } finally {
+      if (worker) {
+        try {
+          await worker.terminate();
+        } catch {}
+      }
+      setOcrLoading(false);
+    }
+  }
+
+  async function verificarOem() {
+    const oem = normalizarOem(formData.oem_number);
+    if (!oem || catalogLoading) return;
+
+    setCatalogLoading(true);
+    setCatalogResult(null);
+    setCatalogError('');
+    try {
+      setCatalogResult(await verificarOemNoCatalogo(oem));
+    } catch (error) {
+      setCatalogError(parseUnexpectedError(error, t('catalogCoverageNotice')));
+    } finally {
+      setCatalogLoading(false);
+    }
   }
 
   function abrirModal(title, text) {
@@ -456,6 +564,10 @@ export default function CadastroPecas() {
 
   function validateForm() {
     const newErrors = {};
+    const categoriaSelecionada = categorias.find(
+      (categoria) => String(categoria.id) === String(formData.categoria_id)
+    );
+    const oemObrigatorio = !categoriaEhOutros(categoriaSelecionada);
 
     if (!formData.nome_peca.trim()) {
       newErrors.nome_peca = 'Informe o nome da peça.';
@@ -469,10 +581,15 @@ export default function CadastroPecas() {
       newErrors.sku = 'SKU inválido. Use letras maiúsculas, números e hífen. Ex: OPALA-FRISO-001.';
     }
 
-    if (!formData.oem_number.trim()) {
-      newErrors.oem_number = 'Informe o número OEM.';
-    } else if (!REGEX.codigoOpcional.test(formData.oem_number.trim())) {
+    if (oemObrigatorio && !formData.oem_number.trim()) {
+      newErrors.oem_number = 'Leia o OEM pela imagem antes de cadastrar.';
+    } else if (formData.oem_number.trim() && !REGEX.codigoOpcional.test(formData.oem_number.trim())) {
       newErrors.oem_number = 'Número OEM inválido. Use letras, números e hífen.';
+    } else if (
+      formData.oem_number.trim() &&
+      (!catalogResult?.found || catalogResult.oem !== normalizarOem(formData.oem_number))
+    ) {
+      newErrors.oem_number = 'Valide o OEM extraído na API externa antes de cadastrar.';
     }
 
     if (!formData.num_serie.trim()) {
@@ -573,6 +690,7 @@ export default function CadastroPecas() {
       });
       setFormData(INITIAL_FORM);
       setImagemPreview('');
+      limparLeituraDaImagem();
       setErrors({});
 
       if (imageInputRef.current) {
@@ -584,6 +702,18 @@ export default function CadastroPecas() {
       setLoading(false);
     }
   }
+
+  const categoriaSelecionada = categorias.find(
+    (categoria) => String(categoria.id) === String(formData.categoria_id)
+  );
+  const categoriaOutros = categoriaEhOutros(categoriaSelecionada);
+  const oemNormalizado = normalizarOem(formData.oem_number);
+  const oemValidado = Boolean(
+    oemNormalizado &&
+    catalogResult?.found &&
+    catalogResult.oem === oemNormalizado
+  );
+  const oemComparison = compararOemComImagem(formData.oem_number, oemCandidates);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
@@ -789,10 +919,44 @@ export default function CadastroPecas() {
         )}
 
         {!loadingProfile && !profileError && storeConfigured && (
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column' }}>
           <section
             style={{
               ...CARD_STYLE,
+              order: 0,
+              padding: SPACING.XL,
+              marginBottom: SPACING.LG,
+            }}
+          >
+            <FormGroup label={t('Categoria')} required error={errors.categoria_id}>
+              <select
+                name="categoria_id"
+                value={formData.categoria_id}
+                onChange={handleInputChange}
+                disabled={loadingOptions}
+                style={getFieldStyle(errors.categoria_id)}
+              >
+                <option value="">
+                  {loadingOptions ? t('loadingCategories') : t('selectCategory')}
+                </option>
+                {categorias.map((categoria) => (
+                  <option key={categoria.id} value={categoria.id}>
+                    {t(categoria.nome)}
+                  </option>
+                ))}
+              </select>
+              {categoriaOutros && (
+                <p style={{ margin: `${SPACING.SM} 0 0`, color: COLORS.MUTED_TEXT, fontSize: '0.82rem' }}>
+                  Para a categoria Outros, o número OEM é opcional.
+                </p>
+              )}
+            </FormGroup>
+          </section>
+
+          <section
+            style={{
+              ...CARD_STYLE,
+              order: 2,
               padding: SPACING.XL,
               marginBottom: SPACING.LG,
             }}
@@ -841,15 +1005,96 @@ export default function CadastroPecas() {
                 />
               </FormGroup>
 
-              <FormGroup label={t('Número OEM')} required error={errors.oem_number}>
+              <FormGroup label={t('Número OEM')} required={!categoriaOutros} error={errors.oem_number}>
                 <input
                   type="text"
                   name="oem_number"
-                  placeholder={t('oemPlaceholder')}
+                  placeholder="Leia pela imagem; depois ajuste se necessário"
                   value={formData.oem_number}
                   onChange={handleInputChange}
-                  style={getFieldStyle(errors.oem_number)}
+                  disabled={!formData.oem_number && oemCandidates.length === 0}
+                  style={{
+                    ...getFieldStyle(errors.oem_number),
+                    cursor: !formData.oem_number && oemCandidates.length === 0 ? 'not-allowed' : 'text',
+                    backgroundColor: !formData.oem_number && oemCandidates.length === 0
+                      ? 'var(--bp-surface-muted)'
+                      : '#fff',
+                  }}
                 />
+                <p style={{ margin: `${SPACING.XS} 0 0`, color: COLORS.MUTED_TEXT, fontSize: '0.78rem' }}>
+                  Primeiro leia o OEM pela imagem. Depois você pode corrigir o valor e revalidar na API externa.
+                </p>
+
+                {oemComparison && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                      marginTop: SPACING.SM,
+                      padding: SPACING.SM,
+                      borderRadius: BORDER_RADIUS.MD,
+                      border: `1px solid ${oemComparison.status === 'compatible' ? '#86EFAC' : oemComparison.status === 'possible-correction' ? '#FCD34D' : '#FCA5A5'}`,
+                      backgroundColor: oemComparison.status === 'compatible' ? '#F0FDF4' : oemComparison.status === 'possible-correction' ? '#FFFBEB' : '#FEF2F2',
+                      color: oemComparison.status === 'compatible' ? '#166534' : oemComparison.status === 'possible-correction' ? '#92400E' : '#991B1B',
+                      fontSize: '0.82rem',
+                    }}
+                  >
+                    <strong>
+                      {t(oemComparison.status === 'compatible'
+                        ? 'compatibleWithImage'
+                        : oemComparison.status === 'possible-correction'
+                          ? 'possibleOcrCorrection'
+                          : 'divergentFromImage')}
+                    </strong>
+                    <div style={{ marginTop: SPACING.XS }}>
+                      {t('similarToReference', {
+                        percentage: oemComparison.percentage,
+                        reference: oemComparison.reference,
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={verificarOem}
+                  disabled={!normalizarOem(formData.oem_number) || catalogLoading}
+                  style={{
+                    ...BUTTON_SECONDARY_STYLE,
+                    width: '100%',
+                    marginTop: SPACING.SM,
+                    opacity: !normalizarOem(formData.oem_number) || catalogLoading ? 0.55 : 1,
+                    cursor: !normalizarOem(formData.oem_number) || catalogLoading ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {catalogLoading ? t('checkingCatalog') : 'Revalidar OEM na API externa'}
+                </button>
+
+                {catalogError && <div role="alert" style={errorStyle}>{catalogError}</div>}
+
+                {catalogResult && (
+                  <div
+                    aria-live="polite"
+                    style={{
+                      marginTop: SPACING.SM,
+                      padding: SPACING.MD,
+                      borderRadius: BORDER_RADIUS.MD,
+                      border: `1px solid ${catalogResult.found ? '#86EFAC' : '#FCA5A5'}`,
+                      backgroundColor: catalogResult.found ? '#F0FDF4' : '#FEE2E2',
+                      fontSize: '0.82rem',
+                      color: '#000',
+                    }}
+                  >
+                    <strong>
+                      {catalogResult.found ? t('catalogReferenceFound') : 'Referência não encontrada neste catálogo'}
+                    </strong>
+                    <p style={{ margin: `${SPACING.SM} 0 0`, color: '#000' }}>
+                      {catalogResult.found
+                        ? t('catalogDisclaimer')
+                        : 'Verifique se o OEM está correto. Se necessário, contate o suporte.'}
+                    </p>
+                  </div>
+                )}
               </FormGroup>
 
               <FormGroup label={t('Número de série')} required error={errors.num_serie}>
@@ -861,25 +1106,6 @@ export default function CadastroPecas() {
                   onChange={handleInputChange}
                   style={getFieldStyle(errors.num_serie)}
                 />
-              </FormGroup>
-
-              <FormGroup label={t('Categoria')} required error={errors.categoria_id}>
-                <select
-                  name="categoria_id"
-                  value={formData.categoria_id}
-                  onChange={handleInputChange}
-                  disabled={loadingOptions}
-                  style={getFieldStyle(errors.categoria_id)}
-                >
-                  <option value="">
-                    {loadingOptions ? t('loadingCategories') : t('selectCategory')}
-                  </option>
-                  {categorias.map((categoria) => (
-                    <option key={categoria.id} value={categoria.id}>
-                      {t(categoria.nome)}
-                    </option>
-                  ))}
-                </select>
               </FormGroup>
 
               <FormGroup label={t('Material')} required error={errors.material_id}>
@@ -942,6 +1168,7 @@ export default function CadastroPecas() {
           <section
             style={{
               ...CARD_STYLE,
+              order: 1,
               padding: SPACING.XL,
               marginBottom: SPACING.LG,
             }}
@@ -968,16 +1195,7 @@ export default function CadastroPecas() {
               </p>
             </div>
 
-            <label style={{display:'block',margin:'16px 0'}}>{t('partVideoUrl')}
-                <input type="url" name="url_video" value={formData.url_video || ''} onChange={handleInputChange} style={{width:'100%',padding:12}} placeholder="https://..." />
-              </label>
-              <label>{t('baseCurrency')}
-                <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={handleInputChange}>
-                  <option value="BRL">BRL</option><option value="USD">USD</option><option value="EUR">EUR</option>
-                </select>
-              </label>
-              <p>{t('listingEvaluationCurrencyNotice')}</p>
-<FormGroup label={t('Imagem da peça')}>
+            <FormGroup label={t('Imagem da peça')}>
               <input
                 ref={imageInputRef}
                 type="file"
@@ -1042,6 +1260,22 @@ export default function CadastroPecas() {
 
                     <button
                       type="button"
+                      onClick={lerOemDaImagem}
+                      disabled={!imageFile || ocrLoading}
+                      style={{
+                        ...BUTTON_PRIMARY_STYLE,
+                        marginTop: SPACING.SM,
+                        marginRight: SPACING.SM,
+                        padding: '0.45rem 0.85rem',
+                        opacity: !imageFile || ocrLoading ? 0.55 : 1,
+                        cursor: !imageFile || ocrLoading ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {ocrLoading ? t('readingImage') : t('readOemFromImage')}
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={removerImagem}
                       style={{
                         marginTop: SPACING.SM,
@@ -1057,9 +1291,61 @@ export default function CadastroPecas() {
                       {t('removeImage')}
                     </button>
                   </div>
+
+                  {ocrError && (
+                    <div role="alert" style={{ ...errorStyle, flexBasis: '100%' }}>
+                      {ocrError}
+                    </div>
+                  )}
+
+                  {ocrText && (
+                    <details style={{ flexBasis: '100%', color: COLORS.DARK_TEXT }}>
+                      <summary style={{ cursor: 'pointer', fontWeight: 700 }}>
+                        {t('extractedText')}
+                      </summary>
+                      <pre
+                        style={{
+                          whiteSpace: 'pre-wrap',
+                          overflowWrap: 'anywhere',
+                          margin: `${SPACING.SM} 0 0`,
+                          padding: SPACING.SM,
+                          borderRadius: BORDER_RADIUS.MD,
+                          backgroundColor: 'var(--bp-surface)',
+                          fontSize: '0.76rem',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {ocrText}
+                      </pre>
+                    </details>
+                  )}
                 </div>
               )}
             </FormGroup>
+
+            <div style={{ height: SPACING.LG }} />
+
+            <label style={{ display: 'block', margin: '16px 0' }}>
+              {t('partVideoUrl')}
+              <input
+                type="url"
+                name="url_video"
+                value={formData.url_video || ''}
+                onChange={handleInputChange}
+                style={{ width: '100%', padding: 12 }}
+                placeholder="https://..."
+              />
+            </label>
+
+            <label>
+              {t('baseCurrency')}
+              <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={handleInputChange}>
+                <option value="BRL">BRL</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </label>
+            <p>{t('listingEvaluationCurrencyNotice')}</p>
 
             <div style={{ height: SPACING.LG }} />
 
@@ -1128,6 +1414,7 @@ export default function CadastroPecas() {
           <section
             style={{
               ...CARD_STYLE,
+              order: 3,
               padding: SPACING.XL,
               marginBottom: SPACING.LG,
             }}
@@ -1188,6 +1475,7 @@ export default function CadastroPecas() {
               borderRadius: BORDER_RADIUS.LG,
               border: `1px solid ${COLORS.BORDER}`,
               boxShadow: SHADOWS.SM,
+              order: 4,
               padding: SPACING.LG,
             }}
           >
@@ -1201,12 +1489,12 @@ export default function CadastroPecas() {
 
             <button
               type="submit"
-              disabled={loading || loadingOptions}
+              disabled={loading || loadingOptions || !formData.categoria_id || (!categoriaOutros && !oemValidado)}
               style={{
                 ...BUTTON_PRIMARY_STYLE,
                 padding: `${SPACING.MD} ${SPACING.XXL}`,
-                opacity: loading || loadingOptions ? 0.7 : 1,
-                cursor: loading || loadingOptions ? 'not-allowed' : 'pointer',
+                opacity: loading || loadingOptions || !formData.categoria_id || (!categoriaOutros && !oemValidado) ? 0.7 : 1,
+                cursor: loading || loadingOptions || !formData.categoria_id || (!categoriaOutros && !oemValidado) ? 'not-allowed' : 'pointer',
               }}
             >
               {loading ? t('registering') : loadingOptions ? t('loadingOptions') : t('registerPart')}
