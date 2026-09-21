@@ -2,6 +2,7 @@ const AppError = require('../../../utils/AppError');
 const {
   calcularScoreHistorico,
   calcularSimilaridadePeca,
+  categoriaDispensaOem,
   criarPaginacao,
   limparPayload,
   montarFornecedorPublico,
@@ -16,7 +17,7 @@ const {
   validarPermissaoCadastroPeca,
 } = require('../domain/peca');
 
-function criarPecasUseCases({ repository }) {
+function criarPecasUseCases({ repository, autoPartsService }) {
   async function obterFornecedor(identidade) {
     const email = obterEmailUsuarioAutenticado(identidade);
     if (!email) {
@@ -34,7 +35,20 @@ function criarPecasUseCases({ repository }) {
     const fornecedor = await obterFornecedor(identidade);
     validarPermissaoCadastroPeca(fornecedor, usuarioAutenticado);
     const payload = limparPayload(montarPayloadPeca(dados, fornecedor.id));
-    validarPayloadCadastro(payload);
+    validarPayloadCadastro(payload, { oemObrigatorio: false });
+
+    const categoria = await repository.buscarCategoriaPorId(payload.categoria_id);
+    if (!categoria) throw new AppError(400, 'Categoria não encontrada.');
+
+    const oemObrigatorio = !categoriaDispensaOem(categoria.nome);
+    validarPayloadCadastro(payload, { oemObrigatorio });
+
+    if (payload.oem_number) {
+      const resultadoOem = await autoPartsService.verificarOem(payload.oem_number);
+      if (!resultadoOem.found) {
+        throw new AppError(422, 'Este OEM não existe no catálogo externo. Cadastre apenas peças com OEM validado pela API.');
+      }
+    }
     const peca = await repository.criarPeca(payload);
 
     return { id: peca?.id, message: 'Peça cadastrada e enviada para avaliação. Ela ficará pública após aprovação.', peca };

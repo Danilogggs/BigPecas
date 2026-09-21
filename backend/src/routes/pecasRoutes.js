@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.post('/cadastrar', controller.cadastrar);
 router.get('/', controller.listar);
+router.get('/verificar-oem', controller.verificarOem);
 router.get('/fornecedores/recomendados', controller.fornecedoresRecomendados);
 router.get('/fornecedores/:id/perfil', controller.perfilFornecedor);
 router.get('/recomendacoes/historico', controller.recomendacoesHistorico);

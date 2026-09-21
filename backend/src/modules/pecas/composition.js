@@ -1,7 +1,10 @@
 const { supabaseAdmin } = require('../../config/supabaseClient');
 const criarPecasUseCases = require('./application/criarPecasUseCases');
 const criarPecasController = require('./http/criarPecasController');
+const criarVerificacaoOemController = require('./http/criarVerificacaoOemController');
 const criarSupabasePecasRepository = require('./infrastructure/SupabasePecasRepository');
+const { validarENormalizarOem } = require('./domain/oem');
+const { criarAutoPartsService } = require('../../services/autoPartsService');
 
 const repository = criarSupabasePecasRepository({
   supabase: supabaseAdmin,
@@ -15,4 +18,11 @@ const repository = criarSupabasePecasRepository({
   },
 });
 
-module.exports = criarPecasController(criarPecasUseCases({ repository }));
+const autoPartsService = criarAutoPartsService();
+const pecasController = criarPecasController(criarPecasUseCases({ repository, autoPartsService }));
+const verificarOem = criarVerificacaoOemController({
+  autoPartsService,
+  validarENormalizarOem,
+});
+
+module.exports = Object.freeze({ ...pecasController, verificarOem });

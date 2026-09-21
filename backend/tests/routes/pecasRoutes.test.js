@@ -2,10 +2,15 @@ const request = require('supertest');
 const { createSupabaseMock } = require('../helpers/supabaseMock');
 
 const mockSupabaseAdmin = createSupabaseMock();
+const mockVerificarOem = jest.fn();
 
 jest.mock('../../src/config/supabaseClient', () => ({
   supabaseAdmin: mockSupabaseAdmin,
   supabasePublic: null,
+}));
+
+jest.mock('../../src/services/autoPartsService', () => ({
+  criarAutoPartsService: () => ({ verificarOem: mockVerificarOem }),
 }));
 
 const pecasRoutes = require('../../src/routes/pecasRoutes');
@@ -53,18 +58,29 @@ function mockarFornecedor(data = FORNECEDOR) {
 describe('pecasRoutes', () => {
   beforeEach(() => {
     mockSupabaseAdmin.__reset();
+<<<<<<< Updated upstream
     mockSupabaseAdmin.__mockTable('avaliacoes_fornecedor', { data: [], error: null });
+=======
+    mockSupabaseAdmin.__mockTable('categorias', {
+      data: { id: 1, nome: 'Motores' },
+      error: null,
+    });
+    mockVerificarOem.mockReset();
+    mockVerificarOem.mockResolvedValue({ oem: 'GM-1234', found: true, count: 1, matches: [] });
+>>>>>>> Stashed changes
   });
 
   describe('POST /cadastrar', () => {
     const corpoValido = {
       nome_peca: '  Friso Opala  ',
       sku: 'FR-1',
+      oem_number: 'GM-1234',
       categoria_id: '1',
       material_id: '2',
       preco: '350,50',
       estoque_atual: '3',
       peso_gramas: '800',
+      imagem: 'data:image/png;base64,aW1hZ2Vt',
     };
 
     it('cadastra a peca normalizando os tipos e vinculando ao fornecedor', async () => {
@@ -75,6 +91,10 @@ describe('pecasRoutes', () => {
 
       expect(resposta.status).toBe(201);
       expect(resposta.body.message).toBe('Peça cadastrada e enviada para avaliação. Ela ficará pública após aprovação.');
+<<<<<<< Updated upstream
+=======
+      expect(mockVerificarOem).toHaveBeenCalledWith('GM-1234');
+>>>>>>> Stashed changes
 
       const payload = mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('insert')[0];
       expect(payload).toMatchObject({
@@ -97,9 +117,11 @@ describe('pecasRoutes', () => {
 
       await request(app).post('/api/pecas/cadastrar').send({
         nome_peca: 'Roda',
+        oem_number: 'GM-1234',
         categoria_id: 1,
         material_id: 2,
         preco: 100,
+        imagem: 'data:image/png;base64,aW1hZ2Vt',
       });
 
       expect(mockSupabaseAdmin.__callsFor('pecas')[0].argumentos('insert')[0]).toMatchObject({
@@ -114,6 +136,8 @@ describe('pecasRoutes', () => {
       ['com preco invalido', { ...corpoValido, preco: 'abc' }, 'Informe um preço válido para a peça.'],
       ['sem categoria', { ...corpoValido, categoria_id: '' }, 'Informe a categoria da peça.'],
       ['sem material', { ...corpoValido, material_id: '' }, 'Informe o material da peça.'],
+      ['sem imagem', { ...corpoValido, imagem: '' }, 'Envie uma imagem da peça para extrair e validar o OEM.'],
+      ['sem OEM', { ...corpoValido, oem_number: '' }, 'Informe o número OEM extraído da imagem da peça.'],
     ])('recusa cadastro %s com 400', async (_descricao, corpo, mensagem) => {
       mockarFornecedor();
 
@@ -122,6 +146,35 @@ describe('pecasRoutes', () => {
       expect(resposta.status).toBe(400);
       expect(resposta.body.error).toBe(mensagem);
       expect(mockSupabaseAdmin.__callsFor('pecas')).toHaveLength(0);
+    });
+
+    it('recusa cadastro quando o OEM nao existe no catalogo externo', async () => {
+      mockarFornecedor();
+      mockVerificarOem.mockResolvedValue({ oem: 'GM-1234', found: false, count: 0, matches: [] });
+
+      const resposta = await request(app).post('/api/pecas/cadastrar').send(corpoValido);
+
+      expect(resposta.status).toBe(422);
+      expect(resposta.body.error).toBe('Este OEM não existe no catálogo externo. Cadastre apenas peças com OEM validado pela API.');
+      expect(mockSupabaseAdmin.__callsFor('pecas')).toHaveLength(0);
+    });
+
+    it('permite cadastrar categoria Outros sem OEM', async () => {
+      mockarFornecedor();
+      mockSupabaseAdmin.__queueTable('categorias', {
+        data: { id: 99, nome: 'Outros' },
+        error: null,
+      });
+      mockSupabaseAdmin.__mockTable('pecas', { data: { id: 11, ...PECA }, error: null });
+
+      const resposta = await request(app).post('/api/pecas/cadastrar').send({
+        ...corpoValido,
+        categoria_id: 99,
+        oem_number: '',
+      });
+
+      expect(resposta.status).toBe(201);
+      expect(mockVerificarOem).not.toHaveBeenCalled();
     });
 
     it.each([
