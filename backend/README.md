@@ -7,6 +7,7 @@ API REST do BigPecas, responsavel por autenticacao, perfis, catalogo de pecas, p
 - [Visao geral](#visao-geral)
 - [Tecnologias](#tecnologias)
 - [Documentacao da API](#documentacao-da-api)
+- [Arquitetura](#arquitetura)
 - [Requisitos](#requisitos)
 - [Configuracao do ambiente](#configuracao-do-ambiente)
 - [Instalacao](#instalacao)
@@ -61,6 +62,13 @@ Esse arquivo cumpre a documentacao tecnica dos servicos e pode ser aberto em:
 - Redoc: <https://redocly.github.io/redoc/>
 
 Forma recomendada para entrega academica: manter `backend/README.md` e `backend/openapi.yaml` no repositorio. Isso garante versionamento junto do codigo e atende a rubrica sem depender de plataforma externa. Se quiser publicar depois, a melhor opcao simples e GitHub Wiki ou GitHub Pages com Swagger UI/Redoc apontando para o `openapi.yaml`.
+
+## Arquitetura
+
+O backend segue arquitetura limpa por modulos, com camadas de dominio,
+aplicacao, infraestrutura e HTTP. As decisoes, o fluxo de dependencias e as
+evidencias dos padroes Repository, Adapter, State Machine, Factory e Composition
+Root estao documentados em [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Requisitos
 

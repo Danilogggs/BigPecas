@@ -1,6 +1,4 @@
-const adaptar = (handler) => async (req, res, next) => {
-  try { await handler(req, res); } catch (error) { next(error); }
-};
+const adaptar = require('../../../http/adaptarController');
 
 function criarAvaliacoesController(useCases) {
   return Object.freeze({
