@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 
 export function parameters(env) {
   const environment = env.DEPLOY_ENVIRONMENT;
-  if (!['dev', 'test', 'prod'].includes(environment)) throw Error('Ambiente invalido.');
+  if (!['dev', 'prod'].includes(environment)) throw Error('Ambiente invalido.');
   for (const key of ['AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_SUBSCRIPTION_ID', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'ALERT_EMAIL']) {
     if (!env[key]?.trim()) throw Error(`Configure ${key} no GitHub Environment.`);
   }
@@ -24,7 +24,7 @@ export function parameters(env) {
   const testUrl = projectUrl('TEST_SUPABASE_URL');
   const prodUrl = projectUrl('PROD_SUPABASE_URL');
   if (testUrl === prodUrl) throw Error('Teste e producao precisam de projetos Supabase distintos. Deploy bloqueado para proteger dados.');
-  // As aplicacoes dev/test compartilham somente o projeto nao produtivo.
+  // O ambiente DEV/QAS usa somente o projeto nao produtivo.
   const supabaseUrl = projectUrl('SUPABASE_URL');
   if (supabaseUrl !== (environment === 'prod' ? prodUrl : testUrl)) throw Error('SUPABASE_URL diverge do ambiente escolhido.');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.ALERT_EMAIL)) throw Error('ALERT_EMAIL invalido.');

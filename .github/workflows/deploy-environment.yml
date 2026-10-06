@@ -10,7 +10,7 @@ permissions:
   id-token: write
 jobs:
   deploy:
-    if: vars.CD_ENABLED == 'true' && ((github.ref == 'refs/heads/develop' && (inputs.environment == 'dev' || inputs.environment == 'test')) || (github.ref == 'refs/heads/main' && inputs.environment == 'prod'))
+    if: vars.CD_ENABLED == 'true' && ((github.ref == 'refs/heads/develop' && inputs.environment == 'dev') || (github.ref == 'refs/heads/main' && inputs.environment == 'prod'))
     runs-on: ubuntu-latest
     timeout-minutes: 40
     environment:
@@ -101,7 +101,7 @@ jobs:
         run: az deployment group what-if --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" --result-format ResourceIdOnly
       - name: Deploy por digest imutavel
         run: az deployment group create --name "apps-${GITHUB_RUN_ID}" --resource-group "$AZURE_RESOURCE_GROUP" --template-file infra/azure/apps.bicep --parameters "@$RUNNER_TEMP/bigpecas.parameters.json" --output none
-      - name: Smoke HTTP e homologacao segura de test
+      - name: Smoke HTTP e homologacao segura de DEV/QAS
         env:
           FRONTEND_URL: ${{ steps.platform.outputs.frontendUrl }}
           BACKEND_URL: ${{ steps.platform.outputs.backendUrl }}

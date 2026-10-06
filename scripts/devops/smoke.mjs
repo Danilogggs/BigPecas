@@ -4,7 +4,7 @@ const web = new URL('/', process.env.FRONTEND_URL);
 const currency = new URL('/api/moeda/config', process.env.BACKEND_URL);
 const environment = process.env.DEPLOY_ENVIRONMENT;
 for (const url of [api, web, currency]) if (url.protocol !== 'https:') throw Error('Smoke remoto exige HTTPS.');
-if (!['dev', 'test', 'prod'].includes(environment)) throw Error('Ambiente de smoke invalido.');
+if (!['dev', 'prod'].includes(environment)) throw Error('Ambiente de smoke invalido.');
 let lastError;
 for (let attempt = 0; attempt < 12; attempt++) {
   try {
@@ -15,13 +15,13 @@ for (let attempt = 0; attempt < 12; attempt++) {
     const page = await fetch(web, { signal: AbortSignal.timeout(15000) });
     assert.equal(page.status, 200);
     assert.match(await page.text(), /<div id="root"><\/div>/);
-    if (environment === 'test') {
+    if (environment === 'dev') {
       const config = await fetch(currency, { signal: AbortSignal.timeout(15000) });
       assert.equal(config.status, 200);
       const rates = await config.json();
       assert.ok(Array.isArray(rates));
       assert.ok(rates.some(rate => rate.moeda === 'BRL' && Number(rate.unidades_por_brl) === 1));
-      console.log('Homologacao de test aprovada: HTTPS, CORS e leitura real do Supabase.');
+      console.log('Homologacao de DEV/QAS aprovada: HTTPS, CORS e leitura real do Supabase.');
     } else {
       console.log('Smoke HTTP aprovado. Nao valida login.');
     }
