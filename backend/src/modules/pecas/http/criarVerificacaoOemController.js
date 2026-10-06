@@ -1,12 +1,10 @@
+const adaptar = require('../../../http/adaptarController');
+
 function criarVerificacaoOemController({ autoPartsService, validarENormalizarOem }) {
-  return async function verificarOem(req, res, next) {
-    try {
-      const oem = validarENormalizarOem(req.query.oem);
-      res.json(await autoPartsService.verificarOem(oem));
-    } catch (error) {
-      next(error);
-    }
-  };
+  return adaptar(async function verificarOem(req, res) {
+    const oem = validarENormalizarOem(req.query.oem);
+    res.json(await autoPartsService.verificarOem(oem));
+  });
 }
 
 module.exports = criarVerificacaoOemController;
