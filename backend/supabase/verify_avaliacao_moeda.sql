@@ -2,7 +2,8 @@
 -- Executar somente em staging, após a migration. Todas as alterações são revertidas.
 BEGIN;
 DO $test$
-DECLARE vendedor bigint; avaliador bigint; anuncio bigint; snap jsonb; respostas jsonb; falhou boolean; qtd integer;
+DECLARE vendedor bigint; avaliador bigint; anuncio bigint; anuncio_admin bigint; snap jsonb;
+  snap_admin jsonb; respostas jsonb; respostas_admin jsonb; falhou boolean; qtd integer;
 BEGIN
  INSERT INTO public.users(email,full_name,tipo_usuario) VALUES ('review-owner-'||gen_random_uuid()||'@example.test','Teste Vendedor','ambos') RETURNING id INTO vendedor;
  INSERT INTO public.users(email,full_name,tipo_usuario) VALUES ('review-evaluator-'||gen_random_uuid()||'@example.test','Teste Avaliador','avaliador') RETURNING id INTO avaliador;
@@ -25,6 +26,18 @@ BEGIN
  BEGIN PERFORM public.decidir_avaliacao_peca(anuncio,vendedor,1,respostas,'',false);
  EXCEPTION WHEN raise_exception THEN falhou:=true; END;
  IF NOT falhou THEN RAISE EXCEPTION 'Aceitou autoavaliação'; END IF;
+ -- Administradores podem aprovar os proprios anuncios.
+ UPDATE public.users SET is_admin=true WHERE id=vendedor;
+ INSERT INTO public.pecas(nome_peca,fornecedor_id,preco,preco_base,moeda_base,status_publicacao)
+ VALUES ('Teste de autoaprovacao administrativa',vendedor,120,120,'BRL','publicada') RETURNING id INTO anuncio_admin;
+ SELECT criterios_snapshot INTO snap_admin FROM public.avaliacoes_pecas
+ WHERE peca_id=anuncio_admin AND revisao=1;
+ SELECT jsonb_agg(jsonb_build_object('criterio_id',x->'id','resposta',true)) INTO respostas_admin
+ FROM jsonb_array_elements(snap_admin) x;
+ PERFORM public.decidir_avaliacao_peca(anuncio_admin,vendedor,1,respostas_admin,'Aprovado pelo administrador',false);
+ IF (SELECT status_publicacao FROM public.pecas WHERE id=anuncio_admin) <> 'publicada' THEN
+   RAISE EXCEPTION 'Administrador não conseguiu aprovar o próprio anúncio';
+ END IF;
  PERFORM public.decidir_avaliacao_peca(anuncio,avaliador,1,respostas,'Aprovado no teste',false);
  IF (SELECT status_publicacao FROM public.pecas WHERE id=anuncio) <> 'publicada' THEN RAISE EXCEPTION 'Não publicou após aprovação'; END IF;
  falhou:=false;

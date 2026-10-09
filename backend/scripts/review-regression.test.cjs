@@ -2,6 +2,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('node:module');
+const fs = require('node:fs');
+const path = require('node:path');
 const { montarPayloadPeca, sanitizarAtualizacao } = require('../src/modules/pecas/domain/peca');
 const usuario = require('../src/modules/usuarios/domain/usuario');
 const { validarRespostas, validarCriterio } = require('../src/services/reviewValidation');
@@ -98,5 +100,15 @@ test('usuário comum não passa pelo middleware de avaliação', async () => {
   const {verifyAvaliador}=loadWithDb('../src/middlewares/verifyAvaliador',fakeDb({id:2,tipo_usuario:'ambos',is_admin:false}));
   let error; await verifyAvaliador({user:{email:'x@test'}},{},e=>{error=e;});
   assert.equal(error.statusCode,403);
+});
+test('migration permite autoaprovação apenas a admin e desativa critérios de teste', () => {
+  const migration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations',
+    '20261009000000_admin_autoaprovacao_limpeza_checklist.sql'), 'utf8');
+  assert.match(migration, /p\.fornecedor_id=p_avaliador AND NOT EXISTS[\s\S]*is_admin=true/);
+  assert.match(migration, /Somente administradores podem avaliar o próprio anúncio/);
+  for (const nome of ['teste att critério', 'Aprovação Prof Rafa', 'testando novamente']) {
+    assert.ok(migration.includes(nome));
+  }
+  assert.match(migration, /SET ativo = false/);
 });
 
