@@ -16,23 +16,17 @@ jobs:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
     uses: ./.github/workflows/ci.yml
   dev:
+    name: DEV / QAS
     if: github.ref == 'refs/heads/develop'
     needs: validate
     uses: ./.github/workflows/deploy-environment.yml
     with:
       environment: dev
     secrets: inherit
-  test:
-    if: github.ref == 'refs/heads/develop'
-    needs: dev
-    uses: ./.github/workflows/deploy-environment.yml
-    with:
-      environment: test
-    secrets: inherit
   promote:
     name: Promover automaticamente para producao
     if: github.ref == 'refs/heads/develop' && vars.CD_ENABLED == 'true'
-    needs: test
+    needs: dev
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -51,7 +45,7 @@ jobs:
               --base main \
               --head develop \
               --title "Promover develop para producao" \
-              --body "CI e deployments de dev e test concluidos com sucesso. Promocao automatica para producao."
+              --body "CI, deploy e homologacao no ambiente DEV/QAS concluidos com sucesso. Promocao automatica para producao."
             )"
             PR_NUMBER="${PR_URL##*/}"
           fi

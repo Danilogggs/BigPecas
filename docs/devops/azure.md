@@ -14,9 +14,10 @@ bloqueios de deploy passaram, mantendo os limites de cobertura. O build Docker
 nao foi executado localmente porque o mecanismo Docker Desktop estava
 indisponivel; essa verificacao esta incluida na CI e ainda precisa rodar no GitHub.
 
-## Arquitetura proposta (sujeita a aprovacao de custo)
+## Arquitetura implantada
 
-Cada ambiente dev/test/prod tem seu proprio grupo `rg-bigpecas-<ambiente>`:
+Existem dois ambientes efetivamente usados: `dev` (DEV/QAS) e `prod`, cada um
+com seu proprio grupo `rg-bigpecas-<ambiente>`:
 
 - Duas Azure Container Apps: frontend Nginx e backend Node 22, HTTPS externo.
 - Um Container Apps Environment Consumption, sem VM administrada pela equipe.
@@ -37,15 +38,15 @@ validar o IP real e o bloqueio de cabecalhos forjados antes de liberar usuarios.
 ### Custos: nao ha promessa de gratuidade
 
 Antes de provisionar, preencher na calculadora Azure a regiao permitida pela
-assinatura e os recursos acima. Ha **tres ACR Basic com custo recorrente**, mesmo
+assinatura e os recursos acima. Ha **dois ACR Basic com custo recorrente**, mesmo
 com apps paradas, alem de logs, alertas e possiveis custos de trafego/execucao.
 Os recursos antigos continuam sendo cobrados; este projeto nao os exclui.
 
-Como referencia de dimensionamento, seis apps ativas 24h por 30 dias consumiriam
-3.888.000 vCPU-segundos e 7.776.000 GiB-segundos, antes de franquias e ajustes de
+Como referencia de dimensionamento, quatro apps ativas 24h por 30 dias consumiriam
+2.592.000 vCPU-segundos e 5.184.000 GiB-segundos, antes de franquias e ajustes de
 cobranca. Com escala zero o consumo depende do uso. As franquias Consumption
 sao compartilhadas pela assinatura, nao multiplicadas por ambiente.
-O limite configurado de logs soma aproximadamente 9 GB/30 dias nos tres ambientes;
+O limite configurado de logs soma aproximadamente 6 GB/30 dias nos dois ambientes;
 a cota diaria nao e um teto financeiro rigido e pode interromper coleta/alertas.
 Confirmar precos em moeda local e saldo de creditos antes de autorizar a primeira
 release. Configurar um orcamento no Azure com notificacoes de 50%, 80% e 100%
@@ -59,15 +60,14 @@ do valor escolhido pelo responsavel. Orcamento alerta, nao desliga recursos.
 
 ## Supabase: dois projetos, producao protegida
 
-Decisao aprovada: preservar o projeto BigPecas existente para producao e criar
-um segundo projeto, Bigpecas-Dev/Qas, para desenvolvimento e testes. As aplicacoes Azure continuam
-separadas em dev/test/prod, mas dev e test compartilham banco, Auth e Storage
-do projeto de testes. Nao ha isolamento de dados entre dev e test; alteracoes
-em um podem afetar o outro. Coordenar testes/migrations com a equipe. Essa
-arquitetura nao deve ser apresentada como tres ambientes totalmente isolados.
+Decisao aprovada: preservar o projeto BigPecas existente para producao e usar
+um segundo projeto, Bigpecas-Dev/Qas, no unico ambiente nao produtivo. DEV e QAS
+sao fases do mesmo deploy Azure e compartilham banco, Auth e Storage. Essa
+arquitetura deve ser apresentada como dois ambientes implantados, com validacao
+e homologacao automatizadas antes da promocao para producao.
 
 O script exige TEST_SUPABASE_URL diferente de PROD_SUPABASE_URL, exige que
-dev/test apontem para teste e que prod aponte para producao. DEV_SUPABASE_URL
+DEV/QAS aponte para teste e que prod aponte para producao. DEV_SUPABASE_URL
 nao e mais utilizada e deve ser removida se ja foi cadastrada. Isso nao valida
 os conteudos do banco nem substitui a revisao manual das credenciais.
 
@@ -97,13 +97,13 @@ Nao ativar CD ainda. A CI do PR deve ficar verde no GitHub (inclusive Bicep/Dock
 
 ### 2. Configurar GitHub Environments
 
-Em Settings > Environments, criar `dev`, `test`, `prod`. Restringir deployments
-a branch `develop` em `dev` e `test`, e `main` em `prod`. No fluxo totalmente
+Em Settings > Environments, manter `dev` e `prod`. Restringir deployments
+a branch `develop` em `dev`, e `main` em `prod`. O Environment `test` antigo
+pode ser removido depois de confirmar que nenhuma execucao esta usando-o. No fluxo totalmente
 automatico nao ha revisores obrigatorios nos Environments. Proteger a entrada de
-funcionalidades na develop com PR e checks CI. Depois de test, o workflow cria e
+funcionalidades na develop com PR e checks CI. Depois da homologacao em DEV/QAS, o workflow cria e
 mescla a PR de develop para main automaticamente. As regras da main precisam
-permitir esse merge pelo GitHub Actions. Nao criar uma branch qas separada: test
-e o ambiente de QAS.
+permitir esse merge pelo GitHub Actions. Nao criar branch ou ambiente QAS separado.
 
 Variaveis de repositorio:
 
@@ -111,7 +111,7 @@ Variaveis de repositorio:
 | --- | --- |
 | AZURE_SUBSCRIPTION_ID | ID confirmado no Cloud Shell |
 | AZURE_TENANT_ID | ID confirmado no Cloud Shell |
-| TEST_SUPABASE_URL | URL do projeto de testes, compartilhado por dev/test |
+| TEST_SUPABASE_URL | URL do projeto nao produtivo usado por DEV/QAS |
 | PROD_SUPABASE_URL | URL do projeto de producao |
 | CD_ENABLED | Manter `false` ate finalizar configuracao e aprovar custos |
 
@@ -129,9 +129,9 @@ Em **cada Environment**:
 | Secret opcional | MELHOR_ENVIO_ACCESS_TOKEN | Necessario para cotacao real pelo servico |
 
 A chave anon sera incorporada ao frontend, como esperado; RLS deve proteger
-os dados. Nos Environments dev e test, cadastrar a mesma URL e as chaves do
-projeto de testes; no Environment prod, somente as do projeto de producao.
-No Supabase de testes, autorizar os redirects dos dois frontends dev/test;
+os dados. No Environment dev, cadastrar a URL e as chaves do projeto DEV/QAS;
+no Environment prod, somente as do projeto de producao.
+No Supabase de testes, autorizar os redirects do frontend DEV/QAS;
 no de producao, autorizar apenas os do frontend prod.
 Nunca colocar service-role em variavel VITE. Nao enviar chaves no chat.
 Email de notificacao de vendas fica desativado ate configurar um provedor e
@@ -146,7 +146,6 @@ nao revisada. Executar a partir da raiz, substituindo REGIAO pela aprovada:
 
 ```bash
 bash scripts/devops/bootstrap.sh dev REGIAO
-bash scripts/devops/bootstrap.sh test REGIAO
 bash scripts/devops/bootstrap.sh prod REGIAO
 ```
 
@@ -164,15 +163,15 @@ A federacao autoriza exatamente `repo:Danilogggs/BigPecas:environment:<ambiente>
 ### 4. Ativar e acompanhar a primeira release
 
 Depois de aprovar custos, concluir banco, variaveis, secrets e protecoes, definir
-CD_ENABLED=true. Executar `Release Azure por branch` pela develop: CI -> dev ->
-test (QAS). Uma falha impede o proximo ambiente. Depois de ambos passarem, a
+CD_ENABLED=true. Executar `Release Azure por branch` pela develop: CI -> DEV/QAS.
+No mesmo ambiente, o workflow faz deploy e homologacao. Depois de ambos passarem, a
 pipeline cria ou reutiliza uma PR de develop para main, realiza o merge e inicia
 explicitamente a release de producao. O fluxo segue sem aprovacao manual.
 Pushes nas duas branches tambem disparam seus respectivos fluxos. Execucao
 manual de outras branches nao implanta recursos. Manter as restricoes dos
 Environments: o YAML nao configura revisores nem protecao de branches.
 
-Dev e test recebem o mesmo commit de develop. Main gera um novo commit de merge,
+DEV/QAS recebe o commit de develop. Main gera um novo commit de merge,
 que passa novamente pela CI; uma falha nessa validacao impede o deploy de prod.
 O frontend e reconstruido com
 configuracao publica por ambiente (nao e o mesmo binario). Imagens privadas sao
@@ -194,15 +193,13 @@ ja existente. Ela contorna a validacao antecipada do ACR pelo Container Apps.
 Na primeira execucao, registrar as URLs mostradas no job e adicionar no Supabase:
 Site URL do frontend e redirects `/login?emailConfirmado=1` e `/redefinir-senha`.
 Testar manualmente cadastro, confirmacao, login, recuperacao, catalogo e pedidos
-com dados ficticios em dev/test. O smoke de `test` comprova HTTPS, CORS e uma
+com dados ficticios em DEV/QAS. O smoke de `dev` comprova HTTPS, CORS e uma
 leitura real da configuracao de moedas no Supabase sem alterar dados. Ele nao
 substitui testes de login, cadastro, permissoes, carrinho ou pedidos.
 
-Os builds Docker usam cache compartilhado do GitHub Actions em modo maximo. O
-backend tende a reutilizar praticamente todas as camadas entre ambientes; o
-frontend reaproveita dependencias, mas recompila a etapa afetada pelas URLs e
-chaves publicas especificas de cada ambiente. Cada ACR continua recebendo sua
-propria imagem e o deploy permanece fixado por digest SHA256.
+Os builds Docker usam cache compartilhado do GitHub Actions em modo maximo. Cada
+commit de develop agora gera apenas um build e um deploy nao produtivo. Cada ACR
+continua recebendo sua propria imagem e o deploy permanece fixado por digest SHA256.
 
 ### Docker local
 
@@ -240,7 +237,7 @@ a causa, a acao e a evidencia posterior. Nao ha alerta externo de disponibilidad
 24h configurado; smoke ocorre somente no deploy. Adicionar monitor sintetico se
 essa cobertura for exigida. A entrega nao equivale a monitoramento completo.
 
-Guardar links de runs, commit, artefatos de testes, digests, URLs, print dos tres
+Guardar links de runs, commit, artefatos de testes, digests, URLs, print dos dois
 ambientes, workbook, alerta recebido e melhoria feita com base no monitoramento.
 Artefatos de CI expiram em 14 dias; os de deployment em 30. Uma execucao local
 ou YAML versionado sozinho nao atende a evidencia de funcionamento continuo.

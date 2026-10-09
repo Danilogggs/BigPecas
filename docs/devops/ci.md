@@ -105,7 +105,7 @@ e constroi as imagens Docker sem publica-las.
 - Definir e provisionar a infraestrutura Azure por IaC.
 - Configurar autenticacao Azure/GitHub e adicionar deploy do primeiro ambiente.
 - Adicionar observabilidade e guardar evidencias do seu uso.
-- Evoluir para dev/test/prod com isolamento e promocao de versoes.
+- Manter o fluxo simplificado CI -> DEV/QAS -> PROD com promocao de versoes.
 
 Esta entrega prepara a CI. Nao comprova CI/CD completo nem provisionamento
 na nuvem. A evidencia de execucao do build na pipeline pode apoiar o nivel
