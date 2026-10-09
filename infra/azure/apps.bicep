@@ -14,6 +14,10 @@ param alertEmail string
 @secure()
 param shippingToken string = ''
 param shippingUrl string = 'https://sandbox.melhorenvio.com.br'
+param autoPartsApiUrl string = 'https://auto-parts-catalog.apiprofile.com/api'
+@secure()
+param autoPartsApiKey string = ''
+param autoPartsLangId string = '4'
 @minValue(0)
 @maxValue(1)
 param minReplicas int = 0
@@ -48,7 +52,7 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
       secrets: concat([
         { name: 'supabase-anon', value: supabaseAnonKey }
         { name: 'supabase-service-role', value: supabaseServiceRoleKey }
-      ], empty(shippingToken) ? [] : [{ name: 'shipping-token', value: shippingToken }])
+      ], empty(shippingToken) ? [] : [{ name: 'shipping-token', value: shippingToken }], empty(autoPartsApiKey) ? [] : [{ name: 'autoparts-api-key', value: autoPartsApiKey }])
     }
     template: {
       containers: [{
@@ -67,7 +71,9 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
           { name: 'SUPABASE_EMAIL_CONFIRM_REDIRECT_TO', value: '${webUrl}/login?emailConfirmado=1' }
           { name: 'EMAIL_NOTIFICACAO_VENDA_ENABLED', value: 'false' }
           { name: 'MELHOR_ENVIO_URL', value: shippingUrl }
-        ], empty(shippingToken) ? [] : [{ name: 'MELHOR_ENVIO_ACCESS_TOKEN', secretRef: 'shipping-token' }])
+          { name: 'AUTOPARTS_API_URL', value: autoPartsApiUrl }
+          { name: 'AUTOPARTS_LANG_ID', value: autoPartsLangId }
+        ], empty(shippingToken) ? [] : [{ name: 'MELHOR_ENVIO_ACCESS_TOKEN', secretRef: 'shipping-token' }], empty(autoPartsApiKey) ? [] : [{ name: 'AUTOPARTS_API_KEY', secretRef: 'autoparts-api-key' }])
         probes: bootstrapIdentity ? [] : backendProbes
       }]
       scale: { minReplicas: minReplicas, maxReplicas: 1, rules: [{ name: 'http', http: { metadata: { concurrentRequests: '20' } } }] }

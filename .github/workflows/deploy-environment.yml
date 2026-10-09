@@ -30,6 +30,9 @@ jobs:
       ALERT_EMAIL: ${{ vars.ALERT_EMAIL }}
       SHIPPING_TOKEN: ${{ secrets.MELHOR_ENVIO_ACCESS_TOKEN }}
       SHIPPING_URL: ${{ vars.MELHOR_ENVIO_URL }}
+      AUTOPARTS_API_URL: ${{ vars.AUTOPARTS_API_URL }}
+      AUTOPARTS_API_KEY: ${{ secrets.AUTOPARTS_API_KEY }}
+      AUTOPARTS_LANG_ID: ${{ vars.AUTOPARTS_LANG_ID || '4' }}
       MIN_REPLICAS: ${{ vars.MIN_REPLICAS || '0' }}
     steps:
       - uses: actions/checkout@v4
