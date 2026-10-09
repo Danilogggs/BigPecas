@@ -123,10 +123,18 @@ Em **cada Environment**:
 | Variable | SUPABASE_URL | URL correspondente da lista aprovada |
 | Variable | ALERT_EMAIL | Email real do responsavel pelos incidentes |
 | Variable opcional | MIN_REPLICAS | 0 por padrao; 1 aumenta consumo ocioso |
-| Variable opcional | MELHOR_ENVIO_URL | Sandbox por padrao; producao somente em prod |
 | Secret | SUPABASE_ANON_KEY | Chave publica anon do projeto correto |
 | Secret | SUPABASE_SERVICE_ROLE_KEY | Chave privilegiada, somente no backend |
-| Secret opcional | MELHOR_ENVIO_ACCESS_TOKEN | Necessario para cotacao real pelo servico |
+
+Compartilhadas no **repositorio** por DEV/QAS e producao:
+
+| Tipo | Nome | Finalidade |
+| --- | --- | --- |
+| Variable | MELHOR_ENVIO_URL | Endpoint do Melhor Envio |
+| Variable | AUTOPARTS_API_URL | Endpoint HTTPS do catalogo OEM |
+| Variable opcional | AUTOPARTS_LANG_ID | Idioma do catalogo OEM; padrao 4 |
+| Secret | MELHOR_ENVIO_ACCESS_TOKEN | Credencial usada para cotacao de frete |
+| Secret | AUTOPARTS_API_KEY | Credencial do catalogo OEM, somente no backend |
 
 A chave anon sera incorporada ao frontend, como esperado; RLS deve proteger
 os dados. No Environment dev, cadastrar a URL e as chaves do projeto DEV/QAS;

@@ -30,12 +30,18 @@ export function parameters(env) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.ALERT_EMAIL)) throw Error('ALERT_EMAIL invalido.');
   const shippingUrl = env.SHIPPING_URL || 'https://sandbox.melhorenvio.com.br';
   if (!['https://sandbox.melhorenvio.com.br', 'https://melhorenvio.com.br'].includes(shippingUrl)) throw Error('SHIPPING_URL invalida.');
-  if (environment !== 'prod' && shippingUrl !== 'https://sandbox.melhorenvio.com.br') throw Error('Frete real bloqueado fora de prod.');
+  const autoPartsApiUrl = env.AUTOPARTS_API_URL || 'https://auto-parts-catalog.apiprofile.com/api';
+  const autoPartsUrl = new URL(autoPartsApiUrl);
+  if (autoPartsUrl.protocol !== 'https:' || autoPartsUrl.username || autoPartsUrl.password) throw Error('AUTOPARTS_API_URL invalida.');
+  const autoPartsLangId = env.AUTOPARTS_LANG_ID || '4';
+  if (!/^\d+$/.test(autoPartsLangId)) throw Error('AUTOPARTS_LANG_ID invalido.');
   if (!['0', '1'].includes(env.MIN_REPLICAS || '0')) throw Error('MIN_REPLICAS deve ser 0 ou 1.');
   return Object.fromEntries(Object.entries({
     environment, supabaseUrl,
     supabaseAnonKey: env.SUPABASE_ANON_KEY, supabaseServiceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
     alertEmail: env.ALERT_EMAIL, shippingToken: env.SHIPPING_TOKEN || '', shippingUrl,
+    autoPartsApiUrl: autoPartsUrl.origin + autoPartsUrl.pathname.replace(/\/$/, ''),
+    autoPartsApiKey: env.AUTOPARTS_API_KEY || '', autoPartsLangId,
     minReplicas: Number(env.MIN_REPLICAS || '0'),
   }).map(([key, value]) => [key, { value }]));
 }
