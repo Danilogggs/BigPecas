@@ -147,6 +147,30 @@ function criarPedidosUseCases({
     return carregarHistorico(await obterUsuarioAtual(identidade));
   }
 
+  async function obterRelatorioVendas(identidade, period = 30) {
+    const days = Number(period);
+    if (![7, 30, 90].includes(days)) throw new AppError(400, 'Use um período de 7, 30 ou 90 dias.');
+    const { vendas } = await carregarHistorico(await obterUsuarioAtual(identidade));
+    const since = clock().getTime() - days * 86400000;
+    const paidStatuses = new Set([STATUS_PEDIDO.PAGO, STATUS_PEDIDO.ENVIADO, STATUS_PEDIDO.ENTREGUE]);
+    const sales = vendas.filter((sale) => paidStatuses.has(sale.status)).map((sale) => {
+      const paidAt = [...(sale.historico || [])].reverse().find((entry) => entry.status === STATUS_PEDIDO.PAGO)?.data || sale.criado_em;
+      const items = sale.itens.map((item) => ({
+        id: item.id, name: item.nome || 'Peça', sku: item.sku || null,
+        quantity: Number(item.quantidade || 1), unit_price: Number(item.preco || 0),
+        total: Number(item.preco || 0) * Number(item.quantidade || 1),
+      }));
+      return { id: sale.id, status: sale.status, paid_at: paidAt, buyer: sale.comprador?.nome || 'Cliente BigPeças', items,
+        total: items.reduce((sum, item) => sum + item.total, 0) };
+    }).filter((sale) => new Date(sale.paid_at).getTime() >= since)
+      .sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at));
+    return { days, sales, summary: {
+      orders: sales.length,
+      units: sales.flatMap((sale) => sale.items).reduce((sum, item) => sum + item.quantity, 0),
+      revenue: sales.reduce((sum, sale) => sum + sale.total, 0),
+    } };
+  }
+
   async function listarCompras(identidade) {
     const historico = await obterHistorico(identidade);
     return historico.compras;
@@ -326,6 +350,7 @@ function criarPedidosUseCases({
     criarPedido,
     listarCompras,
     obterHistorico,
+    obterRelatorioVendas,
     obterPedido,
   });
 }

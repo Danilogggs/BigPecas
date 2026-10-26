@@ -13,6 +13,7 @@ import {
 import PedidoDetalhe from '../features/pedidos/presentation/PedidoDetalhe';
 import PedidosShell from '../features/pedidos/presentation/PedidosShell';
 import StatusBadge from '../features/pedidos/presentation/StatusBadge';
+import SalesReport from '../features/pedidos/presentation/SalesReport';
 import {
   formatarDataPedido,
   formatarMoeda,
@@ -119,6 +120,8 @@ export default function PedidosPage() {
           />
         )}
       </div>
+
+      {visao === 'venda' && <SalesReport />}
 
       <div className="history-summary">
         <SummaryCard label={visao === 'venda' ? t('completedSales') : t('completedPurchases')} value={resumo.quantidade} />
