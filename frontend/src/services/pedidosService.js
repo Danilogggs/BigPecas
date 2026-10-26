@@ -58,6 +58,20 @@ export const listarHistoricoPedidos = async () => {
   }
 };
 
+export const obterRelatorioVendas = async (days = 30) => {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}/pedidos/relatorio-vendas?days=${days}`, { headers });
+  if (!response.ok) throw createFriendlyError(await parseErrorResponse(response, 'Não foi possível carregar o relatório de vendas.'));
+  return response.json();
+};
+
+export const exportarRelatorioVendas = async (days = 30) => {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}/pedidos/relatorio-vendas/exportar?days=${days}`, { headers });
+  if (!response.ok) throw createFriendlyError(await parseErrorResponse(response, 'Não foi possível exportar o relatório de vendas.'));
+  return response.blob();
+};
+
 export const buscarPedidoPorId = async (id, visao = 'compra') => {
   try {
     const headers = await getAuthHeaders();

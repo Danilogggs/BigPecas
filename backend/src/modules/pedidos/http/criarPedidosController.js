@@ -1,9 +1,22 @@
 const adaptar = require('../../../http/adaptarController');
+const createSalesWorkbook = require('../../../services/salesWorkbook');
 
 function criarPedidosController(useCases) {
   return Object.freeze({
     historico: adaptar(async (req, res) => {
       res.json(await useCases.obterHistorico(req.user));
+    }),
+
+    relatorioVendas: adaptar(async (req, res) => {
+      res.json(await useCases.obterRelatorioVendas(req.user, req.query.days));
+    }),
+
+    exportarRelatorioVendas: adaptar(async (req, res) => {
+      const report = await useCases.obterRelatorioVendas(req.user, req.query.days);
+      const buffer = await createSalesWorkbook(report);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="vendas-efetivadas-${report.days}-dias.xlsx"`);
+      res.send(Buffer.from(buffer));
     }),
 
     listar: adaptar(async (req, res) => {

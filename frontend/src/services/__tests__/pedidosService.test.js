@@ -4,6 +4,8 @@ import {
   buscarPedidoPorId,
   criarPedidoAPI,
   atualizarStatusPedidoAPI,
+  obterRelatorioVendas,
+  exportarRelatorioVendas,
 } from '../pedidosService';
 import { getSupabaseClient } from '../supabase';
 import { criarResposta, respostaDeErro, sessaoValida } from '../../../jest/helpers/http';
@@ -58,6 +60,22 @@ describe('pedidosService', () => {
       await expect(listarHistoricoPedidos()).rejects.toThrow(
         'Não foi possível carregar o histórico de compras e vendas.',
       );
+    });
+  });
+
+  describe('relatório de vendas', () => {
+    it('carrega o período solicitado', async () => {
+      const report = { days: 7, sales: [], summary: { orders: 0, units: 0, revenue: 0 } };
+      global.fetch.mockResolvedValue(criarResposta({ body: report }));
+      await expect(obterRelatorioVendas(7)).resolves.toEqual(report);
+      expect(url()).toBe(`${API}/pedidos/relatorio-vendas?days=7`);
+    });
+
+    it('baixa a planilha do período solicitado', async () => {
+      const blob = new Blob(['xlsx']);
+      global.fetch.mockResolvedValue({ ok: true, blob: jest.fn().mockResolvedValue(blob) });
+      await expect(exportarRelatorioVendas(90)).resolves.toBe(blob);
+      expect(url()).toBe(`${API}/pedidos/relatorio-vendas/exportar?days=90`);
     });
   });
 

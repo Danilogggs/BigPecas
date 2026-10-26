@@ -219,6 +219,35 @@ describe('pedidosRoutes', () => {
     });
   });
 
+  describe('GET /relatorio-vendas', () => {
+    it('lista somente pedidos pagos do vendedor e calcula itens e totais', async () => {
+      const paidAt = new Date(Date.now() - 2 * 86400000).toISOString();
+      mockarUsuarioAtual(VENDEDOR);
+      mockSupabaseAdmin.__mockTable('pedidos', { data: [
+        pedidoSalvo({ id: 'pago-1', status: 'enviado', historico: [
+          { status: 'aguardando_pagamento', data: paidAt }, { status: 'pago', data: paidAt },
+        ] }),
+        pedidoSalvo({ id: 'pendente-1', status: 'aguardando_pagamento' }),
+        pedidoSalvo({ id: 'cancelado-1', status: 'cancelado', historico: [{ status: 'pago', data: paidAt }] }),
+      ], error: null });
+      mockSupabaseAdmin.__mockTable('pecas', { data: [PECA], error: null });
+      mockSupabaseAdmin.__mockTable('users', { data: [COMPRADOR], error: null });
+
+      const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas?days=7');
+
+      expect(resposta.status).toBe(200);
+      expect(resposta.body.sales.map((sale) => sale.id)).toEqual(['pago-1']);
+      expect(resposta.body.summary).toEqual({ orders: 1, units: 2, revenue: 700 });
+      expect(resposta.body.sales[0].items[0]).toMatchObject({ name: 'Friso Opala', quantity: 2, total: 700 });
+    });
+
+    it('recusa período fora das opções permitidas', async () => {
+      mockarUsuarioAtual(VENDEDOR);
+      const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas?days=365');
+      expect(resposta.status).toBe(400);
+    });
+  });
+
   describe('GET /:id', () => {
     function mockarPedido(pedido) {
       mockSupabaseAdmin.__queueTable('pedidos', { data: pedido, error: null });
