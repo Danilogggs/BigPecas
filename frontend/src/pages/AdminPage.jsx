@@ -267,7 +267,7 @@ export default function AdminPage() {
   return <div className="admin-page"><Header /><div className="admin-shell">
     <aside className="admin-sidebar">
       <div className="admin-sidebar-brand"><img src="/logobigpecas_semtexto.png" alt="BigPeças" /><div><strong>Admin</strong><small>Central de gestão</small></div></div>
-      <nav>{adminNav.map(([id, label, icon]) => <button key={id} className={section === id ? 'is-active' : ''} onClick={() => setSection(id)}><Icon name={icon} />{label}</button>)}</nav>
+      <nav>{adminNav.map(([id, label, icon]) => <button key={id} className={section === id ? 'is-active' : ''} onClick={() => setSection(id)}><Icon name={icon} />{label}</button>)}<button onClick={() => navigate('/admin/auditoria')}><Icon name="▣" />Auditoria</button></nav>
       <div className="admin-sidebar-user"><span>{(dash.state.admin.full_name || 'A')[0]}</span><div><strong>{dash.state.admin.full_name || 'Administrador'}</strong><small>{dash.state.admin.email}</small></div></div>
     </aside>
 

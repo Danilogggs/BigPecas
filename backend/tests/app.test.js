@@ -6,6 +6,10 @@ const mockSupabasePublic = createSupabaseMock();
 
 const PERFIL = { id: 42, email: 'cliente@bigpecas.com', full_name: 'Maria' };
 
+// O arquivo recarrega toda a composicao da API em cada caso para testar limites
+// com ambientes diferentes; a margem evita falsos negativos em maquinas sob carga.
+jest.setTimeout(15000);
+
 /**
  * Recarrega o app com limites baixos para que os testes de rate limit nao
  * precisem disparar centenas de requisicoes.

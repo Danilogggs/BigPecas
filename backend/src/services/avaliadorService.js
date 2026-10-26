@@ -22,9 +22,17 @@ module.exports = {
     if (!peca) throw new AppError(404, 'Peça não encontrada.');
     const validacao = result(await db.from('avaliacoes_pecas').select('*').eq('peca_id', pecaId)
       .eq('revisao', peca.revisao_avaliacao).maybeSingle());
-    const criterios = peca.status_publicacao === 'pendente_validacao'
-      ? await this.getChecklistCriterios()
-      : validacao?.criterios_snapshot || [];
+    let criterios = validacao?.criterios_snapshot || [];
+    if (peca.status_publicacao === 'pendente_validacao') {
+      const ativos = await this.getChecklistCriterios();
+      const idsAtivos = new Set(ativos.map(criterio => String(criterio.id)));
+      // A revisão mantém o texto do snapshot, mas critérios desativados deixam
+      // de bloquear avaliações pendentes. Critérios criados depois não entram
+      // retroativamente em uma revisão que já estava na fila.
+      criterios = validacao
+        ? criterios.filter(criterio => idsAtivos.has(String(criterio.id)))
+        : ativos;
+    }
     return { peca, validacao, criterios };
   },
   async getChecklistCriterios() {

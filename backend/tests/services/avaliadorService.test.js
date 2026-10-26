@@ -27,3 +27,30 @@ test('revisão desatualizada não publica', async () => {
   await expect(service.decidir(1,2,answers,'',1,false)).rejects.toThrow('anúncio mudou');
   expect(db.rpc).not.toHaveBeenCalled();
 });
+
+test('avaliação pendente preserva o snapshot, mas remove critério que foi inativado', async () => {
+  const resultados = [
+    { data: { id: 10, status_publicacao: 'pendente_validacao', revisao_avaliacao: 3 }, error: null },
+    { data: { revisao: 3, criterios_snapshot: [
+      { id: 1, nome_criterio: 'Peça real?', obrigatorio: true },
+      { id: 2, nome_criterio: 'Critério desativado', obrigatorio: true },
+    ] }, error: null },
+    { data: [
+      { id: 1, nome_criterio: 'Texto atual não substitui o snapshot', obrigatorio: true, ativo: true },
+      { id: 3, nome_criterio: 'Criado depois', obrigatorio: true, ativo: true },
+    ], error: null },
+  ];
+  db.from.mockImplementation(() => {
+    const resultado = resultados.shift();
+    const chain = { select: jest.fn().mockReturnThis(), eq: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn().mockReturnThis(), order: jest.fn().mockReturnThis() };
+    chain.then = (resolve) => Promise.resolve(resultado).then(resolve);
+    return chain;
+  });
+
+  const retorno = await service.getValidacaoPeca(10);
+
+  expect(retorno.criterios).toEqual([
+    { id: 1, nome_criterio: 'Peça real?', obrigatorio: true },
+  ]);
+});
