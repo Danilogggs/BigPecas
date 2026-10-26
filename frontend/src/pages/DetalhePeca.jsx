@@ -29,6 +29,7 @@ import {
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
 import { useLanguage } from '../contexts/LanguageContext';
+import CondicaoPeca from '../components/CondicaoPeca';
 import { buscarNomeOpcao as buscarNome } from '../features/pecas/domain/peca';
 import {
   formatarDataPeca as formatarData,
@@ -600,7 +601,8 @@ export default function DetalhePeca() {
                   style={{
                     width: '100%',
                     height: 120,
-                    objectFit: 'cover',
+                    objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
                     borderRadius: BORDER_RADIUS.MD,
                     marginBottom: SPACING.SM,
                   }}
@@ -860,7 +862,8 @@ export default function DetalhePeca() {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
                         display: 'block',
                       }}
                     />
@@ -923,7 +926,7 @@ export default function DetalhePeca() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {peca.condicao || 'N/I'}
+                        {peca.condicao ? <CondicaoPeca condicao={peca.condicao} alinharFim /> : t('noInfo')}
                       </span>
                     </div>
 

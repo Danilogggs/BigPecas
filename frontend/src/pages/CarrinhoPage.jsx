@@ -17,7 +17,8 @@ import {
 } from '../features/carrinho/domain/carrinho';
 import { formatarMoedaCarrinho as formatBRL } from '../features/carrinho/presentation/carrinhoPresentation';
 
-const BORDEAUX = 'var(--bp-green-800)';
+const BORDEAUX = 'var(--bp-primary-action)';
+const ACCENT = 'var(--bp-action-text)';
 const CREAM = 'var(--bp-cream)';
 const HIGHLIGHT = 'var(--bp-gold)';
 const DARK = 'var(--bp-text)';
@@ -144,13 +145,15 @@ export default function CarrinhoPage() {
     <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
       <style>{`
         @media (max-width: 980px) {
-          .carrinho-grid { grid-template-columns: 1fr !important; }
-          .carrinho-item { grid-template-columns: 96px 1fr !important; }
+          .carrinho-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .carrinho-item { grid-template-columns: 96px minmax(0, 1fr) !important; }
           .carrinho-item-controls { grid-column: 1 / -1 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; padding-top: 12px !important; border-top: 1px dashed ${BORDER} !important; }
         }
         @media (max-width: 600px) {
           .frete-opcoes { grid-template-columns: 1fr !important; }
           .pagina-titulo { font-size: 1.5rem !important; }
+          .carrinho-item { grid-template-columns: 72px minmax(0, 1fr) !important; gap: 0.75rem !important; }
+          .carrinho-item-imagem { width: 72px !important; height: 72px !important; }
         }
         .qty-btn {
           width: 32px; height: 32px;
@@ -186,11 +189,11 @@ export default function CarrinhoPage() {
           transition: border-color 0.18s;
           box-sizing: border-box;
         }
-        .input-clean:focus { border-color: ${BORDEAUX}; }
+        .input-clean:focus { border-color: var(--bp-action-border); }
         .spinner {
           width: 16px; height: 16px;
           border: 2px solid ${CREAM};
-          border-top-color: ${BORDEAUX};
+          border-top-color: var(--bp-action-border);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           display: inline-block;
@@ -259,7 +262,7 @@ export default function CarrinhoPage() {
             className="carrinho-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 400px',
+              gridTemplateColumns: 'minmax(0, 1fr) 400px',
               gap: '1.5rem',
               alignItems: 'start',
             }}
@@ -297,7 +300,7 @@ export default function CarrinhoPage() {
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${BORDEAUX}0d`;
+                    e.currentTarget.style.backgroundColor = 'var(--bp-surface-muted)';
                     e.currentTarget.style.borderStyle = 'solid';
                   }}
                   onMouseLeave={(e) => {
@@ -672,7 +675,7 @@ export default function CarrinhoPage() {
                       style={{
                         marginTop: 4,
                         padding: '8px 10px',
-                        backgroundColor: `${HIGHLIGHT}22`,
+                        backgroundColor: 'var(--bp-gold-pale)',
                         borderRadius: 8,
                         fontSize: '0.78rem',
                         color: DARK,
@@ -691,6 +694,8 @@ export default function CarrinhoPage() {
                       paddingTop: 14,
                       borderTop: `1.5px dashed ${BORDER}`,
                       display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 8,
                       justifyContent: 'space-between',
                       alignItems: 'flex-end',
                     }}
@@ -724,7 +729,7 @@ export default function CarrinhoPage() {
                         textAlign: 'right',
                       }}
                     >
-                      ou 12x de{' '}
+                      {t('orInstallmentsOf')}{' '}
                       <strong style={{ color: DARK }}>
                         {formatBRL(totais.total / 12)}
                       </strong>
@@ -840,7 +845,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
       className="carrinho-item"
       style={{
         display: 'grid',
-        gridTemplateColumns: '96px 1fr auto auto',
+        gridTemplateColumns: '96px minmax(0, 1fr) auto auto',
         gap: '1rem',
         alignItems: 'center',
         padding: '14px 0',
@@ -849,6 +854,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
     >
       {/* Imagem */}
       <div
+        className="carrinho-item-imagem"
         onClick={onClick}
         style={{
           width: 96,
@@ -1023,6 +1029,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
 }
 
 function EmptyCart({ navigate }) {
+  const { t } = useLanguage();
   return (
     <div
       style={{
@@ -1057,10 +1064,10 @@ function EmptyCart({ navigate }) {
           fontFamily: 'var(--font-serif)',
         }}
       >
-        Seu carrinho está vazio
+        {t('Seu carrinho está vazio')}
       </h2>
       <p style={{ color: MUTED, marginBottom: '1.5rem' }}>
-        Explore nosso catálogo e adicione peças automotivas ao carrinho.
+        {t('Explore nosso catálogo e adicione peças automotivas ao carrinho.')}
       </p>
       <button
         onClick={() => navigate('/buscaPecas')}
@@ -1075,7 +1082,7 @@ function EmptyCart({ navigate }) {
           cursor: 'pointer',
         }}
       >
-        Explorar Peças
+        {t('Explorar Peças')}
       </button>
     </div>
   );

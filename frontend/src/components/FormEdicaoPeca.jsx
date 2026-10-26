@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { FormInput, FormSelect, FormTextarea } from './FormComponents';
+import { FormField, FormInput, FormSelect, FormTextarea } from './FormComponents';
 import { useLanguage } from '../contexts/LanguageContext';
 import PartReviewStatus from './PartReviewStatus';
 
@@ -166,15 +166,25 @@ const FormEdicaoPeca = memo(function FormEdicaoPeca({
           />
         </div>
 
-        <label style={{display:'block',margin:'16px 0'}}>{t('partVideoUrl')}
-                <input type="url" name="url_video" value={formData.url_video || ''} onChange={onInputChange} style={{width:'100%',padding:12}} placeholder="https://..." />
-              </label>
-              <label>{t('baseCurrency')}
-                <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={onInputChange}>
-                  <option value="BRL">BRL</option><option value="USD">USD</option><option value="EUR">EUR</option>
-                </select>
-              </label>
-              <p>{t('listingEvaluationCurrencyNotice')}</p>
+        <FormInput
+          name="url_video"
+          type="url"
+          label={t('partVideoUrl')}
+          value={formData.url_video || ''}
+          onChange={onInputChange}
+          placeholder="https://..."
+        />
+
+        <div>
+          <FormField label={t('baseCurrency')}>
+            <select name="moeda_base" className="form-select" value={formData.moeda_base || 'BRL'} onChange={onInputChange}>
+              <option value="BRL">BRL</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </FormField>
+          <p className="form-hint">{t('listingEvaluationCurrencyNotice')}</p>
+        </div>
 <div className="form-wide">
           <FormTextarea
             name="detalhes_gravacao"

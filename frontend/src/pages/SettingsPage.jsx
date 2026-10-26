@@ -1,5 +1,5 @@
 import Header from '../components/Header';
-import { useTheme } from '../contexts/ThemeContext';
+import { ajustarContrasteTema, useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 
@@ -116,21 +116,24 @@ export default function SettingsPage() {
             <fieldset className={`custom-theme-editor ${theme === 'custom' ? 'custom-theme-editor--active' : ''}`} disabled={theme !== 'custom'} aria-disabled={theme !== 'custom'}>
               <div className="custom-theme-editor__heading">
                 <div>
-                  <h2>Tema personalizado</h2>
-                  <p>Escolha as cores principais. Tons intermediários e contrastes são calculados automaticamente.</p>
+                  <h2>{t('Tema personalizado')}</h2>
+                  <p>{t('Escolha as cores principais. Tons intermediários e contrastes são calculados automaticamente.')}</p>
                 </div>
-                <button type="button" className="btn btn-outline" onClick={resetCustomTheme} disabled={theme !== 'custom'}>Restaurar paleta</button>
+                <button type="button" className="btn btn-outline" onClick={resetCustomTheme} disabled={theme !== 'custom'}>{t('Restaurar paleta')}</button>
               </div>
               <div className="custom-theme-editor__grid">
                 {CUSTOM_COLOR_FIELDS.map(([key, label]) => <label className="custom-color-field" key={key}>
-                  <span>{label}</span>
+                  <span>{t(label)}</span>
                   <span className="custom-color-field__control">
-                    <input type="color" value={customTheme[key]} disabled={theme !== 'custom'} onChange={(event) => updateCustomTheme({ [key]: event.target.value })} aria-label={label} />
+                    <input type="color" value={customTheme[key]} disabled={theme !== 'custom'} onChange={(event) => updateCustomTheme({ [key]: event.target.value })} aria-label={t(label)} />
                     <output>{customTheme[key].toUpperCase()}</output>
                   </span>
                 </label>)}
               </div>
-              <div className="custom-theme-preview" aria-label="Prévia do tema personalizado">
+              {theme === 'custom' && ajustarContrasteTema(customTheme).textoAjustado && (
+                <p className="custom-theme-editor__notice" role="status">{t('customThemeTextAdjusted')}</p>
+              )}
+              <div className="custom-theme-preview" aria-label={t('Prévia do tema personalizado')}>
                 <span style={{ background: customTheme.background }} />
                 <span style={{ background: customTheme.surface }} />
                 <span style={{ background: customTheme.primary }} />

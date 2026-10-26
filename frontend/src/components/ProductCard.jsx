@@ -44,7 +44,8 @@ export default function ProductCard({ product }) {
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
+            objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
           }}
           onError={(e) => {
             e.currentTarget.src = `https://via.placeholder.com/280x160?text=${encodeURIComponent(t('Imagem indisponível'))}`;

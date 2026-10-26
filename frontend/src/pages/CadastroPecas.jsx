@@ -330,7 +330,7 @@ export default function CadastroPecas() {
       setStoreErrors({});
       setMessage({
         type: 'success',
-        text: t('storeConfigured'),
+        text: 'storeConfigured',
       });
     } catch (error) {
       setMessage({
@@ -392,7 +392,7 @@ export default function CadastroPecas() {
     if (!tiposPermitidos.includes(file.type)) {
       setMessage({
         type: 'error',
-        text: t('Selecione uma imagem nos formatos JPG, PNG ou WEBP.'),
+        text: 'Selecione uma imagem nos formatos JPG, PNG ou WEBP.',
       });
 
       setFormData((prev) => ({ ...prev, imagem: '', oem_number: '' }));
@@ -686,7 +686,7 @@ export default function CadastroPecas() {
 
       setMessage({
         type: 'success',
-        text: response?.message || 'Peça cadastrada com sucesso!',
+        text: 'Peça cadastrada com sucesso!',
       });
       setFormData(INITIAL_FORM);
       setImagemPreview('');
@@ -719,8 +719,8 @@ export default function CadastroPecas() {
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
       <InfoModal
         open={modal.open}
-        title={modal.title}
-        text={modal.text}
+        title={t(modal.title)}
+        text={t(modal.text)}
         onClose={fecharModal}
       />
 
@@ -773,7 +773,7 @@ export default function CadastroPecas() {
               <h1 className="page-title">{t('registerPartTitle')}</h1>
               <p className="page-subtitle">
                 {storeConfigured
-                  ? `Anuncie uma peça pela loja ${profile.nome_loja}.`
+                  ? t('listPartFromStore', { store: profile.nome_loja })
                   : t('configureStoreToSell')}
               </p>
             </div>
@@ -802,7 +802,7 @@ export default function CadastroPecas() {
               fontWeight: 600,
             }}
           >
-            {message.text}
+            {t(message.text)}
           </div>
         )}
 
@@ -835,7 +835,7 @@ export default function CadastroPecas() {
                   padding: `${SPACING.XS} ${SPACING.MD}`,
                   marginBottom: SPACING.MD,
                   borderRadius: BORDER_RADIUS.FULL,
-                  backgroundColor: `${COLORS.HIGHLIGHT}22`,
+                  backgroundColor: 'var(--bp-gold-pale)',
                   color: 'var(--bp-action-text)',
                   fontSize: '0.75rem',
                   fontWeight: 800,
@@ -947,7 +947,7 @@ export default function CadastroPecas() {
               </select>
               {categoriaOutros && (
                 <p style={{ margin: `${SPACING.SM} 0 0`, color: COLORS.MUTED_TEXT, fontSize: '0.82rem' }}>
-                  Para a categoria Outros, o número OEM é opcional.
+                  {t('Para a categoria Outros, o número OEM é opcional.')}
                 </p>
               )}
             </FormGroup>
@@ -1009,7 +1009,7 @@ export default function CadastroPecas() {
                 <input
                   type="text"
                   name="oem_number"
-                  placeholder="Leia pela imagem; depois ajuste se necessário"
+                  placeholder={t('Leia pela imagem; depois ajuste se necessário')}
                   value={formData.oem_number}
                   onChange={handleInputChange}
                   disabled={!formData.oem_number && oemCandidates.length === 0}
@@ -1121,7 +1121,7 @@ export default function CadastroPecas() {
                   </option>
                   {materiais.map((material) => (
                     <option key={material.id} value={material.id}>
-                      {material.nome}
+                      {t(material.nome)}
                     </option>
                   ))}
                 </select>
@@ -1134,11 +1134,16 @@ export default function CadastroPecas() {
                   onChange={handleInputChange}
                   style={fieldBaseStyle}
                 >
-                  <option value="NOS">NOS</option>
-                  <option value="EXCELENTE">EXCELENTE</option>
-                  <option value="BOM">BOM</option>
-                  <option value="ACEITÁVEL">ACEITÁVEL</option>
+                  <option value="NOS">{t('NOS (Novo em Estoque)')}</option>
+                  <option value="EXCELENTE">{t('conditionExcellent')}</option>
+                  <option value="BOM">{t('conditionGood')}</option>
+                  <option value="ACEITÁVEL">{t('conditionAcceptable')}</option>
                 </select>
+                {formData.condicao === 'NOS' && (
+                  <p style={{ margin: `${SPACING.SM} 0 0`, color: COLORS.MUTED_TEXT, fontSize: '0.82rem' }}>
+                    {t('nosExplanation')}
+                  </p>
+                )}
               </FormGroup>
 
               <FormGroup label={t('Preço')} required error={errors.preco}>
@@ -1239,7 +1244,7 @@ export default function CadastroPecas() {
                       height: 110,
                       objectFit: 'cover',
                       borderRadius: BORDER_RADIUS.MD,
-                      border: `2px solid ${COLORS.BORDEAUX}22`,
+                      border: '2px solid var(--bp-border-light)',
                       backgroundColor: 'var(--bp-surface)',
                     }}
                   />
@@ -1325,27 +1330,41 @@ export default function CadastroPecas() {
 
             <div style={{ height: SPACING.LG }} />
 
-            <label style={{ display: 'block', margin: '16px 0' }}>
-              {t('partVideoUrl')}
-              <input
-                type="url"
-                name="url_video"
-                value={formData.url_video || ''}
-                onChange={handleInputChange}
-                style={{ width: '100%', padding: 12 }}
-                placeholder="https://..."
-              />
-            </label>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+                gap: SPACING.LG,
+                alignItems: 'start',
+              }}
+            >
+              <FormGroup label={t('partVideoUrl')}>
+                <input
+                  type="url"
+                  name="url_video"
+                  value={formData.url_video || ''}
+                  onChange={handleInputChange}
+                  style={fieldBaseStyle}
+                  placeholder="https://..."
+                />
+              </FormGroup>
 
-            <label>
-              {t('baseCurrency')}
-              <select name="moeda_base" value={formData.moeda_base || 'BRL'} onChange={handleInputChange}>
-                <option value="BRL">BRL</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-              </select>
-            </label>
-            <p>{t('listingEvaluationCurrencyNotice')}</p>
+              <FormGroup label={t('baseCurrency')}>
+                <select
+                  name="moeda_base"
+                  value={formData.moeda_base || 'BRL'}
+                  onChange={handleInputChange}
+                  style={fieldBaseStyle}
+                >
+                  <option value="BRL">BRL</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </FormGroup>
+            </div>
+            <p style={{ margin: `${SPACING.SM} 0 0`, color: COLORS.MUTED_TEXT, fontSize: '0.82rem' }}>
+              {t('listingEvaluationCurrencyNotice')}
+            </p>
 
             <div style={{ height: SPACING.LG }} />
 

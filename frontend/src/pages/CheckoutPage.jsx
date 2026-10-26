@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useCart } from '../contexts/CartContext';
 import { useOrders } from '../contexts/OrderContext';
-import { formatarCep, validarCep, sanitizarCep } from '../services/freteService';
+import { buscarEnderecoPorCep, formatarCep, validarCep, sanitizarCep } from '../services/freteService';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   FORMAS_PAGAMENTO,
@@ -17,7 +17,8 @@ import {
 import { formatarMoedaCarrinho as formatBRL } from '../features/carrinho/presentation/carrinhoPresentation';
 import { AppIcon } from '../components/Icons';
 
-const BORDEAUX = 'var(--bp-green-800)';
+const BORDEAUX = 'var(--bp-primary-action)';
+const ACCENT = 'var(--bp-action-text)';
 const CREAM = 'var(--bp-cream)';
 const HIGHLIGHT = 'var(--bp-gold)';
 const DARK = 'var(--bp-text)';
@@ -164,7 +165,7 @@ export default function CheckoutPage() {
             border: `1px solid ${BORDER}`,
           }}
         >
-          <h2 style={{ color: BORDEAUX, marginTop: 0 }}>
+          <h2 style={{ color: ACCENT, marginTop: 0 }}>
             {t('Carrinho vazio')}
           </h2>
           <p style={{ color: MUTED }}>
@@ -174,7 +175,7 @@ export default function CheckoutPage() {
             onClick={() => navigate('/buscaPecas')}
             style={{
               backgroundColor: BORDEAUX,
-              color: CREAM,
+              color: 'var(--bp-on-primary)',
               padding: '12px 28px',
               border: 'none',
               borderRadius: 10,
@@ -205,7 +206,7 @@ export default function CheckoutPage() {
             border: `1px solid ${BORDER}`,
           }}
         >
-          <h2 style={{ color: BORDEAUX, marginTop: 0 }}>
+          <h2 style={{ color: ACCENT, marginTop: 0 }}>
             {t('Calcule o frete primeiro')}
           </h2>
           <p style={{ color: MUTED }}>
@@ -215,7 +216,7 @@ export default function CheckoutPage() {
             onClick={() => navigate('/carrinho')}
             style={{
               backgroundColor: BORDEAUX,
-              color: CREAM,
+              color: 'var(--bp-on-primary)',
               padding: '12px 28px',
               border: 'none',
               borderRadius: 10,
@@ -235,7 +236,10 @@ export default function CheckoutPage() {
     <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
       <style>{`
         @media (max-width: 980px) {
-          .checkout-grid { grid-template-columns: 1fr !important; }
+          .checkout-grid { grid-template-columns: minmax(0, 1fr) !important; }
+        }
+        @media (max-width: 600px) {
+          .checkout-form-grid > * { grid-column: 1 / -1 !important; }
         }
         .input-clean {
           width: 100%;
@@ -249,7 +253,7 @@ export default function CheckoutPage() {
           transition: border-color 0.18s;
           box-sizing: border-box;
         }
-        .input-clean:focus { border-color: ${BORDEAUX}; }
+        .input-clean:focus { border-color: var(--bp-action-border); }
         .input-error { border-color: #FCA5A5 !important; background: #FEF2F2; }
         .label-clean {
           display: block;
@@ -270,7 +274,7 @@ export default function CheckoutPage() {
           display: flex; align-items: center; gap: 14px;
         }
         .pag-card:hover { border-color: ${HIGHLIGHT}; }
-        .pag-card.ativo { border-color: ${BORDEAUX}; background: ${CREAM}; box-shadow: 0 4px 12px rgba(123,29,46,0.15); }
+        .pag-card.ativo { border-color: var(--bp-action-border); background: ${CREAM}; box-shadow: 0 4px 12px rgba(123,29,46,0.15); }
         .step-circle {
           width: 36px; height: 36px;
           border-radius: 50%;
@@ -282,7 +286,7 @@ export default function CheckoutPage() {
         .spinner-lg {
           width: 22px; height: 22px;
           border: 3px solid ${CREAM};
-          border-top-color: ${BORDEAUX};
+          border-top-color: var(--bp-action-border);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           display: inline-block;
@@ -305,7 +309,7 @@ export default function CheckoutPage() {
               {t('cart')}
             </span>{' '}
             ›{' '}
-            <span style={{ color: BORDEAUX, fontWeight: 600 }}>
+            <span style={{ color: ACCENT, fontWeight: 600 }}>
               {t('checkout')}
             </span>
           </div>
@@ -313,7 +317,7 @@ export default function CheckoutPage() {
             style={{
               fontSize: '2rem',
               fontWeight: 700,
-              color: BORDEAUX,
+              color: ACCENT,
               margin: 0,
               fontFamily: 'var(--font-serif)',
             }}
@@ -336,7 +340,7 @@ export default function CheckoutPage() {
             className="checkout-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 400px',
+              gridTemplateColumns: 'minmax(0, 1fr) 400px',
               gap: '1.5rem',
               alignItems: 'start',
             }}
@@ -398,8 +402,8 @@ export default function CheckoutPage() {
                 style={{
                   padding: '12px 22px',
                   backgroundColor: 'transparent',
-                  color: BORDEAUX,
-                  border: `2px solid ${BORDEAUX}`,
+                  color: ACCENT,
+                  border: `2px solid var(--bp-action-border)`,
                   borderRadius: 10,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -415,7 +419,7 @@ export default function CheckoutPage() {
                   style={{
                     padding: '12px 28px',
                     backgroundColor: BORDEAUX,
-                    color: CREAM,
+                    color: 'var(--bp-on-primary)',
                     border: 'none',
                     borderRadius: 10,
                     fontWeight: 700,
@@ -432,7 +436,7 @@ export default function CheckoutPage() {
                   style={{
                     padding: '12px 32px',
                     backgroundColor: processando ? MUTED : BORDEAUX,
-                    color: CREAM,
+                    color: 'var(--bp-on-primary)',
                     border: 'none',
                     borderRadius: 10,
                     fontWeight: 700,
@@ -518,7 +522,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
       <h2
         style={{
           margin: '0.6rem 0',
-          color: BORDEAUX,
+          color: ACCENT,
           fontFamily: 'var(--font-serif)',
           fontSize: '2rem',
         }}
@@ -545,7 +549,7 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
             border: 0,
             borderRadius: 10,
             backgroundColor: BORDEAUX,
-            color: CREAM,
+            color: 'var(--bp-on-primary)',
             fontWeight: 700,
             cursor: 'pointer',
           }}
@@ -557,10 +561,10 @@ function CompraCompleta({ pedido, onAcompanhar, onContinuar }) {
           onClick={onContinuar}
           style={{
             padding: '12px 24px',
-            border: `2px solid ${BORDEAUX}`,
+            border: `2px solid var(--bp-action-border)`,
             borderRadius: 10,
             backgroundColor: 'transparent',
-            color: BORDEAUX,
+            color: ACCENT,
             fontWeight: 700,
             cursor: 'pointer',
           }}
@@ -666,8 +670,36 @@ function Field({ label, error, children, span = 1 }) {
 
 function EnderecoForm({ endereco, setEndereco, errors }) {
   const { t } = useLanguage();
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [erroCep, setErroCep] = useState('');
   const handleChange = (campo, valor) =>
     setEndereco((prev) => ({ ...prev, [campo]: valor }));
+
+  const cepLimpo = sanitizarCep(endereco.cep);
+  useEffect(() => {
+    if (!validarCep(cepLimpo)) {
+      setErroCep('');
+      return undefined;
+    }
+    let ativo = true;
+    setBuscandoCep(true);
+    setErroCep('');
+    buscarEnderecoPorCep(cepLimpo)
+      .then((encontrado) => {
+        if (!ativo) return;
+        // Preenche apenas o que o CEP informa, sem apagar o que ja foi digitado.
+        setEndereco((prev) => ({
+          ...prev,
+          logradouro: encontrado.logradouro || prev.logradouro,
+          bairro: encontrado.bairro || prev.bairro,
+          cidade: encontrado.cidade || prev.cidade,
+          uf: encontrado.uf || prev.uf,
+        }));
+      })
+      .catch(() => { if (ativo) setErroCep(t('zipNotFound')); })
+      .finally(() => { if (ativo) setBuscandoCep(false); });
+    return () => { ativo = false; };
+  }, [cepLimpo, setEndereco]);
 
   return (
     <section
@@ -678,17 +710,17 @@ function EnderecoForm({ endereco, setEndereco, errors }) {
         border: `1px solid ${BORDER}`,
       }}
     >
-      <h2 style={{ margin: '0 0 4px', color: BORDEAUX, fontSize: '1.15rem' }}>
+      <h2 style={{ margin: '0 0 4px', color: ACCENT, fontSize: '1.15rem' }}>
         {t('deliveryAddress')}
       </h2>
       <p style={{ margin: '0 0 1.5rem', color: MUTED, fontSize: '0.88rem' }}>
         {t('deliveryAddressDescription')}
       </p>
 
-      <div
+      <div className="checkout-form-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
+          gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
           gap: '1rem',
         }}
       >
@@ -701,14 +733,16 @@ function EnderecoForm({ endereco, setEndereco, errors }) {
           />
         </Field>
 
-        <Field label={t('zipCode')} error={errors.cep} span={2}>
+        <Field label={t('zipCode')} error={errors.cep || erroCep} span={2}>
           <input
-            className={`input-clean ${errors.cep ? 'input-error' : ''}`}
+            className={`input-clean ${errors.cep || erroCep ? 'input-error' : ''}`}
             value={endereco.cep}
             onChange={(e) => handleChange('cep', formatarCep(e.target.value))}
             placeholder={t('zipPlaceholder')}
             maxLength={9}
+            aria-busy={buscandoCep}
           />
+          {buscandoCep && <small style={{ color: MUTED }}>{t('searchingZip')}</small>}
         </Field>
         <Field label={t('phone')} error={errors.telefone} span={2}>
           <input
@@ -800,7 +834,7 @@ function PagamentoForm({
         border: `1px solid ${BORDER}`,
       }}
     >
-      <h2 style={{ margin: '0 0 4px', color: BORDEAUX, fontSize: '1.15rem' }}>
+      <h2 style={{ margin: '0 0 4px', color: ACCENT, fontSize: '1.15rem' }}>
         {t('paymentMethod')}
       </h2>
       <p style={{ margin: '0 0 1.5rem', color: MUTED, fontSize: '0.88rem' }}>
@@ -821,8 +855,8 @@ function PagamentoForm({
                   width: 44,
                   height: 44,
                   borderRadius: 10,
-                  backgroundColor: ativo ? BORDEAUX : `${BORDEAUX}15`,
-                  color: ativo ? CREAM : BORDEAUX,
+                  backgroundColor: ativo ? BORDEAUX : 'var(--bp-surface-muted)',
+                  color: ativo ? 'var(--bp-on-primary)' : ACCENT,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -894,10 +928,10 @@ function PagamentoForm({
           >
             {t('cardData')}
           </h3>
-          <div
+          <div className="checkout-form-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(6, 1fr)',
+              gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
               gap: '1rem',
             }}
           >
@@ -988,7 +1022,7 @@ function InfoBox({ icone, titulo, texto }) {
       style={{
         marginTop: '1.5rem',
         padding: '1rem 1.25rem',
-        backgroundColor: `${HIGHLIGHT}22`,
+        backgroundColor: 'var(--bp-gold-pale)',
         border: `1px solid ${HIGHLIGHT}`,
         borderRadius: 10,
         display: 'flex',
@@ -1018,7 +1052,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
         border: `1px solid ${BORDER}`,
       }}
     >
-      <h2 style={{ margin: '0 0 1.5rem', color: BORDEAUX, fontSize: '1.15rem' }}>
+      <h2 style={{ margin: '0 0 1.5rem', color: ACCENT, fontSize: '1.15rem' }}>
         {t('reviewOrder')}
       </h2>
 
@@ -1117,7 +1151,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
         border: `1px solid ${BORDER}`,
       }}
     >
-      <h2 style={{ margin: '0 0 1.25rem', color: BORDEAUX, fontSize: '1.1rem' }}>
+      <h2 style={{ margin: '0 0 1.25rem', color: ACCENT, fontSize: '1.1rem' }}>
         {t('orderSummary')}
       </h2>
 
@@ -1184,7 +1218,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
               style={{
                 fontSize: '0.85rem',
                 fontWeight: 700,
-                color: BORDEAUX,
+                color: ACCENT,
                 whiteSpace: 'nowrap',
               }}
             >
@@ -1241,7 +1275,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
           {t('total')}
         </div>
         <div
-          style={{ fontSize: '1.6rem', fontWeight: 800, color: BORDEAUX, lineHeight: 1 }}
+          style={{ fontSize: '1.6rem', fontWeight: 800, color: ACCENT, lineHeight: 1 }}
         >
           {formatBRL(totais.total)}
         </div>

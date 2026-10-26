@@ -87,3 +87,9 @@ export function useAuth() {
   if (!context) throw new Error('useAuth deve ser usado dentro de AuthProvider');
   return context;
 }
+
+// Variante sem exigencia de provider, para contextos que tambem funcionam
+// sem usuario autenticado (ex.: carrinho em testes isolados).
+export function useUsuarioAutenticado() {
+  return useContext(AuthContext)?.user || null;
+}
