@@ -69,3 +69,22 @@ test('conflito de revisão mantém decisão bloqueada no servidor e mostra erro'
   expect(await screen.findByRole('alert')).toHaveTextContent('O anúncio mudou');
 });
 
+test('ignora respostas antigas de critérios que não fazem mais parte da revisão ativa', async () => {
+  service.submitValidacao.mockResolvedValue({publicada:true});
+  service.getValidacaoPeca.mockResolvedValue({
+    ...fixture,
+    validacao: { respostas: [
+      { criterio_id: 1, resposta: false },
+      { criterio_id: 99, resposta: false },
+    ] },
+    criterios: [{ id: 1, nome_criterio: 'Peça real?', obrigatorio: true }],
+  });
+  open();
+  const checkbox = await screen.findByRole('checkbox', {name:/Peça real/});
+  fireEvent.click(checkbox);
+  fireEvent.click(screen.getByRole('button',{name:'Concluir e publicar'}));
+  await waitFor(() => expect(service.submitValidacao).toHaveBeenCalledWith('10', [
+    { criterio_id: 1, resposta: true },
+  ], '', 3));
+});
+

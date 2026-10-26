@@ -1,0 +1,26 @@
+.audit-details-button {
+  padding: 6px 9px;
+  border: 1px solid #b8c8bc;
+  border-radius: 7px;
+  color: #285e3a;
+  font-size: .68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.audit-details-button:hover { background: #edf5ef; }
+.audit-details-row td { padding: 0 15px 15px !important; border-top: 0 !important; background: #faf9f5; }
+.audit-details-row td > div { padding: 14px; border: 1px solid #e0dbcf; border-radius: 10px; background: #fff; }
+.audit-details-row strong { font-size: .72rem; }
+.audit-details-row pre {
+  max-height: 340px;
+  margin-top: 9px;
+  padding: 13px;
+  overflow: auto;
+  border-radius: 8px;
+  background: #17251c;
+  color: #dce8df;
+  font: 12px/1.55 Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

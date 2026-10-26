@@ -14,10 +14,13 @@ const notificacoesRoutes = require('./routes/notificacoesRoutes');
 const avaliadorRoutes = require('./routes/avaliadorRoutes');
 const adminAvaliadorRoutes = require('./routes/adminAvaliadorRoutes');
 const currencyRoutes = require('./routes/currencyRoutes');
+const auditRoutes = require('./routes/auditRoutes');
+const auditEventRoutes = require('./routes/auditEventRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
 const verifyToken = require('./middlewares/verifyToken');
 const verifyAdmin = require('./middlewares/verifyAdmin');
+const auditBackendActions = require('./middlewares/auditBackendActions');
 const {
   apiLimiter,
   authLimiter,
@@ -50,17 +53,19 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth/register', registroLimiter);
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/pecas', verifyToken, pecasRoutes);
-app.use('/api/wish', verifyToken, wishRoutes);
-app.use('/api/pedidos', verifyToken, pedidosRoutes);
+app.use('/api/pecas', verifyToken, auditBackendActions, pecasRoutes);
+app.use('/api/wish', verifyToken, auditBackendActions, wishRoutes);
+app.use('/api/pedidos', verifyToken, auditBackendActions, pedidosRoutes);
 app.use('/api/notificacoes', notificacoesRoutes);
-app.use('/api/avaliacoes', verifyToken, avaliacoesRoutes);
-app.use('/api/frete', verifyToken, freteLimiter, freteRoutes);
-app.use('/api/avaliador', verifyToken, avaliadorRoutes);
-app.use('/api/admin', verifyToken, verifyAdmin, adminRoutes);
-app.use('/api/admin/avaliador', verifyToken, verifyAdmin, adminAvaliadorRoutes);
+app.use('/api/auditoria', verifyToken, auditEventRoutes);
+app.use('/api/admin/auditoria', verifyToken, verifyAdmin, auditRoutes);
+app.use('/api/avaliacoes', verifyToken, auditBackendActions, avaliacoesRoutes);
+app.use('/api/frete', verifyToken, auditBackendActions, freteLimiter, freteRoutes);
+app.use('/api/avaliador', verifyToken, auditBackendActions, avaliadorRoutes);
+app.use('/api/admin/avaliador', verifyToken, verifyAdmin, auditBackendActions, adminAvaliadorRoutes);
+app.use('/api/admin', verifyToken, verifyAdmin, auditBackendActions, adminRoutes);
 app.use('/api/moeda', currencyRoutes);
-app.use('/api', verifyToken, catalogRoutes);
+app.use('/api', verifyToken, auditBackendActions, catalogRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import PrivateRoute from './routes/PrivateRoute';
 import PublicRoute from './routes/PublicRoute';
 import { useLanguage } from './contexts/LanguageContext';
+import AuditNavigationTracker from './features/auditoria/presentation/AuditNavigationTracker';
 
 // Carregamento sob demanda — reduz bundle inicial ~60%
 const HomePage            = lazy(() => import('./pages/HomePage'));
@@ -29,6 +30,7 @@ const NotificacoesPage    = lazy(() => import('./pages/NotificacoesPage'));
 const AvaliadorPage = lazy(() => import('./pages/AvaliadorPage'));
 const ValidarPecaPage = lazy(() => import('./pages/ValidarPecaPage'));
 const AdminChecklistPage = lazy(() => import('./pages/AdminChecklistPage'));
+const AuditoriaPage = lazy(() => import('./pages/AuditoriaPage'));
 function PageLoader() {
   const { t } = useLanguage();
   return (
@@ -45,10 +47,12 @@ function PageLoader() {
 export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
+      <AuditNavigationTracker />
       <Routes>
         <Route path="/avaliador" element={<PrivateRoute><AvaliadorPage /></PrivateRoute>} />
         <Route path="/avaliador/validar/:pecaId" element={<PrivateRoute><ValidarPecaPage /></PrivateRoute>} />
         <Route path="/admin/checklist" element={<PrivateRoute><AdminChecklistPage /></PrivateRoute>} />
+        <Route path="/admin/auditoria" element={<PrivateRoute><AuditoriaPage /></PrivateRoute>} />
         <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
         <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
 
