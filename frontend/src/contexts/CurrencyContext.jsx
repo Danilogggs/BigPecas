@@ -11,7 +11,7 @@ export function CurrencyProvider({ children }) {
     let active = true;
     fetch(API_BASE_URL + '/moeda/config').then(async r => {
       if (!r.ok) throw new Error('Conversão indisponível; preços exibidos em BRL.');
-      const data = await r.json(); if (active) setRates(data);
+      const data = await r.json(); if (active && Array.isArray(data)) setRates(data);
     }).catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
   }, []);

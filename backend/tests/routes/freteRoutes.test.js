@@ -262,11 +262,64 @@ describe('freteRoutes', () => {
     });
 
     it('usa mensagem padrao quando o Melhor Envio nao explica o erro', async () => {
-      global.fetch.mockResolvedValue(respostaJson({}, { ok: false, status: 500 }));
+      global.fetch.mockResolvedValue(respostaJson({}, { ok: false, status: 400 }));
 
       const resposta = await request(app).post('/api/frete/calcular').send(CORPO_VALIDO);
 
       expect(resposta.body.error).toBe('Erro ao calcular frete no Melhor Envio.');
+    });
+
+    describe('estimativa quando o Melhor Envio esta indisponivel', () => {
+      function esperarEstimativa(resposta) {
+        expect(resposta.status).toBe(200);
+        expect(resposta.body.estimado).toBe(true);
+        expect(resposta.body.cep_destino).toBe('20040020');
+        expect(resposta.body.opcoes.map((opcao) => opcao.tipo)).toEqual(['PAC', 'SEDEX']);
+      }
+
+      it('estima o frete quando o Melhor Envio responde com erro interno', async () => {
+        global.fetch.mockResolvedValue(respostaJson({}, { ok: false, status: 500 }));
+
+        const resposta = await request(app).post('/api/frete/calcular').send(CORPO_VALIDO);
+
+        esperarEstimativa(resposta);
+        // 1,6 kg (2 x 800 g) e regioes postais 0 -> 2.
+        expect(resposta.body.opcoes[0]).toMatchObject({
+          valor: 33.6, prazo_min: 6, prazo_max: 8, prazo_texto: 'Entrega em até 8 dias úteis',
+        });
+        expect(resposta.body.opcoes[1]).toMatchObject({ valor: 57.12, prazo_min: 2, prazo_max: 3 });
+      });
+
+      it('estima o frete quando a rede falha', async () => {
+        global.fetch.mockRejectedValue(new Error('ECONNRESET'));
+
+        esperarEstimativa(await request(app).post('/api/frete/calcular').send(CORPO_VALIDO));
+      });
+
+      it('estima o frete sem chamar a API quando nao ha token configurado', async () => {
+        app = criarApp({ MELHOR_ENVIO_ACCESS_TOKEN: '' });
+
+        esperarEstimativa(await request(app).post('/api/frete/calcular').send(CORPO_VALIDO));
+        expect(global.fetch).not.toHaveBeenCalled();
+      });
+
+      it('nao tenta renovar o token sem client id/secret e estima o frete', async () => {
+        app = criarApp({ MELHOR_ENVIO_CLIENT_ID: '', MELHOR_ENVIO_CLIENT_SECRET: '' });
+        global.fetch.mockResolvedValue(respostaJson({}, { ok: false, status: 401 }));
+
+        esperarEstimativa(await request(app).post('/api/frete/calcular').send(CORPO_VALIDO));
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+      });
+
+      it('usa texto no singular quando o prazo minimo e de um dia', async () => {
+        global.fetch.mockResolvedValue(respostaJson({}, { ok: false, status: 503 }));
+
+        const resposta = await request(app).post('/api/frete/calcular').send({
+          ...CORPO_VALIDO, cep_destino: '01001-000',
+        });
+
+        expect(resposta.body.opcoes[1].prazo_texto).toBe('Entrega em 1 dia útil');
+      });
     });
 
     describe('renovacao automatica de token', () => {
@@ -302,7 +355,7 @@ describe('freteRoutes', () => {
         expect(global.fetch.mock.calls[2][1].headers.Authorization).toBe('Bearer access-novo');
       });
 
-      it('devolve 502 quando a renovacao do token falha', async () => {
+      it('estima o frete quando a renovacao do token falha', async () => {
         global.fetch
           .mockResolvedValueOnce(respostaJson({}, { ok: false, status: 401 }))
           .mockResolvedValueOnce({
@@ -314,8 +367,8 @@ describe('freteRoutes', () => {
 
         const resposta = await request(app).post('/api/frete/calcular').send(CORPO_VALIDO);
 
-        expect(resposta.status).toBe(502);
-        expect(resposta.body.error).toContain('Falha ao renovar token do Melhor Envio');
+        expect(resposta.status).toBe(200);
+        expect(resposta.body.estimado).toBe(true);
       });
 
       it('nao renova o token quando a primeira chamada funciona', async () => {

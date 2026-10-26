@@ -223,7 +223,7 @@ export default function WishPage() {
                       <img
                         src={peca.imagem}
                         alt={peca.nome_peca || t('partImage')}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'var(--bp-surface-muted)', display: 'block' }}
                       />
                     ) : (
                       <span style={{ color: 'var(--bp-on-light)', fontWeight: 800 }}>{t('noImage')}</span>

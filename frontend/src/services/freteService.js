@@ -1,5 +1,6 @@
 export {
   aplicarCupom,
+  buscarEnderecoPorCep,
   calcularFrete,
   formatarCep,
   sanitizarCep,

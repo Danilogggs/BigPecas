@@ -42,6 +42,21 @@ export async function calcularFrete(cepDestino, itens = []) {
   return { cep: formatarCep(cepDestino), cepLimpo: sanitizarCep(cepDestino), opcoes: data.opcoes };
 }
 
+// Consulta publica (ViaCEP) para preencher o endereco a partir do CEP.
+export async function buscarEnderecoPorCep(cep) {
+  if (!validarCep(cep)) throw new Error('Informe um CEP válido com 8 dígitos.');
+  const response = await fetch(`https://viacep.com.br/ws/${sanitizarCep(cep)}/json/`);
+  if (!response.ok) throw new Error('Não foi possível consultar o CEP agora.');
+  const data = await response.json();
+  if (data?.erro) throw new Error('CEP não encontrado.');
+  return {
+    logradouro: data.logradouro || '',
+    bairro: data.bairro || '',
+    cidade: data.localidade || '',
+    uf: data.uf || '',
+  };
+}
+
 export async function aplicarCupom(codigo, subtotal) {
   await new Promise((resolve) => setTimeout(resolve, 400));
   return validarCupom(codigo, subtotal);

@@ -363,7 +363,7 @@ export default function ProfilePage() {
                 borderRadius: '9999px',
                 padding: '12px 24px',
                 backgroundColor: 'var(--bp-gold)',
-                color: 'var(--bp-green-900)',
+                color: 'var(--bp-on-light)',
                 fontWeight: 700,
                 fontSize: '15px',
                 cursor: saving ? 'not-allowed' : 'pointer',

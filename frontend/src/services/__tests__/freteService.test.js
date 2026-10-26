@@ -4,6 +4,7 @@ import {
   validarCep,
   calcularFrete,
   aplicarCupom,
+  buscarEnderecoPorCep,
 } from '../freteService';
 import { getSupabaseClient } from '../supabase';
 import { criarResposta, respostaDeErro, sessaoValida } from '../../../jest/helpers/http';
@@ -231,4 +232,44 @@ describe('aplicarCupom', () => {
       await expect(aplicarCupom(codigo, 500)).rejects.toThrow('Cupom inválido ou expirado.');
     },
   );
+});
+
+describe('buscarEnderecoPorCep', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  it('consulta o ViaCEP e devolve o endereco normalizado', async () => {
+    global.fetch.mockResolvedValue(criarResposta({ body: {
+      logradouro: 'Rua XV de Novembro', bairro: 'Centro', localidade: 'Curitiba', uf: 'PR',
+    } }));
+
+    await expect(buscarEnderecoPorCep('80020-310')).resolves.toEqual({
+      logradouro: 'Rua XV de Novembro', bairro: 'Centro', cidade: 'Curitiba', uf: 'PR',
+    });
+    expect(global.fetch).toHaveBeenCalledWith('https://viacep.com.br/ws/80020310/json/');
+  });
+
+  it('preenche campos ausentes com texto vazio', async () => {
+    global.fetch.mockResolvedValue(criarResposta({ body: { localidade: 'Cidade Pequena', uf: 'MG' } }));
+
+    await expect(buscarEnderecoPorCep('35000000')).resolves.toEqual({
+      logradouro: '', bairro: '', cidade: 'Cidade Pequena', uf: 'MG',
+    });
+  });
+
+  it('rejeita CEP inexistente', async () => {
+    global.fetch.mockResolvedValue(criarResposta({ body: { erro: true } }));
+    await expect(buscarEnderecoPorCep('00000000')).rejects.toThrow('CEP não encontrado.');
+  });
+
+  it('rejeita quando o servico responde com erro', async () => {
+    global.fetch.mockResolvedValue(respostaDeErro(500));
+    await expect(buscarEnderecoPorCep('80020310')).rejects.toThrow('Não foi possível consultar o CEP agora.');
+  });
+
+  it('nao consulta com CEP incompleto', async () => {
+    await expect(buscarEnderecoPorCep('8002')).rejects.toThrow('Informe um CEP válido com 8 dígitos.');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
 });

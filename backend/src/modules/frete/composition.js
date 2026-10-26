@@ -17,4 +17,4 @@ const gateway = criarMelhorEnvioGateway({
   envPath: path.resolve(__dirname, '../../../.env'),
   logger,
 });
-module.exports = criarFreteController(criarFreteUseCases({ gateway }));
+module.exports = criarFreteController(criarFreteUseCases({ gateway, logger }));

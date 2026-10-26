@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import { useCart } from '../contexts/CartContext';
 import { buscarRecomendacoesPorHistorico, listarPecas, listarCategorias } from '../services/pecasService';
 import { useLanguage } from '../contexts/LanguageContext';
+import CondicaoPeca from '../components/CondicaoPeca';
 import { AppIcon } from '../components/Icons';
 
 const CATEGORIA_ICONS = {
@@ -154,7 +155,7 @@ export default function HomePage() {
                 </div>
                 <div className="bp-hero__featured-name">{destaque.nome_peca}</div>
                 {destaque.condicao && (
-                  <div className="bp-hero__featured-app">{destaque.condicao}</div>
+                  <div className="bp-hero__featured-app"><CondicaoPeca condicao={destaque.condicao} /></div>
                 )}
                 <div className="bp-hero__featured-footer">
                   <span className="bp-hero__featured-price"><Money value={destaque.preco_base ?? destaque.preco} currency={destaque.moeda_base || "BRL"} /></span>
@@ -401,7 +402,7 @@ function PecaCard({ peca, onDetail, onAdd, added, inCart }) {
         }
         {peca.condicao && (
           <span className="badge badge-dark" style={{ position: 'absolute', top: 10, left: 10 }}>
-            {peca.condicao}
+            <CondicaoPeca condicao={peca.condicao} />
           </span>
         )}
         {semEstoque && (
