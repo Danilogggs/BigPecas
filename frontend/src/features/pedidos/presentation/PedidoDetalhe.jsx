@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useBrlMoney } from '../../../contexts/CurrencyContext';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import {
   obterDataPedido,
@@ -10,10 +11,10 @@ import DetailCard from './DetailCard';
 import PedidosShell from './PedidosShell';
 import PostPurchaseReviews from './PostPurchaseReviews';
 import StatusBadge from './StatusBadge';
+import { nomeFormaPagamento } from '../../carrinho/presentation/carrinhoPresentation';
 import { AppIcon } from '../../../components/Icons';
 import {
   formatarDataPedido,
-  formatarMoeda,
   obterMetaStatus,
 } from './pedidoPresentation';
 
@@ -26,6 +27,7 @@ export default function PedidoDetalhe({
   onExplore,
 }) {
   const { t, formatDate } = useLanguage();
+  const formatMoney = useBrlMoney();
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState('');
   const meta = obterMetaStatus(order.status, t);
@@ -108,10 +110,10 @@ export default function PedidoDetalhe({
                   </div>
                   <div>
                     <strong>{obterNomeItem(item)}</strong>
-                    <span>{t('quantity')}: {item.quantidade} × {formatarMoeda(item.preco)}</span>
+                    <span>{t('quantity')}: {item.quantidade} × {formatMoney(item.preco)}</span>
                     {!isSale && item.fornecedor_nome && <small>{t('soldBy')} {item.fornecedor_nome}</small>}
                   </div>
-                  <b>{formatarMoeda(Number(item.preco || 0) * Number(item.quantidade || 1))}</b>
+                  <b>{formatMoney(Number(item.preco || 0) * Number(item.quantidade || 1))}</b>
                 </div>
               ))}
             </div>
@@ -159,17 +161,17 @@ export default function PedidoDetalhe({
           <DetailCard title={isSale ? t('saleSummary') : t('purchaseSummary')}>
             {isSale ? (
               <>
-                <ValueRow label={t('soldProducts')} value={formatarMoeda(obterValorPedido(order))} />
-                <div className="detail-total"><span>{t('saleTotal')}</span><strong>{formatarMoeda(obterValorPedido(order))}</strong></div>
+                <ValueRow label={t('soldProducts')} value={formatMoney(obterValorPedido(order))} />
+                <div className="detail-total"><span>{t('saleTotal')}</span><strong>{formatMoney(obterValorPedido(order))}</strong></div>
                 <p className="detail-note">{t('sellerPartsOnly')}</p>
               </>
             ) : (
               <>
-                <ValueRow label="Subtotal" value={formatarMoeda(order.subtotal)} />
-                {Number(order.desconto || 0) > 0 && <ValueRow label="Desconto" value={`- ${formatarMoeda(order.desconto)}`} />}
-                <ValueRow label={t('shipping')} value={Number(order.valorFrete) === 0 ? t('free') : formatarMoeda(order.valorFrete)} />
-                <div className="detail-total"><span>{t('purchaseTotal')}</span><strong>{formatarMoeda(order.total)}</strong></div>
-                {order.forma_pagamento?.nome && <p className="detail-payment">{t('payment')}: <strong>{order.forma_pagamento.nome}</strong></p>}
+                <ValueRow label={t('subtotal')} value={formatMoney(order.subtotal)} />
+                {Number(order.desconto || 0) > 0 && <ValueRow label={t('discount')} value={`- ${formatMoney(order.desconto)}`} />}
+                <ValueRow label={t('shipping')} value={Number(order.valorFrete) === 0 ? t('free') : formatMoney(order.valorFrete)} />
+                <div className="detail-total"><span>{t('purchaseTotal')}</span><strong>{formatMoney(order.total)}</strong></div>
+                {order.forma_pagamento?.nome && <p className="detail-payment">{t('payment')}: <strong>{nomeFormaPagamento(order.forma_pagamento, t)}</strong></p>}
               </>
             )}
           </DetailCard>

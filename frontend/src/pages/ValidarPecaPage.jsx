@@ -40,7 +40,7 @@ export default function ValidarPecaPage() {
   }
   const p = data?.peca;
   return <><Header /><main className="review-page"><Link to={location.state?.from || '/avaliador'} state={location.state?.section ? { section: location.state.section } : undefined}>← {t('backToQueue')}</Link>
-    {loading && <p role="status">{t('pageLoading')}</p>}{error && <p role="alert">{error}</p>}
+    {loading && <p role="status">{t('pageLoading')}</p>}{error && <p role="alert">{t(error)}</p>}
     {p && <><h1>{p.nome_peca}</h1><p>{t('Revisão')} {p.revisao_avaliacao}</p>
       <PartReviewStatus status={p.status_publicacao} reason={p.motivo_rejeicao} />
       <div className="review-grid"><section className="review-card">
@@ -68,7 +68,7 @@ export default function ValidarPecaPage() {
     {message && <div className="review-result-backdrop" role="presentation">
       <section className="review-result-modal" role="dialog" aria-modal="true" aria-labelledby="review-result-title">
         <span className="review-result-modal__mark" aria-hidden="true">✓</span>
-        <h2 id="review-result-title">Avaliação concluída</h2>
+        <h2 id="review-result-title">{t('Avaliação concluída')}</h2>
         <p role="status">{message}</p>
         <button type="button" autoFocus onClick={() => navigate('/avaliador')}>OK</button>
       </section>

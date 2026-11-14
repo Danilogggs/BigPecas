@@ -1,7 +1,10 @@
-export function formatarPrecoPeca(valor, fallback = 'Preço não informado') {
+import { formatCurrency } from '../../../utils/intl';
+
+export function formatarPrecoPeca(valor, fallback = 'Preço não informado', moeda = 'BRL', locale) {
+  if (valor === null || valor === undefined || valor === '') return fallback;
   const numero = Number(valor);
-  if (Number.isNaN(numero)) return valor ? `R$ ${valor}` : fallback;
-  return numero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  if (Number.isNaN(numero)) return String(valor);
+  return formatCurrency(numero, moeda, locale);
 }
 
 export function formatarDataPeca(valor, formatarData) {

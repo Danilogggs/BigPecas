@@ -166,7 +166,7 @@ function ReviewTarget({ title, subtitle, image, review, open, onToggle, children
 
       {review && (
         <div className="review-result">
-          <span aria-label={`${review.nota} de 5 estrelas`}>
+          <span aria-label={t('ratingOutOfFive', { rating: review.nota })}>
             {'★'.repeat(review.nota)}{'☆'.repeat(5 - review.nota)}
           </span>
           {review.comentario && <p>{review.comentario}</p>}

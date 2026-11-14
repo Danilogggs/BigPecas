@@ -15,7 +15,8 @@ import {
   calcularTotaisCompra,
   contarItensCarrinho,
 } from '../features/carrinho/domain/carrinho';
-import { formatarMoedaCarrinho as formatBRL } from '../features/carrinho/presentation/carrinhoPresentation';
+import { useBrlMoney } from '../contexts/CurrencyContext';
+import { textoPrazoFrete } from '../features/carrinho/presentation/carrinhoPresentation';
 
 const BORDEAUX = 'var(--bp-primary-action)';
 const ACCENT = 'var(--bp-action-text)';
@@ -33,6 +34,7 @@ export default function CarrinhoPage() {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getTotal } = useCart();
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
 
   const [cep, setCep] = useState('');
   const [cepError, setCepError] = useState('');
@@ -103,7 +105,9 @@ export default function CarrinhoPage() {
       setCupomError('');
     } catch (error) {
       setCupomAtivo(null);
-      setCupomError(error?.message || t('invalidCoupon'));
+      setCupomError(error?.codigo === 'minimumSubtotalForCoupon'
+        ? t('minimumSubtotalForCoupon', { value: formatMoney(error.minimo) })
+        : t(error?.message || 'invalidCoupon'));
     } finally {
       setAplicandoCupom(false);
     }
@@ -474,7 +478,7 @@ export default function CarrinhoPage() {
                                   fontSize: '0.92rem',
                                 }}
                               >
-                                {opcao.transportadora} — {opcao.tipo}
+                                {t(opcao.transportadora)} — {opcao.tipo}
                               </div>
                               <div
                                 style={{
@@ -483,7 +487,7 @@ export default function CarrinhoPage() {
                                   marginTop: 2,
                                 }}
                               >
-                                {opcao.prazo_texto}
+                                {textoPrazoFrete(opcao, t)}
                               </div>
                               <div
                                 style={{
@@ -493,7 +497,7 @@ export default function CarrinhoPage() {
                                   fontSize: '0.95rem',
                                 }}
                               >
-                                {formatBRL(opcao.valor)}
+                                {formatMoney(opcao.valor)}
                               </div>
                             </div>
                             <div
@@ -640,17 +644,15 @@ export default function CarrinhoPage() {
               <Card title={t('financialSummary')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <Linha
-                    label={`Subtotal (${totalItens} ${
-                      totalItens === 1 ? 'item' : 'itens'
-                    })`}
-                    valor={formatBRL(subtotal)}
+                    label={t('subtotalWithItems', { count: totalItens, items: t(totalItens === 1 ? 'item' : 'items') })}
+                    valor={formatMoney(subtotal)}
                   />
                   <Linha
                     label={t('discount')}
                     valor={
                       totais.desconto > 0
-                        ? `- ${formatBRL(totais.desconto)}`
-                        : formatBRL(0)
+                        ? `- ${formatMoney(totais.desconto)}`
+                        : formatMoney(0)
                     }
                     cor={totais.desconto > 0 ? SUCCESS : MUTED}
                   />
@@ -660,7 +662,7 @@ export default function CarrinhoPage() {
                       opcaoSelecionada
                         ? totais.valorFrete === 0 && cupomAtivo?.tipo === 'frete_gratis'
                           ? t('free')
-                              : formatBRL(totais.valorFrete)
+                              : formatMoney(totais.valorFrete)
                             : t('toCalculate')
                     }
                     cor={
@@ -684,7 +686,7 @@ export default function CarrinhoPage() {
                       <strong>{opcaoSelecionada.transportadora}</strong> —{' '}
                       {opcaoSelecionada.tipo}
                       <br />
-                      {opcaoSelecionada.prazo_texto}
+                      {textoPrazoFrete(opcaoSelecionada, t)}
                     </div>
                   )}
 
@@ -719,7 +721,7 @@ export default function CarrinhoPage() {
                           lineHeight: 1,
                         }}
                       >
-                        {formatBRL(totais.total)}
+                        {formatMoney(totais.total)}
                       </div>
                     </div>
                     <div
@@ -731,7 +733,7 @@ export default function CarrinhoPage() {
                     >
                       {t('orInstallmentsOf')}{' '}
                       <strong style={{ color: DARK }}>
-                        {formatBRL(totais.total / 12)}
+                        {formatMoney(totais.total / 12)}
                       </strong>
                     </div>
                   </div>
@@ -838,6 +840,7 @@ function Linha({ label, valor, cor = DARK }) {
 
 function CartItem({ item, isLast, onRemove, onChange, onClick }) {
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   const subtotal = Number(item.preco) * item.quantidade;
 
   return (
@@ -903,7 +906,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
             ? String(item.descricao).slice(0, 80)
             : item.sku
             ? `SKU: ${item.sku}`
-            : 'Peça automotiva'}
+            : t('Peça automotiva')}
         </p>
         <div
           style={{
@@ -920,8 +923,8 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
           }}
         >
           {Number(item.estoque) > 0
-            ? `${item.estoque} em estoque`
-            : 'Sem estoque'}
+            ? t('inStockCount', { count: item.estoque })
+            : t('outOfStock')}
         </div>
       </div>
 
@@ -982,7 +985,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
 
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.72rem', color: MUTED }}>
-            {formatBRL(item.preco)} × {item.quantidade}
+            {formatMoney(item.preco)} × {item.quantidade}
           </div>
           <div
             style={{
@@ -991,7 +994,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
               color: DARK,
             }}
           >
-            {formatBRL(subtotal)}
+            {formatMoney(subtotal)}
           </div>
         </div>
       </div>

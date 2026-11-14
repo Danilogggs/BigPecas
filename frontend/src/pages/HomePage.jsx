@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import { useCart } from '../contexts/CartContext';
 import { buscarRecomendacoesPorHistorico, listarPecas, listarCategorias } from '../services/pecasService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { formatCurrency } from '../utils/intl';
 import CondicaoPeca from '../components/CondicaoPeca';
 import { AppIcon } from '../components/Icons';
 
@@ -15,13 +16,11 @@ const CATEGORIA_ICONS = {
   Suspensão: 'wheel', Freios: 'brake', Transmissão: 'bolt', Carroceria: 'part',
 };
 
-const formatBRL = (v) =>
-  Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
   const money = useCurrency();
 
   const [pecas, setPecas]           = useState([]);
@@ -309,8 +308,8 @@ export default function HomePage() {
                 { label: t('mostRecent'), url: '/buscaPecas?sort=data_cadastro&order=desc' },
                 { label: t('nosCondition'), url: '/buscaPecas?condicao=NOS' },
                 { label: t('restoredCondition'), url: '/buscaPecas?condicao=Restaurada' },
-                { label: '≤ ' + (money?.format(500) || formatBRL(500)), url: '/buscaPecas?max_preco=' + (money?.convert(500) ?? 500) },
-                { label: '≥ ' + (money?.format(5000) || formatBRL(5000)), url: '/buscaPecas?min_preco=' + (money?.convert(5000) ?? 5000) },
+                { label: '≤ ' + (money?.format(500) || formatCurrency(500)), url: '/buscaPecas?max_preco=' + (money?.convert(500) ?? 500) },
+                { label: '≥ ' + (money?.format(5000) || formatCurrency(5000)), url: '/buscaPecas?min_preco=' + (money?.convert(5000) ?? 5000) },
               ].map(({ label, url }) => (
                 <button key={label} className="btn btn-ghost btn-sm" onClick={() => navigate(url)}>
                   {label}
@@ -329,8 +328,8 @@ export default function HomePage() {
               gap: '1.25rem',
             }}>
               {[
-                { value: loading ? '...' : stats.total, label: t('partsInCatalog'), icon: 'part' },
-                { value: loading ? '...' : stats.categorias, label: t('categories'), icon: 'folder' },
+                { value: loading ? '...' : formatNumber(stats.total), label: t('partsInCatalog'), icon: 'part' },
+                { value: loading ? '...' : formatNumber(stats.categorias), label: t('categories'), icon: 'folder' },
                 { value: t('history'), label: t('trackableOrders'), icon: 'package' },
                 { value: t('direct'), label: t('sellerContact'), icon: 'message' },
               ].map(({ value, label, icon }) => (

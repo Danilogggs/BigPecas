@@ -1,7 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { avaliadorTranslations } from './avaliadorTranslations';
+import { i18nCompletionTranslations } from './i18nCompletionTranslations';
+import {
+  formatCurrency, formatDateTime, formatNumber, formatPercent, localeFor,
+} from '../utils/intl';
 
 export const LANGUAGES = {
   PTBR: 'PTBR',
@@ -652,6 +656,8 @@ const resources = Object.values(LANGUAGES).reduce((result, language) => ({
   ...result,
   [language]: {
     translation: {
+      // Complementos primeiro: nunca sobrescrevem uma traducao ja existente.
+      ...i18nCompletionTranslations[language],
       ...translations[language],
       ...uiExtras[language],
       ...recommendationCorrections[language],
@@ -689,8 +695,20 @@ if (!i18n.isInitialized) {
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {
     const saved = window.localStorage.getItem('bigpecas-language');
-    return LANGUAGES[saved] || LANGUAGES.PTBR;
+    const initial = LANGUAGES[saved] || LANGUAGES.PTBR;
+    // Sincroniza o i18next ja no primeiro render, para que formatadores puros
+    // (que leem o idioma ativo) nao usem o locale padrao por um instante.
+    if (i18n.language !== initial) i18n.changeLanguage(initial);
+    return initial;
   });
+
+  // Troca o idioma do i18next antes do novo render, para que formatadores puros
+  // (que consultam o idioma ativo) ja usem o novo locale.
+  const changeLanguage = useCallback((next) => {
+    const valid = LANGUAGES[next] || LANGUAGES.PTBR;
+    if (i18n.language !== valid) i18n.changeLanguage(valid);
+    setLanguage(valid);
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem('bigpecas-language', language);
@@ -698,23 +716,29 @@ export function LanguageProvider({ children }) {
     i18n.changeLanguage(language);
   }, [language]);
 
-  const value = useMemo(() => ({
-    language,
-    setLanguage,
-    t: (key, replacements = {}) => i18n.getFixedT(language)(key, {
-      ...replacements,
-      defaultValue: key,
-    }),
-    formatDate: (value, options = {}) => {
-      if (!value) return '';
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return '';
-      const locale = language === LANGUAGES.PTBR ? 'pt-BR' : language === LANGUAGES.FR ? 'fr-FR' : 'en-US';
-      return new Intl.DateTimeFormat(locale, options).format(date);
-    },
-  }), [language]);
+  const value = useMemo(() => {
+    const locale = localeFor(language);
+    return {
+      language,
+      locale,
+      setLanguage: changeLanguage,
+      t: (key, replacements = {}) => i18n.getFixedT(language)(key, {
+        ...replacements,
+        defaultValue: key,
+      }),
+      formatDate: (date, options = {}) => formatDateTime(date, options, locale),
+      formatNumber: (number, options = {}) => formatNumber(number, options, locale),
+      formatPercent: (number, options = {}) => formatPercent(number, options, locale),
+      formatCurrency: (amount, currency = 'BRL') => formatCurrency(amount, currency, locale),
+    };
+  }, [language, changeLanguage]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+}
+
+/** Igual a useLanguage, mas devolve null fora do LanguageProvider. */
+export function useOptionalLanguage() {
+  return useContext(LanguageContext);
 }
 
 export function useLanguage() {

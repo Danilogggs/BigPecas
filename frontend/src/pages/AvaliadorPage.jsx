@@ -4,18 +4,13 @@ import Header from '../components/Header';
 import Money from '../components/Money';
 import service from '../services/avaliadorService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { chaveCondicaoPeca } from '../features/pecas/presentation/pecaPresentation';
 import '../styles/Review.css';
 
 const PAGE_SIZE = 21;
 
-function formatDate(value) {
-  if (!value) return 'Não informado';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Não informado' : date.toLocaleDateString('pt-BR');
-}
-
 export default function AvaliadorPage() {
-  const { t } = useLanguage();
+  const { t, formatDate } = useLanguage();
   const [rows, setRows] = useState([]);
   const [stats, setStats] = useState(null);
   const [sort, setSort] = useState('recent');
@@ -42,26 +37,29 @@ export default function AvaliadorPage() {
     setPage(0);
   };
 
+  const notInformed = t('Não informado');
+  const submittedAt = (part) => formatDate(part.data_cadastro || part.created_at) || notInformed;
+
   return <><Header /><main className="review-page evaluator-page">
     <div className="evaluator-heading">
       <div><h1>{t('evaluatorQueue')}</h1><p>{t('evaluatorQueueDescription')}</p></div>
-      <label className="evaluator-sort"><span>Ordenar por</span><select value={sort} onChange={changeSort}>
-        <option value="recent">Mais recentes</option><option value="oldest">Mais antigos</option>
+      <label className="evaluator-sort"><span>{t('Ordenar por')}</span><select value={sort} onChange={changeSort}>
+        <option value="recent">{t('Mais recentes')}</option><option value="oldest">{t('Mais antigos')}</option>
       </select></label>
     </div>
     {stats && <p className="evaluator-stats">{t('evaluatorStats', { pending: stats.pendentes, approved: stats.aprovadas, rejected: stats.rejeitadas })}</p>}
-    {error && <p role="alert">{error}</p>}
+    {error && <p role="alert">{t(error)}</p>}
     {loading ? <p role="status">{t('pageLoading')}</p> : <div className="review-grid evaluator-grid">{rows.map((part) => <article className="review-card evaluator-card" key={part.id}>
       <div className="evaluator-card__media">{part.imagem ? <img src={part.imagem} alt={part.nome_peca} /> : <span>{part.url_video ? t('listingWithVideo') : t('noMedia')}</span>}</div>
       <div className="evaluator-card__body">
-        <div className="evaluator-card__title"><span>Anúncio #{part.id}</span><h2>{part.nome_peca || 'Peça sem nome'}</h2></div>
+        <div className="evaluator-card__title"><span>{t('listingNumber', { id: part.id })}</span><h2>{part.nome_peca || t('Peça sem nome')}</h2></div>
         <dl className="evaluator-card__data">
-          <div><dt>Preço</dt><dd><Money value={part.preco_base ?? part.preco} currency={part.moeda_base || 'BRL'} /></dd></div>
-          <div><dt>Fornecedor</dt><dd>{part.users?.full_name || 'Não informado'}</dd></div>
-          <div><dt>SKU</dt><dd>{part.sku || part.oem_number || 'Não informado'}</dd></div>
-          <div><dt>Condição</dt><dd>{part.condicao || 'Não informada'}</dd></div>
-          <div><dt>Enviado em</dt><dd>{formatDate(part.data_cadastro || part.created_at)}</dd></div>
-          <div><dt>Revisão</dt><dd>{part.revisao_avaliacao || 1}</dd></div>
+          <div><dt>{t('price')}</dt><dd><Money value={part.preco_base ?? part.preco} currency={part.moeda_base || 'BRL'} /></dd></div>
+          <div><dt>{t('Fornecedor')}</dt><dd>{part.users?.full_name || notInformed}</dd></div>
+          <div><dt>SKU</dt><dd>{part.sku || part.oem_number || notInformed}</dd></div>
+          <div><dt>{t('condition')}</dt><dd>{part.condicao ? t(chaveCondicaoPeca(part.condicao)) : t('Não informada')}</dd></div>
+          <div><dt>{t('Enviado em')}</dt><dd>{submittedAt(part)}</dd></div>
+          <div><dt>{t('Revisão')}</dt><dd>{part.revisao_avaliacao || 1}</dd></div>
         </dl>
         <Link className="evaluator-card__action" to={'/avaliador/validar/' + part.id}>{t('reviewListing')}</Link>
       </div>

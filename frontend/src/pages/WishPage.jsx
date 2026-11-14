@@ -13,19 +13,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import useListaFavoritos from '../features/favoritos/application/useListaFavoritos';
 import { AppIcon } from '../components/Icons';
 
-function formatarPreco(valor) {
-  const numero = Number(valor);
-
-  if (Number.isNaN(numero)) {
-    return valor ? `R$ ${valor}` : 'Preço não informado';
-  }
-
-  return numero.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-}
-
 export default function WishPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();

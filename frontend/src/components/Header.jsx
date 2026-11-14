@@ -9,7 +9,7 @@ import {
   marcarNotificacaoComoLida,
 } from '../services/notificacoesService';
 import { useLanguage } from '../contexts/LanguageContext';
-import { formatarMoedaCarrinho } from '../features/carrinho/presentation/carrinhoPresentation';
+import { useBrlMoney } from '../contexts/CurrencyContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import CurrencySelector from './CurrencySelector';
 
@@ -331,6 +331,7 @@ function NotificacoesMenu({ aberto, onAlternar, onFechar, naoLidas, setNaoLidas 
 function MiniCarrinho({ aberto, onAlternar, onFechar, quantidadeTotal }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   const { cartItems, removeFromCart, getTotal } = useCart();
   const visiveis = cartItems.slice(0, MAXIMO_ITENS_MINI_CARRINHO);
   const restantes = cartItems.length - visiveis.length;
@@ -373,7 +374,7 @@ function MiniCarrinho({ aberto, onAlternar, onFechar, quantidadeTotal }) {
                       : <span className="bp-header__mini-cart-placeholder" aria-hidden="true" />}
                     <span className="bp-header__mini-cart-info">
                       <strong>{item.nome || t('partWithoutName')}</strong>
-                      <small>{item.quantidade} × {formatarMoedaCarrinho(item.preco)}</small>
+                      <small>{item.quantidade} × {formatMoney(item.preco)}</small>
                     </span>
                   </button>
                   <button
@@ -392,7 +393,7 @@ function MiniCarrinho({ aberto, onAlternar, onFechar, quantidadeTotal }) {
               )}
               <div className="bp-header__mini-cart-total">
                 <span>{t('subtotal')}</span>
-                <strong>{formatarMoedaCarrinho(getTotal())}</strong>
+                <strong>{formatMoney(getTotal())}</strong>
               </div>
             </>
           )}
