@@ -1,7 +1,9 @@
 import { ORDER_STATUS, STATUS_META } from '../domain/pedido';
+import { formatCurrency } from '../../../utils/intl';
 
-export const formatarMoeda = (valor) =>
-  Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+// Valor em BRL formatado no locale do idioma ativo. Componentes React usam
+// useBrlMoney(), que acompanha a troca de idioma.
+export const formatarMoeda = (valor, locale) => formatCurrency(valor, 'BRL', locale);
 
 export function formatarDataPedido(valor, formatarData) {
   if (!valor) return '';
@@ -24,7 +26,8 @@ export function obterMetaStatus(status, traduzir) {
   };
   const meta = STATUS_META[status];
 
-  if (meta) return { ...meta, label: traduzir(labels[status]) };
+  // Rotulo e descricao vem do dominio em portugues e sao traduzidos aqui.
+  if (meta) return { ...meta, label: traduzir(labels[status]), descricao: traduzir(meta.descricao) };
   return {
     label: traduzir('unknownStatus'),
     color: '#4B5563',

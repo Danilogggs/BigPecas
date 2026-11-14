@@ -34,7 +34,11 @@ export function validarCupom(codigo, subtotal) {
   const aplicacao = CUPONS[normalizado];
   if (!aplicacao) throw new Error('Cupom inválido ou expirado.');
   if (aplicacao.minimo && subtotal < aplicacao.minimo) {
-    throw new Error(`Subtotal mínimo de R$ ${aplicacao.minimo.toFixed(2)} para usar este cupom.`);
+    const erro = new Error(`Subtotal mínimo de R$ ${aplicacao.minimo.toFixed(2)} para usar este cupom.`);
+    // Codigo + valor permitem que a interface traduza e formate a mensagem.
+    erro.codigo = 'minimumSubtotalForCoupon';
+    erro.minimo = aplicacao.minimo;
+    throw erro;
   }
   return { codigo: normalizado, ...aplicacao };
 }

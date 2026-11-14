@@ -89,8 +89,9 @@ function categoriaEhOutros(categoria) {
 }
 
 function FieldError({ message }) {
+  const { t } = useLanguage();
   if (!message) return null;
-  return <div style={errorStyle}>{message}</div>;
+  return <div style={errorStyle}>{t(message)}</div>;
 }
 
 function FormGroup({ label, required, error, children, style }) {
@@ -1067,10 +1068,10 @@ export default function CadastroPecas() {
                     cursor: !normalizarOem(formData.oem_number) || catalogLoading ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {catalogLoading ? t('checkingCatalog') : 'Revalidar OEM na API externa'}
+                  {catalogLoading ? t('checkingCatalog') : t('Revalidar OEM na API externa')}
                 </button>
 
-                {catalogError && <div role="alert" style={errorStyle}>{catalogError}</div>}
+                {catalogError && <div role="alert" style={errorStyle}>{t(catalogError)}</div>}
 
                 {catalogResult && (
                   <div
@@ -1086,12 +1087,12 @@ export default function CadastroPecas() {
                     }}
                   >
                     <strong>
-                      {catalogResult.found ? t('catalogReferenceFound') : 'Referência não encontrada neste catálogo'}
+                      {catalogResult.found ? t('catalogReferenceFound') : t('Referência não encontrada neste catálogo')}
                     </strong>
                     <p style={{ margin: `${SPACING.SM} 0 0`, color: '#000' }}>
                       {catalogResult.found
                         ? t('catalogDisclaimer')
-                        : 'Verifique se o OEM está correto. Se necessário, contate o suporte.'}
+                        : t('Verifique se o OEM está correto. Se necessário, contate o suporte.')}
                     </p>
                   </div>
                 )}

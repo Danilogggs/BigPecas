@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { exportarRelatorioVendas, obterRelatorioVendas } from '../../../services/pedidosService';
-import { formatarMoeda } from './pedidoPresentation';
+import { useBrlMoney } from '../../../contexts/CurrencyContext';
+import { useLanguage } from '../../../contexts/LanguageContext';
+import { obterMetaStatus } from './pedidoPresentation';
 import './SalesReport.css';
 
-const formatDate = (value) => new Intl.DateTimeFormat('pt-BR', {
-  dateStyle: 'short', timeStyle: 'short',
-}).format(new Date(value));
+const DATE_OPTIONS = { dateStyle: 'short', timeStyle: 'short' };
+const PERIODS = [7, 30, 90];
 
 export default function SalesReport() {
+  const { t, formatDate, formatNumber } = useLanguage();
+  const formatMoney = useBrlMoney();
   const [days, setDays] = useState(30);
   const [report, setReport] = useState({ sales: [], summary: { orders: 0, units: 0, revenue: 0 } });
   const [loading, setLoading] = useState(true);
@@ -36,9 +39,34 @@ export default function SalesReport() {
   }
 
   return <section className="sales-report">
-    <header><div><span>RELATÓRIO DO VENDEDOR</span><h2>Vendas efetivadas</h2><p>Pedidos com pagamento confirmado e somente os itens vendidos por você.</p></div><div className="sales-report-actions"><select value={days} onChange={(event) => setDays(Number(event.target.value))}><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select><button onClick={exportExcel} disabled={loading || exporting}>{exporting ? 'Gerando…' : '⇩ Exportar Excel'}</button></div></header>
-    {error && <div className="sales-report-error" role="alert">{error}</div>}
-    <div className="sales-report-summary"><article><span>Pedidos pagos</span><strong>{report.summary.orders}</strong></article><article><span>Unidades vendidas</span><strong>{report.summary.units}</strong></article><article><span>Valor vendido</span><strong>{formatarMoeda(report.summary.revenue)}</strong></article></div>
-    {loading ? <div className="sales-report-empty">Carregando relatório…</div> : report.sales.length === 0 ? <div className="sales-report-empty">Nenhuma venda paga neste período.</div> : <div className="sales-report-table"><table><thead><tr><th>Pagamento</th><th>Pedido</th><th>Comprador</th><th>Itens</th><th>Unidades</th><th>Valor</th><th>Status</th></tr></thead><tbody>{report.sales.map((sale) => <tr key={sale.id}><td>{formatDate(sale.paid_at)}</td><td><strong>#{sale.id}</strong></td><td>{sale.buyer}</td><td>{sale.items.map((item) => <span className="sales-report-item" key={item.id}>{item.name}<small>{item.sku || 'Sem SKU'} · {item.quantity} × {formatarMoeda(item.unit_price)}</small></span>)}</td><td>{sale.items.reduce((sum, item) => sum + item.quantity, 0)}</td><td><strong>{formatarMoeda(sale.total)}</strong></td><td><span className={`sales-report-status is-${sale.status}`}>{sale.status}</span></td></tr>)}</tbody></table></div>}
+    <header>
+      <div><span>{t('salesReportEyebrow')}</span><h2>{t('salesReportTitle')}</h2><p>{t('salesReportDescription')}</p></div>
+      <div className="sales-report-actions">
+        <select aria-label={t('period')} value={days} onChange={(event) => setDays(Number(event.target.value))}>
+          {PERIODS.map((period) => <option key={period} value={period}>{t('lastNDays', { count: period })}</option>)}
+        </select>
+        <button onClick={exportExcel} disabled={loading || exporting}>{exporting ? t('generating') : `⇩ ${t('exportExcel')}`}</button>
+      </div>
+    </header>
+    {error && <div className="sales-report-error" role="alert">{t(error)}</div>}
+    <div className="sales-report-summary">
+      <article><span>{t('paidOrders')}</span><strong>{formatNumber(report.summary.orders)}</strong></article>
+      <article><span>{t('unitsSold')}</span><strong>{formatNumber(report.summary.units)}</strong></article>
+      <article><span>{t('soldValue')}</span><strong>{formatMoney(report.summary.revenue)}</strong></article>
+    </div>
+    {loading ? <div className="sales-report-empty">{t('loadingReport')}</div>
+      : report.sales.length === 0 ? <div className="sales-report-empty">{t('noPaidSalesInPeriod')}</div>
+        : <div className="sales-report-table"><table>
+          <thead><tr><th>{t('payment')}</th><th>{t('order')}</th><th>{t('buyer')}</th><th>{t('items')}</th><th>{t('units')}</th><th>{t('amount')}</th><th>{t('status')}</th></tr></thead>
+          <tbody>{report.sales.map((sale) => <tr key={sale.id}>
+            <td>{formatDate(sale.paid_at, DATE_OPTIONS)}</td>
+            <td><strong>#{sale.id}</strong></td>
+            <td>{sale.buyer}</td>
+            <td>{sale.items.map((item) => <span className="sales-report-item" key={item.id}>{item.name}<small>{item.sku || t('noSku')} · {formatNumber(item.quantity)} × {formatMoney(item.unit_price)}</small></span>)}</td>
+            <td>{formatNumber(sale.items.reduce((sum, item) => sum + item.quantity, 0))}</td>
+            <td><strong>{formatMoney(sale.total)}</strong></td>
+            <td><span className={`sales-report-status is-${sale.status}`}>{obterMetaStatus(sale.status, t).label}</span></td>
+          </tr>)}</tbody>
+        </table></div>}
   </section>;
 }

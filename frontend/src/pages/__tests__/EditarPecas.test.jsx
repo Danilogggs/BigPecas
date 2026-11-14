@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import EditarPecas from '../EditarPecas';
 import * as api from '../../services/pecasService';
 jest.mock('../../components/Header', () => () => null);
-jest.mock('../../contexts/LanguageContext', () => ({useLanguage: () => ({t: key => key})}));
+jest.mock('../../contexts/LanguageContext', () => ({useLanguage: () => ({t: key => key}), useOptionalLanguage: () => null}));
 jest.mock('../../services/pecasService', () => ({listarMinhasPecas:jest.fn(),listarCategorias:jest.fn(),listarMateriais:jest.fn(),buscarPecaPorId:jest.fn(),atualizarPeca:jest.fn()}));
 const piece = {id:1,nome_peca:'Peca teste',sku:'ABC-123',oem_number:'OEM-123',num_serie:'SER-123',
   categoria_id:1,material_id:1,condicao:'BOM',peso_gramas:123,comprimento_mm:123,largura_mm:123,altura_mm:123,

@@ -59,6 +59,8 @@ const EXTRA = {
   },
 };
 
-export function createAdminTranslator(language) {
-  return (text) => EXTRA[language]?.[text] || COPY[language]?.[text] || text;
+// Traducoes especificas do painel; textos fora delas caem no dicionario global
+// (quando um tradutor de fallback e informado) e, por ultimo, no proprio texto.
+export function createAdminTranslator(language, fallback = (text) => text) {
+  return (text) => EXTRA[language]?.[text] || COPY[language]?.[text] || fallback(text);
 }

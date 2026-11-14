@@ -14,7 +14,8 @@ import {
   formatarNumeroCartao,
   formatarValidadeCartao as formatarValidade,
 } from '../features/carrinho/domain/carrinho';
-import { formatarMoedaCarrinho as formatBRL } from '../features/carrinho/presentation/carrinhoPresentation';
+import { useBrlMoney } from '../contexts/CurrencyContext';
+import { descricaoFormaPagamento, nomeFormaPagamento, textoPrazoFrete } from '../features/carrinho/presentation/carrinhoPresentation';
 import { AppIcon } from '../components/Icons';
 
 const BORDEAUX = 'var(--bp-primary-action)';
@@ -822,6 +823,7 @@ function PagamentoForm({
   totalEstimado,
 }) {
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   const handleCartao = (campo, valor) =>
     setDadosCartao((prev) => ({ ...prev, [campo]: valor }));
 
@@ -866,9 +868,9 @@ function PagamentoForm({
                 <AppIcon name={forma.icone} size={20} />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: DARK }}>{t(forma.id === 'pix' ? 'pixPayment' : forma.id === 'cartao' ? 'cardPayment' : 'bankSlip')}</div>
+                <div style={{ fontWeight: 700, color: DARK }}>{nomeFormaPagamento(forma, t)}</div>
                 <div style={{ fontSize: '0.82rem', color: MUTED }}>
-                  {t(forma.id === 'pix' ? 'paymentApproval' : forma.id === 'cartao' ? 'cardDescription' : 'bankSlipDescription')}
+                  {descricaoFormaPagamento(forma, t)}
                   {forma.desconto > 0 && (
                     <span
                       style={{
@@ -989,7 +991,7 @@ function PagamentoForm({
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
                   <option key={n} value={n}>
-                    {n}x de {formatBRL(totalEstimado / n)}
+                    {t('installmentOption', { count: n, value: formatMoney(totalEstimado / n) })}
                   </option>
                 ))}
               </select>
@@ -1043,6 +1045,7 @@ function InfoBox({ icone, titulo, texto }) {
 
 function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   return (
     <section
       style={{
@@ -1070,19 +1073,19 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
 
       <BlocoRevisao titulo={t('deliveryLabel')}>
         <div style={{ color: DARK, fontWeight: 600 }}>
-          {frete.transportadora} — {frete.tipo}
+          {t(frete.transportadora)} — {frete.tipo}
         </div>
         <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
-          {frete.prazo_texto} • {formatBRL(frete.valor)}
+          {textoPrazoFrete(frete, t)} • {formatMoney(frete.valor)}
         </div>
       </BlocoRevisao>
 
       <BlocoRevisao titulo={t('payment')}>
         <div style={{ color: DARK, fontWeight: 600 }}>
-          <AppIcon name={pagamento.icone} size={18} /> {pagamento.nome}
+          <AppIcon name={pagamento.icone} size={18} /> {nomeFormaPagamento(pagamento, t)}
         </div>
         <div style={{ color: MUTED, marginTop: 4, fontSize: '0.92rem' }}>
-          {pagamento.descricao}
+          {descricaoFormaPagamento(pagamento, t)}
         </div>
       </BlocoRevisao>
 
@@ -1102,7 +1105,7 @@ function RevisaoPedido({ endereco, pagamento, frete, cartItems }) {
                 {item.quantidade}× {item.nome}
               </span>
               <span style={{ fontWeight: 600 }}>
-                {formatBRL(Number(item.preco) * item.quantidade)}
+                {formatMoney(Number(item.preco) * item.quantidade)}
               </span>
             </div>
           ))}
@@ -1140,6 +1143,7 @@ function BlocoRevisao({ titulo, children, ultimo }) {
 
 function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento }) {
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   const totalItens = contarItensCarrinho(cartItems);
 
   return (
@@ -1222,25 +1226,25 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
                 whiteSpace: 'nowrap',
               }}
             >
-              {formatBRL(Number(item.preco) * item.quantidade)}
+              {formatMoney(Number(item.preco) * item.quantidade)}
             </div>
           </div>
         ))}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <Linha label={`Subtotal (${totalItens} itens)`} valor={formatBRL(subtotal)} />
+        <Linha label={t('subtotalWithItems', { count: totalItens, items: t(totalItens === 1 ? 'item' : 'items') })} valor={formatMoney(subtotal)} />
         {cupom && (
           <Linha
-            label={`Cupom ${cupom.codigo}`}
-            valor={`- ${formatBRL(totais.desconto)}`}
+            label={t('couponWithCode', { code: cupom.codigo })}
+            valor={`- ${formatMoney(totais.desconto)}`}
             cor="#065F46"
           />
         )}
         {pagamento && totais.descontoPagamento > 0 && (
           <Linha
-            label={`Desc. ${pagamento.nome}`}
-            valor={`- ${formatBRL(totais.descontoPagamento)}`}
+            label={t('paymentDiscountLabel', { method: nomeFormaPagamento(pagamento, t) })}
+            valor={`- ${formatMoney(totais.descontoPagamento)}`}
             cor="#065F46"
           />
         )}
@@ -1249,7 +1253,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
           valor={
             totais.valorFrete === 0 && cupom?.tipo === 'frete_gratis'
               ? t('free')
-              : formatBRL(totais.valorFrete)
+              : formatMoney(totais.valorFrete)
           }
         />
       </div>
@@ -1277,7 +1281,7 @@ function ResumoLateral({ cartItems, subtotal, cupom, frete, totais, pagamento })
         <div
           style={{ fontSize: '1.6rem', fontWeight: 800, color: ACCENT, lineHeight: 1 }}
         >
-          {formatBRL(totais.total)}
+          {formatMoney(totais.total)}
         </div>
       </div>
 

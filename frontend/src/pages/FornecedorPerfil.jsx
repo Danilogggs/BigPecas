@@ -15,19 +15,6 @@ import {
 import { parseUnexpectedError } from '../utils/friendlyErrors';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function formatarPreco(valor) {
-  const numero = Number(valor);
-
-  if (Number.isNaN(numero)) {
-    return valor ? `R$ ${valor}` : 'Preço não informado';
-  }
-
-  return numero.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-}
-
 function InfoCard({ label, value }) {
   return (
     <div
@@ -122,7 +109,7 @@ function PecaCard({ peca, onClick }) {
 export default function FornecedorPerfil() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
 
   const [fornecedor, setFornecedor] = useState(null);
   const [pecas, setPecas] = useState([]);
@@ -362,10 +349,10 @@ export default function FornecedorPerfil() {
                   <>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: SPACING.LG }}>
                       <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
-                        ★ {Number(resumoAvaliacoes.media).toFixed(1)}
+                        ★ {formatNumber(resumoAvaliacoes.media, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                       </strong>
                       <span style={{ color: 'var(--bp-text-muted)' }}>
-                        {resumoAvaliacoes.total} {resumoAvaliacoes.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
+                        {formatNumber(resumoAvaliacoes.total)} {t(resumoAvaliacoes.total === 1 ? 'verifiedReviews' : 'verifiedReviewsPlural')}
                       </span>
                     </div>
                     <div style={{ display: 'grid', gap: SPACING.SM }}>

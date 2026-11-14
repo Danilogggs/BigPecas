@@ -262,7 +262,27 @@ Teste também a disponibilidade do backend:
 curl http://localhost:3001/api/health
 ```
 
-O projeto ainda não possui uma suíte automatizada de testes. Adicionar testes unitários, de integração e de interface está entre as melhorias recomendadas.
+## Testes automatizados e cobertura
+
+Backend e frontend usam Jest (o frontend com Testing Library). Na raiz do projeto:
+
+```bash
+npm test
+```
+
+```bash
+npm run test:coverage
+```
+
+O relatório de cobertura (Istanbul/`jest --coverage`) é gerado em `backend/coverage/` e `frontend/coverage/` (`lcov-report/index.html`). Os limites mínimos ficam em `backend/jest.config.js` e `frontend/jest.config.cjs`: abaixo de 76% em instruções, branches, funções ou linhas o comando falha — inclusive na integração contínua (`npm run test:ci`).
+
+## Internacionalização
+
+O frontend suporta português (PTBR), inglês (EN) e francês (FR), escolhidos no seletor de idioma do cabeçalho:
+
+- **Textos estáticos:** todos os textos passam por `t()` (i18next, em `src/contexts/LanguageContext.jsx` e `src/contexts/i18nCompletionTranslations.js`). O teste `src/contexts/__tests__/i18nCompleteness.test.js` varre o código e falha se algum texto não tiver tradução em EN e FR.
+- **Formatos de dados:** datas, números e percentuais usam o locale do idioma ativo (`pt-BR`, `en-US`, `fr-FR`) por meio de `src/utils/intl.js` e dos formatadores do `LanguageContext` (`formatDate`, `formatNumber`, `formatPercent`).
+- **Dados da base e valores monetários:** categorias, materiais, condições, status de pedidos, formas de pagamento, prazos de frete e funcionalidades de auditoria vindos do banco são traduzidos na exibição. Os preços do catálogo são convertidos para a moeda do usuário (automática pela região — BRL, USD ou EUR — ou escolhida no seletor) com as cotações de `/api/moeda/config` e formatados no locale ativo (`useMoney`/`<Money>`). Carrinho, checkout, pedidos e relatórios mostram o valor cobrado, em BRL, formatado no locale ativo (`useBrlMoney`). As cotações de USD/EUR precisam estar configuradas em `taxas_cambio` (veja `GUIA_IMPLEMENTACAO_AVALIADOR_MOEDA.md`); sem elas a exibição permanece em BRL.
 
 ## Segurança
 
@@ -294,7 +314,7 @@ O projeto ainda não possui uma suíte automatizada de testes. Adicionar testes 
 
 - Integrar um gateway de pagamentos com confirmação por webhook.
 - Automatizar o acompanhamento de entregas.
-- Adicionar testes automatizados e integração contínua.
+- Ampliar os testes de interface (end-to-end) dos fluxos principais.
 - Implementar observabilidade e monitoramento para produção.
 
 ---
