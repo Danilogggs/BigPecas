@@ -214,6 +214,9 @@ Principais:
 
 ## Banco de dados
 
+Consultas agrupadas, regras dos indicadores, indices de negocio e validacao:
+[`REPORTS_DATABASE.md`](REPORTS_DATABASE.md).
+
 O backend espera tabelas Supabase para:
 
 - `users`

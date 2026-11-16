@@ -59,8 +59,21 @@ const EXTRA = {
   },
 };
 
+const REPORT_COPY = {
+  EN: {
+    'Vendas pela data de pagamento; pedidos e taxas pela data de criação. Horário de Brasília.': 'Sales by payment date; orders and rates by creation date. Brasilia time.',
+    'Valor dos produtos em pedidos pagos, enviados ou entregues, pela data de pagamento. Sem frete e descontos.': 'Product value in paid, shipped or delivered orders, by payment date. Excludes shipping and discounts.',
+    'Valor dos produtos vendidos dividido pelos pedidos pagos no período de pagamento.': 'Product sales divided by paid orders in the payment period.',
+  },
+  FR: {
+    'Vendas pela data de pagamento; pedidos e taxas pela data de criação. Horário de Brasília.': 'Ventes par date de paiement ; commandes et taux par date de création. Heure de Brasilia.',
+    'Valor dos produtos em pedidos pagos, enviados ou entregues, pela data de pagamento. Sem frete e descontos.': 'Valeur des produits des commandes payées, expédiées ou livrées, par date de paiement. Hors livraison et remises.',
+    'Valor dos produtos vendidos dividido pelos pedidos pagos no período de pagamento.': 'Ventes de produits divisées par les commandes payées pendant la période de paiement.',
+  },
+};
+
 // Traducoes especificas do painel; textos fora delas caem no dicionario global
 // (quando um tradutor de fallback e informado) e, por ultimo, no proprio texto.
 export function createAdminTranslator(language, fallback = (text) => text) {
-  return (text) => EXTRA[language]?.[text] || COPY[language]?.[text] || fallback(text);
+  return (text) => REPORT_COPY[language]?.[text] || EXTRA[language]?.[text] || COPY[language]?.[text] || fallback(text);
 }

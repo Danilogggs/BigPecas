@@ -33,7 +33,7 @@ const assert = require('node:assert/strict');
       END $$;
       CREATE EVENT TRIGGER auto_rls ON ddl_command_end WHEN TAG IN ('CREATE TABLE') EXECUTE FUNCTION auth.enable_rls();
     `);
-    const sql = fs.readFileSync(path.resolve(__dirname, '../../backend/supabase/setup-devqas.sql'), 'utf8');
+    const sql = fs.readFileSync(path.resolve(__dirname, '../../backend/supabase/setup-devqas.sql'), 'utf8').replace(/\r\n/g, '\n');
     await db.exec(sql);
     // Comparar somente metadados efetivamente exportados, sem inferir tamanhos/precisao.
     const snapshot = JSON.parse(fs.readFileSync(path.resolve(__dirname,

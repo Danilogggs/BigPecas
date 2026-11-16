@@ -55,7 +55,7 @@ describe('adminGateway escrita', () => {
   test.each([
     ['listarUsuarios', ['tk'], '/usuarios?search=&limit=100', 'GET'],
     ['listarUsuarios', ['tk', 'ana b'], '/usuarios?search=ana%20b&limit=100', 'GET'],
-    ['carregarDadosGerenciais', ['tk'], '/analytics', 'GET'],
+    ['carregarDadosGerenciais', ['tk'], '/analytics?days=30&granularity=semanal', 'GET'],
     ['atualizarAdmin', ['tk', 3, true], '/usuarios/3/admin', 'PATCH'],
     ['editarUsuario', ['tk', 3, { a: 1 }], '/usuarios/3', 'PATCH'],
     ['removerUsuario', ['tk', 3], '/usuarios/3', 'DELETE'],
@@ -83,4 +83,16 @@ describe('adminGateway escrita', () => {
     fetch.mockResolvedValueOnce(jsonInvalido());
     await expect(adminGateway.removerPeca('tk', 1)).rejects.toThrow('Não foi possível concluir esta ação.');
   });
+});
+
+test('envia filtros codificados para a API, sem carregar todas as linhas no navegador', async () => {
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ metricas: { pedidos: 2 } }) });
+  const result = await adminGateway.carregarDadosGerenciais('token-teste', {
+    days: 90, status: 'pago', fornecedor_id: '5', granularity: 'mensal',
+  });
+  const [url, options] = fetch.mock.calls[0];
+  const params = new URL(url).searchParams;
+  expect(Object.fromEntries(params)).toEqual({days:'90',granularity:'mensal',status:'pago',fornecedor_id:'5'});
+  expect(options.headers.Authorization).toBe('Bearer token-teste');
+  expect(result.metricas.pedidos).toBe(2);
 });

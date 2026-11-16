@@ -54,7 +54,14 @@ const adminGateway = Object.freeze({
   },
 
   listarUsuarios: (token, busca = '') => requisicao(token, `/usuarios?search=${encodeURIComponent(busca)}&limit=100`),
-  carregarDadosGerenciais: (token) => requisicao(token, '/analytics'),
+  carregarDadosGerenciais: (token, filtros = {}) => {
+    const query = new URLSearchParams({
+      days: String(filtros.days ?? 30), granularity: filtros.granularity || 'semanal',
+    });
+    if (filtros.status) query.set('status', filtros.status);
+    if (filtros.fornecedor_id) query.set('fornecedor_id', filtros.fornecedor_id);
+    return requisicao(token, `/analytics?${query}`);
+  },
   atualizarAdmin: (token, id, is_admin) => requisicao(token, `/usuarios/${id}/admin`, { method: 'PATCH', body: JSON.stringify({ is_admin }) }),
   editarUsuario: (token, id, dados) => requisicao(token, `/usuarios/${id}`, { method: 'PATCH', body: JSON.stringify(dados) }),
   removerUsuario: (token, id) => requisicao(token, `/usuarios/${id}`, { method: 'DELETE' }),

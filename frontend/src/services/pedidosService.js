@@ -58,9 +58,10 @@ export const listarHistoricoPedidos = async () => {
   }
 };
 
-export const obterRelatorioVendas = async (days = 30) => {
+export const obterRelatorioVendas = async (days = 30, page = 1) => {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}/pedidos/relatorio-vendas?days=${days}`, { headers });
+  const pageQuery = page === 1 ? '' : `&page=${page}`;
+  const response = await fetch(`${API_BASE_URL}/pedidos/relatorio-vendas?days=${days}${pageQuery}`, { headers });
   if (!response.ok) throw createFriendlyError(await parseErrorResponse(response, 'Não foi possível carregar o relatório de vendas.'));
   return response.json();
 };

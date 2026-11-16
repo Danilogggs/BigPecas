@@ -6,7 +6,7 @@ function criarAdminController(useCases) {
     preferencias: adaptar(async (req, res) => res.json(await useCases.obterPreferencias(req.admin))),
     salvarPreferencias: adaptar(async (req, res) => res.json(await useCases.salvarPreferencias(req.admin, req.body))),
     dashboard: adaptar(async (_req, res) => res.json(await useCases.obterDashboard())),
-    analytics: adaptar(async (_req, res) => res.json(await useCases.obterDadosGerenciais())),
+    analytics: adaptar(async (req, res) => res.json(await useCases.obterDadosGerenciais(req.query))),
     usuarios: adaptar(async (req, res) => res.json(await useCases.listarUsuarios(req.query))),
     criarContaAdmin: adaptar(async (req, res) => res.status(201).json(await useCases.criarContaAdmin(req.body))),
     editarUsuario: adaptar(async (req, res) => res.json(await useCases.editarUsuario(req.params.id, req.body))),

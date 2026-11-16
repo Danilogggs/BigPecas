@@ -28,14 +28,20 @@ const pedidos = [
 ];
 const dadosGerenciais = {
   pedidos,
-  pecas: [{ id: 1, nome_peca: 'Farol', estoque_atual: 1, sku: 'F1' }, { id: 2, estoque: 0 }, { id: 3, estoque_atual: 20 }],
+  metricas: { pedidos: 3, faturamento: 1000, ticket_medio: 1000, taxa_conclusao: 33, taxa_cancelamento: 33 },
+  anteriores: { pedidos: 2, faturamento: 5400, ticket_medio: 2700, taxa_conclusao: 50 },
+  status: { entregue: 1, cancelado: 1, aguardando_pagamento: 1 },
+  serie: [{ data: '2026-10-26', value: 1000, orders: 1, ticket: 1000 }],
+  fornecedores: [{ id: 5, nome: 'Loja A' }],
+  reputacao: [{ id: 5, name: 'Loja A', average: 4.5, count: 2 }],
+  estoque: [{ id: 1, nome_peca: 'Farol', estoque_atual: 1, sku: 'F1' }, { id: 2, estoque: 0 }, { id: 3, estoque_atual: 20 }],
   usuarios: [{ id: 1, full_name: 'Ana', created_at: diasAtras(1) }, { id: 2, email: 'b@x.com', created_at: diasAtras(5) }],
 };
 const dashboard = { usuarios: 10, administradores: 2, pecas: 30, pedidos: 6, pedidos_pendentes: 1, avaliacoes: 4 };
 
 function configurar({ widgets = null } = {}) {
   adminGateway.carregar.mockResolvedValue({ admin: { id: 1, full_name: 'Bruna Admin', email: 'b@a.com' }, dashboard, widgets });
-  adminGateway.carregarDadosGerenciais.mockResolvedValue(dadosGerenciais);
+  adminGateway.carregarDadosGerenciais.mockImplementation(async (_token, filtros) => ({ ...dadosGerenciais, anteriores: filtros.days === 0 ? null : dadosGerenciais.anteriores }));
   adminGateway.salvarPreferencias.mockResolvedValue({});
   adminGateway.listarUsuarios.mockResolvedValue({ data: [
     { id: 1, full_name: 'Ana', email: 'ana@x.com', created_at: '2026-01-31T12:00:00', is_admin: true, nome_loja: 'Loja A' },
@@ -86,7 +92,7 @@ test('visao geral calcula indicadores, filtra e navega pelos atalhos', async () 
   fireEvent.change(status, { target: { value: 'entregue' } });
   fireEvent.change(fornecedor, { target: { value: '5' } });
   fireEvent.change(periodo, { target: { value: '0' } });
-  expect(screen.getAllByText('No período selecionado').length).toBeGreaterThan(0);
+  await waitFor(() => expect(adminGateway.carregarDadosGerenciais).toHaveBeenLastCalledWith('tk', expect.objectContaining({ days: 0 })));
   fireEvent.change(periodo, { target: { value: '365' } });
   fireEvent.change(periodo, { target: { value: '90' } });
   fireEvent.click(screen.getByText('Limpar'));
@@ -114,9 +120,9 @@ test('dashboard sem dados gerenciais e em ingles', async () => {
   adminGateway.carregarDadosGerenciais.mockRejectedValue(new Error('x'));
   adminGateway.carregar.mockResolvedValue({ admin: { id: 1, email: 'x@y.com' }, dashboard: {}, widgets: null });
   renderPage(<AdminPage />, { language: 'EN' });
-  expect(await screen.findByText('Hello, admin.')).toBeInTheDocument();
+  expect(await screen.findByRole('alert')).toHaveTextContent('x');
   expect(screen.getByText('Admin panel')).toBeInTheDocument();
-  expect(screen.getAllByText('R$0.00').length).toBeGreaterThan(0);
+  expect(screen.queryByText('R$0.00')).not.toBeInTheDocument();
 });
 
 test('personaliza o dashboard com todos os widgets', async () => {

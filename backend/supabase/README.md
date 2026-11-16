@@ -7,7 +7,8 @@ como uma migration nova; nada de alterar tabela pelo editor visual do Supabase.
 
 - Um arquivo por mudanca, nomeado `<YYYYMMDDHHMMSS>_<nome_em_snake_case>.sql`
   (timestamp UTC de 14 digitos, formato do Supabase CLI). O runner recusa
-  qualquer arquivo fora desse padrao.
+  qualquer arquivo fora desse padrao, exceto o arquivo historico
+  `20260914_restringir_acesso_dados.sql`, cuja versao aplicada e preservada.
 - **Nao escreva `begin`/`commit`**: o runner abre uma transacao por migration.
   Se a migration falhar, nada dela fica aplicado pela metade.
 - Prefira comandos idempotentes (`if not exists`, `if exists`,

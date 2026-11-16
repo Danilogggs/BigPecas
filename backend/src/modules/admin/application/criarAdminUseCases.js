@@ -5,6 +5,17 @@ const {
 } = require('../domain/administracao');
 
 function criarAdminUseCases({ repository, tabelas, sincronizarStatusVendas }) {
+  async function obterDadosGerenciais(query = {}) {
+    const dias = Number(query.days ?? 30);
+    const granularidade = query.granularity ?? 'semanal';
+    if (![0, 7, 30, 90, 365].includes(dias) || !['diario', 'semanal', 'mensal'].includes(granularidade)) {
+      throw new AppError(400, 'Período ou agrupamento inválido.');
+    }
+    const status = query.status ? validarStatus(query.status) : null;
+    const fornecedor = query.fornecedor_id ? validarId(query.fornecedor_id, 'fornecedor') : null;
+    if (fornecedor !== null && !Number.isSafeInteger(fornecedor)) throw new AppError(400, 'Fornecedor inválido.');
+    return repository.obterDadosGerenciais({ dias, status, fornecedor, granularidade });
+  }
   const respostaLista = (resultado, page, limit) => {
     if (resultado.error) throw resultado.error;
     return { data: resultado.data || [], pagination: { page, limit, total: resultado.count || 0 } };
@@ -184,7 +195,7 @@ function criarAdminUseCases({ repository, tabelas, sincronizarStatusVendas }) {
   return Object.freeze({
     atualizarAdmin, atualizarStatus, criarContaAdmin, editarAvaliacao, editarPeca, editarUsuario,
     listarAvaliacoes, listarPecas, listarPedidos, listarUsuarios,
-    obterDashboard: repository.obterDashboard, obterDadosGerenciais: repository.obterDadosGerenciais,
+    obterDashboard: repository.obterDashboard, obterDadosGerenciais,
     obterPreferencias,
     removerAvaliacao, removerPeca, removerPecaPermanente, removerUsuario, removerUsuarioPermanente, salvarPreferencias,
   });

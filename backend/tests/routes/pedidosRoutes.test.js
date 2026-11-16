@@ -220,9 +220,13 @@ describe('pedidosRoutes', () => {
   });
 
   describe('GET /relatorio-vendas', () => {
-    it('lista somente pedidos pagos do vendedor e calcula itens e totais', async () => {
+    it('consulta o resumo SQL com o fornecedor da sessao e mantem o contrato da tela', async () => {
       const paidAt = new Date(Date.now() - 2 * 86400000).toISOString();
       mockarUsuarioAtual(VENDEDOR);
+      mockSupabaseAdmin.rpc.mockResolvedValue({ data: {
+        sales: [{ id: 'pago-1', items: [{ name: 'Friso Opala', quantity: 2, total: 700 }] }],
+        summary: { orders: 1, units: 2, revenue: 700 },
+      }, error: null });
       mockSupabaseAdmin.__mockTable('pedidos', { data: [
         pedidoSalvo({ id: 'pago-1', status: 'enviado', historico: [
           { status: 'aguardando_pagamento', data: paidAt }, { status: 'pago', data: paidAt },
@@ -239,12 +243,61 @@ describe('pedidosRoutes', () => {
       expect(resposta.body.sales.map((sale) => sale.id)).toEqual(['pago-1']);
       expect(resposta.body.summary).toEqual({ orders: 1, units: 2, revenue: 700 });
       expect(resposta.body.sales[0].items[0]).toMatchObject({ name: 'Friso Opala', quantity: 2, total: 700 });
+      expect(mockSupabaseAdmin.rpc).toHaveBeenCalledWith('obter_relatorio_vendedor', expect.objectContaining({
+        p_fornecedor: VENDEDOR.id, p_limite: 50, p_offset: 0,
+      }));
+      expect(resposta.body.pagination).toEqual({ page: 1, limit: 50, total: 1 });
     });
 
     it('recusa período fora das opções permitidas', async () => {
       mockarUsuarioAtual(VENDEDOR);
       const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas?days=365');
       expect(resposta.status).toBe(400);
+    });
+
+    it('pagina no SQL e ignora fornecedor enviado na query', async () => {
+      mockarUsuarioAtual(VENDEDOR);
+      mockSupabaseAdmin.rpc.mockResolvedValue({ data: { sales: [], summary: { orders: 120, units: 200, revenue: 300 } }, error: null });
+      const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas?days=30&page=3&fornecedor_id=999');
+      expect(resposta.status).toBe(200);
+      expect(mockSupabaseAdmin.rpc).toHaveBeenCalledWith('obter_relatorio_vendedor', expect.objectContaining({ p_fornecedor: 5, p_offset: 100 }));
+      expect(mockSupabaseAdmin.__callsFor('pedidos')).toHaveLength(0);
+    });
+
+    it('informa que falta a migration em vez de devolver totais falsos', async () => {
+      mockarUsuarioAtual(VENDEDOR);
+      mockSupabaseAdmin.rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202' } });
+      const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas');
+      expect(resposta.status).toBe(503);
+      expect(resposta.body.error).toContain('atualização');
+    });
+
+    it.each(['0','-1','abc','1.5'])('recusa pagina invalida %s', async (page) => {
+      expect((await request(appVendedor).get(`/api/pedidos/relatorio-vendas?page=${page}`)).status).toBe(400);
+      expect(mockSupabaseAdmin.rpc).not.toHaveBeenCalled();
+    });
+
+    it('exporta todos os lotes mantendo o mesmo periodo', async () => {
+      mockarUsuarioAtual(VENDEDOR);
+      const sale = (id) => ({ id, paid_at: '2026-10-25T12:00:00Z', items: [], total: 10 });
+      mockSupabaseAdmin.rpc
+        .mockResolvedValueOnce({ data: { sales: Array.from({length:100}, (_,i) => sale(String(i))), summary: {orders:101,units:101,revenue:1010} }, error: null })
+        .mockResolvedValueOnce({ data: { sales: [sale('100')], summary: {orders:101,units:101,revenue:1010} }, error: null });
+      const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas/exportar?days=90');
+      expect(resposta.status).toBe(200);
+      expect(resposta.headers['content-type']).toContain('spreadsheetml');
+      const [primeira,segunda] = mockSupabaseAdmin.rpc.mock.calls.map((call) => call[1]);
+      expect(segunda).toEqual({ ...primeira, p_offset: 100 });
+    });
+
+    it('nao entrega Excel incompleto se os dados mudarem entre lotes', async () => {
+      mockarUsuarioAtual(VENDEDOR);
+      mockSupabaseAdmin.rpc
+        .mockResolvedValueOnce({data:{sales:Array.from({length:100},(_,id)=>({id})),summary:{orders:101,units:101,revenue:1010}},error:null})
+        .mockResolvedValueOnce({data:{sales:[],summary:{orders:100,units:100,revenue:1000}},error:null});
+      const resposta = await request(appVendedor).get('/api/pedidos/relatorio-vendas/exportar');
+      expect(resposta.status).toBe(409);
+      expect(resposta.body.error).toContain('exportação');
     });
   });
 

@@ -1,7 +1,15 @@
+const { consultarRelatorio } = require('../../../services/reportQueries');
+
 function criarSupabasePedidosRepository({ supabase, tabelas }) {
   const { pedidos, pecas, usuarios } = tabelas;
 
   return Object.freeze({
+    async obterRelatorioVendas({ fornecedorId, inicio, fim, limite, offset }) {
+      return consultarRelatorio(supabase, 'obter_relatorio_vendedor', {
+        p_fornecedor: fornecedorId, p_inicio: inicio, p_fim: fim,
+        p_limite: limite, p_offset: offset,
+      });
+    },
     async buscarUsuarioPorEmail(email) {
       const { data, error } = await supabase
         .from(usuarios)
