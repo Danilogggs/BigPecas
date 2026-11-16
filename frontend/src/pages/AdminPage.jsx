@@ -54,7 +54,8 @@ export default function AdminPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [notice, setNotice] = useState({ type: '', text: '' });
   const [busy, setBusy] = useState('');
-  const [insights, setInsights] = useState({ loading: true, pedidos: [], pecas: [], usuarios: [] });
+  const [insights, setInsights] = useState({ loading: true, error: '', pedidos: [], usuarios: [] });
+  const [analyticsVersion, setAnalyticsVersion] = useState(0);
   const [draggingWidget, setDraggingWidget] = useState('');
   const [periodDays, setPeriodDays] = useState(30);
   const [dashboardStatus, setDashboardStatus] = useState('');
@@ -81,19 +82,25 @@ export default function AdminPage() {
   useEffect(() => {
     if (!dash.state.admin) return;
     let active = true;
+    setInsights((current) => ({ ...current, loading: true, error: '' }));
     (async () => {
       try {
         const token = await getToken();
-        const dados = await adminGateway.carregarDadosGerenciais(token);
-        if (active) setInsights({ loading: false, pedidos: dados.pedidos || [], pecas: dados.pecas || [], usuarios: dados.usuarios || [] });
-      } catch { if (active) setInsights((current) => ({ ...current, loading: false })); }
+        const dados = await adminGateway.carregarDadosGerenciais(token, {
+          days: periodDays, status: dashboardStatus,
+          fornecedor_id: dashboardSupplier, granularity: chartGranularity,
+        });
+        if (active) setInsights({ ...dados, loading: false, error: '' });
+      } catch (error) {
+        if (active) setInsights((current) => ({ ...current, loading: false, error: error.message }));
+      }
     })();
     return () => { active = false; };
-  }, [dash.state.admin, getToken]);
+  }, [dash.state.admin, getToken, periodDays, dashboardStatus, dashboardSupplier, chartGranularity, analyticsVersion]);
 
   async function action(key, callback, message) {
     setBusy(key); setNotice({ type: '', text: '' });
-    try { await callback(); setNotice({ type: 'success', text: message }); await load(); return true; }
+    try { await callback(); setAnalyticsVersion((value) => value + 1); setNotice({ type: 'success', text: message }); await load(); return true; }
     catch (error) { setNotice({ type: 'error', text: error.message }); return false; }
     finally { setBusy(''); }
   }
@@ -145,6 +152,7 @@ export default function AdminPage() {
       if (target.type === 'peca') await adminGateway.removerPecaPermanente(token, target.item.id);
       if (target.type === 'avaliacao') await adminGateway.removerAvaliacao(token, reviewType, target.item.id);
       setRecords((current) => current.filter((item) => item.id !== target.item.id));
+      setAnalyticsVersion((value) => value + 1);
       setInsights((current) => ({ ...current, [`${target.type}s`]: (current[`${target.type}s`] || []).filter((item) => item.id !== target.item.id) }));
       dash.ajustarDashboard({
         usuarios: target.type === 'usuario' ? -1 : 0,
@@ -169,42 +177,19 @@ export default function AdminPage() {
     pedidos: 'Acompanhe pedidos e atualize o andamento das transações.',
     avaliacoes: 'Modere as avaliações enviadas pela comunidade.',
   }).map(([key, value]) => [key, tr(value)]));
-  const now = new Date();
-  const periodStart = periodDays ? new Date(now.getTime() - periodDays * 86400000) : null;
-  const previousStart = periodDays ? new Date(now.getTime() - periodDays * 2 * 86400000) : null;
-  const matchesSupplier = (pedido) => !dashboardSupplier || (pedido.itens || []).some((item) => String(item.fornecedor_id) === dashboardSupplier);
-  const filteredOrders = insights.pedidos.filter((pedido) => (!periodStart || new Date(pedido.criado_em) >= periodStart) && (!dashboardStatus || pedido.status === dashboardStatus) && matchesSupplier(pedido));
-  const previousOrders = periodDays ? insights.pedidos.filter((pedido) => { const created = new Date(pedido.criado_em); return created >= previousStart && created < periodStart && (!dashboardStatus || pedido.status === dashboardStatus) && matchesSupplier(pedido); }) : [];
-  const revenueOf = (orders) => orders.filter((pedido) => pedido.status !== 'cancelado').reduce((sum, pedido) => sum + Number(pedido.total || 0), 0);
-  const revenue = revenueOf(filteredOrders);
-  const previousRevenue = revenueOf(previousOrders);
+  const managerialValues = insights.metricas || { faturamento: 0, pedidos: 0, ticket_medio: 0, taxa_conclusao: 0, taxa_cancelamento: 0 };
+  const previousManagerialValues = insights.anteriores || {};
+  const totalOrders = Number(managerialValues.pedidos || 0);
   const percentageChange = (current, previous) => previous ? ((current - previous) / previous) * 100 : current ? 100 : 0;
-  const completionRate = filteredOrders.length ? filteredOrders.filter((pedido) => pedido.status === 'entregue').length / filteredOrders.length * 100 : 0;
-  const cancellationRate = filteredOrders.length ? filteredOrders.filter((pedido) => pedido.status === 'cancelado').length / filteredOrders.length * 100 : 0;
-  const revenueOrders = filteredOrders.filter((pedido) => pedido.status !== 'cancelado');
-  const previousRevenueOrders = previousOrders.filter((pedido) => pedido.status !== 'cancelado');
-  const previousCompletionRate = previousOrders.length ? previousOrders.filter((pedido) => pedido.status === 'entregue').length / previousOrders.length * 100 : 0;
-  const managerialValues = { faturamento: revenue, pedidos: filteredOrders.length, ticket_medio: revenueOrders.length ? revenue / revenueOrders.length : 0, taxa_conclusao: completionRate, taxa_cancelamento: cancellationRate };
-  const previousManagerialValues = { faturamento: previousRevenue, pedidos: previousOrders.length, ticket_medio: previousRevenueOrders.length ? previousRevenue / previousRevenueOrders.length : 0, taxa_conclusao: previousCompletionRate };
-  const suppliers = [...new Map(insights.pedidos.flatMap((pedido) => pedido.itens || []).filter((item) => item.fornecedor_id).map((item) => [String(item.fornecedor_id), item.fornecedor_nome || `${tr('Fornecedor')} #${item.fornecedor_id}`])).entries()];
-  const chartConfig = chartGranularity === 'diario' ? { size: 1, count: Math.min(periodDays || 14, 14) } : chartGranularity === 'mensal' ? { size: 30, count: Math.min(12, Math.max(1, Math.ceil((periodDays || 365) / 30))) } : { size: 7, count: Math.min(10, Math.max(1, Math.ceil((periodDays || 70) / 7))) };
-  const bucketCount = chartConfig.count;
-  const bucketSize = chartConfig.size;
-  const salesBuckets = Array.from({ length: bucketCount }, (_, index) => {
-    const monthsAgo = bucketCount - index - 1;
-    const start = chartGranularity === 'mensal'
-      ? new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1)
-      : new Date(now.getTime() - (bucketCount - index) * bucketSize * 86400000);
-    const end = chartGranularity === 'mensal'
-      ? new Date(now.getFullYear(), now.getMonth() - monthsAgo + 1, 1)
-      : new Date(start.getTime() + bucketSize * 86400000);
-    const orders = filteredOrders.filter((pedido) => { const created = new Date(pedido.criado_em); return created >= start && created < end; });
-    const value = revenueOf(orders);
-    const label = chartGranularity === 'mensal'
-      ? start.toLocaleDateString(locale, { month: 'short' }).replace('.', '')
-      : end.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
-    return { label, value, orders: orders.length, ticket: orders.length ? value / orders.length : 0 };
-  });
+  const suppliers = (insights.fornecedores || []).map((item) => [String(item.id), item.nome]);
+  const productRanking = insights.produtos || [];
+  const salesBuckets = (insights.serie || []).map((bucket) => ({
+    ...bucket,
+    label: new Intl.DateTimeFormat(locale, {
+      timeZone: 'America/Sao_Paulo',
+      ...(chartGranularity === 'mensal' ? { month: 'short', year: '2-digit' } : { day: '2-digit', month: 'short' }),
+    }).format(new Date(`${bucket.data}T12:00:00-03:00`)),
+  }));
   const maxSales = Math.max(1, ...salesBuckets.map((bucket) => bucket.value));
   const metrics = [
     ['usuarios', tr('Usuários'), 'user'], ['administradores', tr('Administradores'), 'user'],
@@ -220,21 +205,14 @@ export default function AdminPage() {
     pedidos: tr('Quantidade total de pedidos registrados na plataforma.'),
     pedidos_pendentes: tr('Pedidos que ainda aguardam pagamento ou ação operacional.'),
     avaliacoes: tr('Avaliações publicadas por compradores.'),
-    faturamento: tr('Soma dos pedidos não cancelados no período e filtros selecionados.'),
-    ticket_medio: tr('Valor médio dos pedidos não cancelados no recorte atual.'),
+    faturamento: tr('Valor dos produtos em pedidos pagos, enviados ou entregues, pela data de pagamento. Sem frete e descontos.'),
+    ticket_medio: tr('Valor dos produtos vendidos dividido pelos pedidos pagos no período de pagamento.'),
     taxa_conclusao: tr('Percentual de pedidos do período que foram entregues.'),
     taxa_cancelamento: tr('Percentual de pedidos do período que foram cancelados.'),
   };
-  const orderCounts = STATUS.map((status) => [status, filteredOrders.filter((pedido) => pedido.status === status).length]);
-  const maxOrders = Math.max(1, ...orderCounts.map(([, count]) => count));
-  const supplierRanking = reviewType === 'fornecedores' ? Object.values(records.reduce((ranking, review) => {
-    const key = String(review.fornecedor_id || review.fornecedor_loja || review.fornecedor_nome || 'sem-id');
-    if (!ranking[key]) ranking[key] = { id: key, name: review.fornecedor_loja || review.fornecedor_nome || `${tr('Fornecedor')} #${review.fornecedor_id || '—'}`, total: 0, count: 0 };
-    ranking[key].total += Number(review.nota || 0);
-    ranking[key].count += 1;
-    return ranking;
-  }, {})).map((supplier) => ({ ...supplier, average: supplier.total / supplier.count }))
-    .sort((a, b) => b.average - a.average || b.count - a.count).slice(0, 6) : [];
+  const orderCounts = STATUS.map((status) => [status, Number(insights.status?.[status] || 0)]);
+  const lowStock = insights.estoque || [];
+  const supplierRanking = insights.reputacao || [];
   const attentionItems = [
     { key: 'aguardando_pagamento', tone: 'warning', count: orderCounts.find(([status]) => status === 'aguardando_pagamento')?.[1] || 0, label: tr('pedidos aguardando pagamento') },
     { key: 'pago', tone: 'warning', count: orderCounts.find(([status]) => status === 'pago')?.[1] || 0, label: tr('pedidos pagos aguardando envio') },
@@ -245,15 +223,15 @@ export default function AdminPage() {
     ...insights.usuarios.slice(0, 4).map((user) => ({ id: `u-${user.id}`, type: 'usuario', date: user.created_at, title: tr('Novo usuário cadastrado'), detail: user.full_name || user.email })),
   ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
 
-  const dashboardFilters = <div className="admin-global-filters admin-grid-full"><div className="admin-filter-heading"><span>{tr('Visão gerencial')}</span><strong>{tr('Filtrar dashboard')}</strong><small>{tr('O recorte abaixo atualiza indicadores e gráficos.')}</small></div><div><span>{tr('Período')}</span><select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))}><option value="7">{tr('Últimos 7 dias')}</option><option value="30">{tr('Últimos 30 dias')}</option><option value="90">{tr('Últimos 90 dias')}</option><option value="365">{tr('Último ano')}</option><option value="0">{tr('Todo o período')}</option></select></div><div><span>{tr('Status')}</span><select value={dashboardStatus} onChange={(event) => setDashboardStatus(event.target.value)}><option value="">{tr('Todos os status')}</option>{STATUS.map((status) => <option key={status} value={status}>{translatedStatus[status]}</option>)}</select></div><div><span>{tr('Fornecedor')}</span><select value={dashboardSupplier} onChange={(event) => setDashboardSupplier(event.target.value)}><option value="">{tr('Todos os fornecedores')}</option>{suppliers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></div><button onClick={() => { setPeriodDays(30); setDashboardStatus(''); setDashboardSupplier(''); }}>{tr('Limpar')}</button></div>;
+  const dashboardFilters = <div className="admin-global-filters admin-grid-full"><div className="admin-filter-heading"><span>{tr('Visão gerencial')}</span><strong>{tr('Filtrar dashboard')}</strong><small>{tr('Vendas pela data de pagamento; pedidos e taxas pela data de criação. Horário de Brasília.')}</small></div><div><span>{tr('Período')}</span><select aria-label="Período do dashboard" value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))}><option value="7">{tr('Últimos 7 dias')}</option><option value="30">{tr('Últimos 30 dias')}</option><option value="90">{tr('Últimos 90 dias')}</option><option value="365">{tr('Último ano')}</option><option value="0">{tr('Todo o período')}</option></select></div><div><span>{tr('Status')}</span><select aria-label="Status do dashboard" value={dashboardStatus} onChange={(event) => setDashboardStatus(event.target.value)}><option value="">{tr('Todos os status')}</option>{STATUS.map((status) => <option key={status} value={status}>{translatedStatus[status]}</option>)}</select></div><div><span>{tr('Fornecedor')}</span><select aria-label="Fornecedor do dashboard" value={dashboardSupplier} onChange={(event) => setDashboardSupplier(event.target.value)}><option value="">{tr('Todos os fornecedores')}</option>{suppliers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></div><button onClick={() => { setPeriodDays(30); setDashboardStatus(''); setDashboardSupplier(''); }}>{tr('Limpar')}</button></div>;
 
   function dashboardWidget(key, index) {
     const metric = metrics.find(([metricKey]) => metricKey === key);
     if (metric) { const value = key in managerialValues ? managerialValues[key] : dash.state.dashboard?.[key] ?? 0; const formatted = key === 'faturamento' || key === 'ticket_medio' ? money(value) : key.startsWith('taxa_') ? formatPercent(value) : formatNumber(value); const previous = previousManagerialValues[key]; const difference = key === 'taxa_conclusao' ? value - previous : key === 'pedidos' ? value - previous : percentageChange(value, previous); const comparable = periodDays && previous > 0 && !(key === 'faturamento' && previous < Math.max(100, value * .02)); const comparison = comparable ? `${difference >= 0 ? '↗' : '↘'} ${formatNumber(Math.abs(difference), { maximumFractionDigits: 1 })}${key === 'taxa_conclusao' ? ' p.p.' : key === 'pedidos' ? '' : '%'} ${tr('vs. período anterior')}` : periodDays && key in previousManagerialValues ? tr('Sem base comparável no período anterior') : tr('No período selecionado'); return <article className="admin-metric-card admin-grid-metric admin-has-tooltip" data-tooltip={metricTooltips[key]} tabIndex="0" key={key}><span className="admin-tooltip-mark" aria-hidden="true">?</span><div className={`admin-metric-icon tone-${index % 4}`}><Icon name={metric[2]} /></div><div><span>{metric[1]}</span><strong>{formatted}</strong><small className={comparable ? (difference >= 0 ? 'trend-up' : 'trend-down') : ''}>{key in previousManagerialValues ? comparison : key === 'pedidos_pendentes' ? tr('Aguardando ação') : tr('Total registrado')}</small></div></article>; }
     if (key === 'boas_vindas') return <section className="admin-welcome admin-grid-full admin-welcome-compact" key={key}><div><span className="admin-live"><i /> {tr('OPERAÇÃO ATUALIZADA')}</span><h2>{tr('Olá')}, {dash.state.admin.full_name?.split(' ')[0] || 'admin'}.</h2><p>{tr('Veja a saúde da operação e o que precisa da sua atenção.')}</p></div><span className="admin-session-status">● {tr('Administrador · Sessão protegida')}</span></section>;
-    if (key === 'fluxo_pedidos') return <article className="admin-panel admin-chart-card admin-grid-wide" key={key}><div className="admin-panel-title"><div><h3>{tr('Fluxo de pedidos')}</h3><p>{tr('Distribuição dos pedidos no recorte atual.')}</p></div><span className="admin-data-badge">{filteredOrders.length} {tr('Pedidos').toLowerCase()}</span></div><div className="admin-bars">{orderCounts.map(([status, count]) => <button key={status} onClick={() => { setStatusFilter(status); setSection('pedidos'); }}><span>{translatedStatus[status]}</span><div><i style={{ width: `${filteredOrders.length ? count / filteredOrders.length * 100 : 0}%` }} /></div><strong>{count}</strong></button>)}</div></article>;
+    if (key === 'fluxo_pedidos') return <article className="admin-panel admin-chart-card admin-grid-wide" key={key}><div className="admin-panel-title"><div><h3>{tr('Fluxo de pedidos')}</h3><p>{tr('Distribuição dos pedidos no recorte atual.')}</p></div><span className="admin-data-badge">{totalOrders} {tr('Pedidos').toLowerCase()}</span></div><div className="admin-bars">{orderCounts.map(([status, count]) => <button key={status} onClick={() => { setStatusFilter(status); setSection('pedidos'); }}><span>{translatedStatus[status]}</span><div><i style={{ width: `${totalOrders ? count / totalOrders * 100 : 0}%` }} /></div><strong>{count}</strong></button>)}</div></article>;
     if (key === 'atividade_recente') return <article className="admin-panel admin-grid-full" key={key}><div className="admin-panel-title"><h3>{tr('Atividade recente')}</h3><p>{tr('Movimentações mais relevantes da plataforma.')}</p></div><div className="admin-recent-users admin-operational-feed">{recentActivity.map((activity) => <button key={activity.id} onClick={() => setSection(activity.type === 'pedido' ? 'pedidos' : 'usuarios')}><span>{activity.type === 'pedido' ? '▤' : '＋'}</span><div><strong>{activity.title}</strong><small>{activity.detail}</small></div><time>{date(activity.date)}</time></button>)}</div></article>;
-    if (key === 'desempenho_vendas') return <article className="admin-panel admin-sales-chart admin-grid-wide" key={key}><div className="admin-panel-title"><div><h3>{tr('Evolução do faturamento')}</h3><p>{tr('Receita, volume de pedidos e ticket médio.')}</p></div><div className="admin-chart-range">{['diario', 'semanal', 'mensal'].map((range) => <button className={chartGranularity === range ? 'is-active' : ''} key={range} onClick={() => setChartGranularity(range)}>{tr(range === 'diario' ? 'Diário' : range === 'semanal' ? 'Semanal' : 'Mensal')}</button>)}</div></div><div className="admin-sales-columns">{salesBuckets.map((bucket) => <div className="admin-sales-column" key={bucket.label} tabIndex="0" aria-label={`${bucket.label}: ${money(bucket.value)}, ${bucket.orders} ${tr('Pedidos').toLowerCase()}, ticket ${money(bucket.ticket)}`}><b><strong>{bucket.label}</strong>{tr('Receita')}: {money(bucket.value)}<small>{bucket.orders} {tr('Pedidos').toLowerCase()} · {tr('Ticket médio')} {money(bucket.ticket)}</small></b><span style={{ height: `${Math.max(bucket.value ? 8 : 2, bucket.value / maxSales * 100)}%` }} /><small>{bucket.label}</small></div>)}</div><div className="admin-chart-legend"><span>● {tr('Receita')}</span></div></article>;
+    if (key === 'desempenho_vendas') return <article className="admin-panel admin-sales-chart admin-grid-wide" key={key}><div className="admin-panel-title"><div><h3>{tr('Evolução do faturamento')}</h3><p>{tr('Receita, volume de pedidos e ticket médio.')}</p></div><div className="admin-chart-range">{['diario', 'semanal', 'mensal'].map((range) => <button className={chartGranularity === range ? 'is-active' : ''} key={range} onClick={() => setChartGranularity(range)}>{tr(range === 'diario' ? 'Diário' : range === 'semanal' ? 'Semanal' : 'Mensal')}</button>)}</div></div><div className="admin-sales-columns">{salesBuckets.map((bucket) => <div className="admin-sales-column" key={bucket.data} tabIndex="0" aria-label={`${bucket.label}: ${money(bucket.value)}, ${bucket.orders} ${tr('Pedidos').toLowerCase()}, ticket ${money(bucket.ticket)}`}><b><strong>{bucket.label}</strong>{tr('Receita')}: {money(bucket.value)}<small>{bucket.orders} {tr('Pedidos').toLowerCase()} · {tr('Ticket médio')} {money(bucket.ticket)}</small></b><span style={{ height: `${Math.max(bucket.value ? 8 : 2, bucket.value / maxSales * 100)}%` }} /><small>{bucket.label}</small></div>)}</div><div className="admin-chart-legend"><span>● {tr('Receita')}</span></div></article>;
     if (key === 'requer_atencao') return <article className="admin-panel admin-attention-card admin-grid-regular" key={key}><div className="admin-panel-title"><div><h3>{tr('Requer atenção')}</h3><p>{tr('Itens que podem exigir uma ação agora.')}</p></div><span className="admin-data-badge is-warning">{attentionItems.reduce((sum, item) => sum + item.count, 0)}</span></div><div className="admin-attention-list">{attentionItems.map((item) => <button key={item.key} onClick={() => { setStatusFilter(item.key); setSection('pedidos'); }}><i className={`is-${item.tone}`} /><strong>{item.count}</strong><span>{item.label}</span><b>→</b></button>)}</div></article>;
     if (key === 'resumo_plataforma') return <article className="admin-panel admin-platform-card admin-grid-regular" key={key}><div className="admin-panel-title"><h3>{tr('Plataforma')}</h3><p>{tr('Dimensão atual da base.')}</p></div><div className="admin-platform-stats"><button onClick={() => setSection('usuarios')}><strong>{dash.state.dashboard?.usuarios || 0}</strong><span>{tr('Usuários')}</span></button><button onClick={() => setSection('pecas')}><strong>{dash.state.dashboard?.pecas || 0}</strong><span>{tr('Peças')}</span></button><button onClick={() => setSection('usuarios')}><strong>{dash.state.dashboard?.administradores || 0}</strong><span>{tr('Admins')}</span></button><button onClick={() => setSection('avaliacoes')}><strong>{dash.state.dashboard?.avaliacoes || 0}</strong><span>{tr('Avaliações')}</span></button></div></article>;
     return null;
@@ -270,8 +248,10 @@ export default function AdminPage() {
       <header className="admin-page-heading"><div><span className="admin-eyebrow">{tr('Painel administrativo')}</span><h1>{title}</h1><p>{descriptions[section]}</p></div><div className="admin-heading-actions">{section === 'overview' && !dash.customizing && <button className="admin-layout-trigger" onClick={dash.toggleCustomizing} title={tr('Organizar dashboard')} aria-label={tr('Organizar dashboard')}><AppIcon name="engine" size={18} /></button>}<button className="admin-primary" onClick={() => setModal(true)}>＋ {tr('Novo administrador')}</button></div></header>
       {notice.text && <div className={`admin-notice admin-notice--${notice.type}`}>{tr(notice.text)}<button onClick={() => setNotice({ type: '', text: '' })}>×</button></div>}
       {section === 'overview' && <>
+        {insights.error && <div className="admin-notice admin-notice--error" role="alert">{insights.error}<button onClick={() => setAnalyticsVersion((value) => value + 1)}>Tentar novamente</button></div>}
+        {insights.loading && <p role="status">Atualizando indicadores…</p>}
         {dash.customizing && <div className="admin-layout-toolbar"><div><span className="admin-live"><i /> {tr('EDIÇÃO AO VIVO')}</span><strong>{tr('Organize seu dashboard')}</strong><small>{tr('Arraste os cards pela alça para mudar a ordem.')}</small></div><aside><button className="admin-reset-button" onClick={() => dash.savePreferences(WIDGETS_PADRAO)}>↺ {t('restoreDefault')}</button><button onClick={dash.toggleCustomizing}>{t('cancel')}</button><button className="admin-primary" disabled={dash.saving} onClick={() => dash.savePreferences()}>{dash.saving ? t('saving') : tr('Salvar layout')}</button></aside></div>}
-        <section className={`admin-dashboard-layout ${dash.customizing ? 'is-customizing' : ''}`}>{dash.visibleWidgets.map((key, index) => <Fragment key={key}><div className={`admin-layout-item admin-grid-${WIDGETS_ADMIN[key].type} ${draggingWidget === key ? 'is-dragging' : ''}`} draggable={dash.customizing} onDragStart={(event) => { setDraggingWidget(key); event.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDraggingWidget('')} onDragEnter={(event) => { event.preventDefault(); if (dash.customizing && draggingWidget && draggingWidget !== key) dash.reorderWidget(draggingWidget, key); }} onDragOver={(event) => { if (dash.customizing) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; } }} onDrop={(event) => { event.preventDefault(); setDraggingWidget(''); }}>{dash.customizing && <div className="admin-card-editor"><span className="admin-card-drag">⠿</span><strong>{t(WIDGETS_ADMIN[key].label)}</strong><span>{index + 1}</span><button onClick={() => dash.toggleWidget(key)} aria-label={tr('Ocultar widget')}>×</button></div>}{dashboardWidget(key, index)}</div>{key === 'boas_vindas' && !dash.customizing && dashboardFilters}</Fragment>)}</section>
+        {!insights.error && insights.metricas && <section className={`admin-dashboard-layout ${dash.customizing ? 'is-customizing' : ''}`}>{dash.visibleWidgets.map((key, index) => <Fragment key={key}><div className={`admin-layout-item admin-grid-${WIDGETS_ADMIN[key].type} ${draggingWidget === key ? 'is-dragging' : ''}`} draggable={dash.customizing} onDragStart={(event) => { setDraggingWidget(key); event.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDraggingWidget('')} onDragEnter={(event) => { event.preventDefault(); if (dash.customizing && draggingWidget && draggingWidget !== key) dash.reorderWidget(draggingWidget, key); }} onDragOver={(event) => { if (dash.customizing) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; } }} onDrop={(event) => { event.preventDefault(); setDraggingWidget(''); }}>{dash.customizing && <div className="admin-card-editor"><span className="admin-card-drag">⠿</span><strong>{t(WIDGETS_ADMIN[key].label)}</strong><span>{index + 1}</span><button onClick={() => dash.toggleWidget(key)} aria-label={tr('Ocultar widget')}>×</button></div>}{dashboardWidget(key, index)}</div>{key === 'boas_vindas' && !dash.customizing && dashboardFilters}</Fragment>)}</section>}
         {dash.customizing && dash.draftWidgets.length < Object.keys(WIDGETS_ADMIN).length && <div className="admin-inline-hidden"><span>{tr('Widgets ocultos')}</span>{Object.entries(WIDGETS_ADMIN).filter(([key]) => !dash.draftWidgets.includes(key)).map(([key, widget]) => <button key={key} onClick={() => dash.toggleWidget(key)}>＋ {tr(t(widget.label))}</button>)}</div>}
       </>}
 

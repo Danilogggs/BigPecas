@@ -24,7 +24,9 @@ const crypto = require('node:crypto');
 require('dotenv').config();
 
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'supabase', 'migrations');
-const FILE_PATTERN = /^(\d{14})_([a-z0-9_]+)\.sql$/;
+// Preserva a identidade da migration historica, sem renomear versoes aplicadas.
+const LEGACY_MIGRATION = '20260914_restringir_acesso_dados.sql';
+const FILE_PATTERN = /^(\d{14}|20260914)_([a-z0-9_]+)\.sql$/;
 
 const cores = {
   reset: '\x1b[0m',
@@ -46,7 +48,8 @@ function lerMigrations() {
 
   const arquivos = fs.readdirSync(MIGRATIONS_DIR).filter((nome) => nome.endsWith('.sql'));
 
-  const invalidos = arquivos.filter((nome) => !FILE_PATTERN.test(nome));
+  const invalidos = arquivos.filter((nome) => !FILE_PATTERN.test(nome)
+    || (nome.startsWith('20260914_') && nome !== LEGACY_MIGRATION));
   if (invalidos.length > 0) {
     throw new Error(
       `Nomes fora do padrao <YYYYMMDDHHMMSS>_<nome_em_snake_case>.sql:\n  ${invalidos.join('\n  ')}`
@@ -192,7 +195,7 @@ async function comandoUp(client) {
     // Uma transacao por migration: falha no meio nao deixa schema pela metade.
     await client.query('begin');
     try {
-      await client.query(m.sql);
+      await client.query(sqlParaExecucao(m));
       await client.query(
         `insert into supabase_migrations.schema_migrations (version, name, statements, checksum)
          values ($1, $2, $3, $4)`,
@@ -319,7 +322,18 @@ async function main() {
   }
 }
 
-main().catch((erro) => {
-  log('vermelho', `\n${erro.message}\n`);
-  process.exit(1);
-});
+function sqlParaExecucao(migration) {
+  // O arquivo legado tem BEGIN/COMMIT. O runner continua dono da transacao;
+  // checksum e conteudo historico permanecem intactos.
+  return migration.nome === LEGACY_MIGRATION
+    ? migration.sql.replace(/^BEGIN;\r?$/m, '').replace(/^COMMIT;\r?$/m, '')
+    : migration.sql;
+}
+
+module.exports = { lerMigrations, sqlParaExecucao };
+if (require.main === module) {
+  main().catch((erro) => {
+    log('vermelho', `\n${erro.message}\n`);
+    process.exit(1);
+  });
+}

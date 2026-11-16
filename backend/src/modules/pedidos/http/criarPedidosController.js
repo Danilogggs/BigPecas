@@ -8,11 +8,11 @@ function criarPedidosController(useCases) {
     }),
 
     relatorioVendas: adaptar(async (req, res) => {
-      res.json(await useCases.obterRelatorioVendas(req.user, req.query.days));
+      res.json(await useCases.obterRelatorioVendas(req.user, req.query.days, { page: req.query.page }));
     }),
 
     exportarRelatorioVendas: adaptar(async (req, res) => {
-      const report = await useCases.obterRelatorioVendas(req.user, req.query.days);
+      const report = await useCases.obterRelatorioVendas(req.user, req.query.days, { exportar: true });
       const buffer = await createSalesWorkbook(report);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="vendas-efetivadas-${report.days}-dias.xlsx"`);

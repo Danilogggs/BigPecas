@@ -98,6 +98,7 @@ function createSupabaseMock() {
   }
 
   const supabase = {
+    rpc: jest.fn(),
     from: jest.fn((table) => criarBuilder(table, resolver, calls)),
     auth: {
       getUser: jest.fn(),
@@ -135,6 +136,7 @@ function createSupabaseMock() {
     },
 
     __reset() {
+      supabase.rpc.mockReset();
       padroes.clear();
       filas.clear();
       calls.length = 0;

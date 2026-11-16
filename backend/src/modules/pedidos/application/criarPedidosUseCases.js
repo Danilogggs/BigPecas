@@ -147,28 +147,34 @@ function criarPedidosUseCases({
     return carregarHistorico(await obterUsuarioAtual(identidade));
   }
 
-  async function obterRelatorioVendas(identidade, period = 30) {
+  async function obterRelatorioVendas(identidade, period = 30, options = {}) {
     const days = Number(period);
     if (![7, 30, 90].includes(days)) throw new AppError(400, 'Use um período de 7, 30 ou 90 dias.');
-    const { vendas } = await carregarHistorico(await obterUsuarioAtual(identidade));
-    const since = clock().getTime() - days * 86400000;
-    const paidStatuses = new Set([STATUS_PEDIDO.PAGO, STATUS_PEDIDO.ENVIADO, STATUS_PEDIDO.ENTREGUE]);
-    const sales = vendas.filter((sale) => paidStatuses.has(sale.status)).map((sale) => {
-      const paidAt = [...(sale.historico || [])].reverse().find((entry) => entry.status === STATUS_PEDIDO.PAGO)?.data || sale.criado_em;
-      const items = sale.itens.map((item) => ({
-        id: item.id, name: item.nome || 'Peça', sku: item.sku || null,
-        quantity: Number(item.quantidade || 1), unit_price: Number(item.preco || 0),
-        total: Number(item.preco || 0) * Number(item.quantidade || 1),
-      }));
-      return { id: sale.id, status: sale.status, paid_at: paidAt, buyer: sale.comprador?.nome || 'Cliente BigPeças', items,
-        total: items.reduce((sum, item) => sum + item.total, 0) };
-    }).filter((sale) => new Date(sale.paid_at).getTime() >= since)
-      .sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at));
-    return { days, sales, summary: {
-      orders: sales.length,
-      units: sales.flatMap((sale) => sale.items).reduce((sum, item) => sum + item.quantity, 0),
-      revenue: sales.reduce((sum, sale) => sum + sale.total, 0),
-    } };
+    const page = Number(options.page ?? 1);
+    if (!Number.isSafeInteger(page) || page < 1 || page > 1000000) throw new AppError(400, 'Página inválida.');
+    const usuario = await obterUsuarioAtual(identidade);
+    const fim = clock();
+    const inicio = new Date(fim.getTime() - days * 86400000);
+    const limite = options.exportar ? 100 : 50;
+    const consultar = (offset) => repository.obterRelatorioVendas({
+      fornecedorId: usuario.id, inicio: inicio.toISOString(), fim: fim.toISOString(), limite, offset,
+    });
+    const resultado = await consultar(options.exportar ? 0 : (page - 1) * limite);
+    if (options.exportar) {
+      // Mesmo limite temporal em todos os lotes, sem recalcular pelo relogio.
+      const sales = [...resultado.sales];
+      for (let offset = limite; offset < resultado.summary.orders; offset += limite) {
+        const lote = await consultar(offset);
+        if (!lote.sales.length || lote.summary.orders !== resultado.summary.orders
+          || lote.summary.units !== resultado.summary.units || lote.summary.revenue !== resultado.summary.revenue) {
+          throw new AppError(409, 'As vendas mudaram durante a exportação. Atualize o relatório e tente novamente.');
+        }
+        sales.push(...lote.sales);
+      }
+      if (sales.length !== resultado.summary.orders) throw new AppError(409, 'As vendas mudaram durante a exportação. Tente novamente.');
+      return { days, sales, summary: resultado.summary };
+    }
+    return { days, ...resultado, pagination: { page, limit: limite, total: resultado.summary.orders } };
   }
 
   async function listarCompras(identidade) {

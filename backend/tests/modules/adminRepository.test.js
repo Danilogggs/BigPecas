@@ -42,14 +42,12 @@ test('lista usuarios com e sem filtros', async () => {
 });
 
 test('dados gerenciais com dados vazios e erros', async () => {
-  supabase.__mockTable('pedidos', { data: null, error: null });
-  supabase.__mockTable('pecas', { data: [{ id: 1 }], error: null });
-  supabase.__mockTable('users', { data: null, error: null });
-  await expect(repo.obterDadosGerenciais()).resolves.toEqual({ pedidos: [], pecas: [{ id: 1 }], usuarios: [] });
-  for (const tabela of ['pedidos', 'pecas', 'users']) {
-    supabase.__queueTable(tabela, { data: null, error: new Error(tabela) });
-    await expect(repo.obterDadosGerenciais()).rejects.toThrow(tabela);
-  }
+  const filtros = { dias: 30, status: null, fornecedor: null, granularidade: 'semanal' };
+  const data = { metricas: { pedidos: 0 }, serie: [] };
+  supabase.rpc.mockResolvedValueOnce({ data, error: null });
+  await expect(repo.obterDadosGerenciais(filtros)).resolves.toEqual(data);
+  supabase.rpc.mockResolvedValueOnce({ data: null, error: new Error('consulta falhou') });
+  await expect(repo.obterDadosGerenciais(filtros)).rejects.toThrow('consulta falhou');
 });
 
 test('cria conta admin com rollback do auth em caso de erro', async () => {
