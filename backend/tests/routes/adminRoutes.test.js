@@ -45,6 +45,29 @@ describe('adminRoutes', () => {
     });
   });
 
+  describe('GET /analytics', () => {
+    it('envia os filtros validados para o agrupamento SQL', async () => {
+      const data = { metricas: { pedidos: 2, faturamento: 0 }, status: { aguardando_pagamento: 2 }, serie: [] };
+      mockSupabaseAdmin.rpc.mockResolvedValue({ data, error: null });
+      const resposta = await request(app).get('/api/admin/analytics?days=90&status=aguardando_pagamento&fornecedor_id=5&granularity=mensal');
+      expect(resposta.status).toBe(200);
+      expect(resposta.body).toEqual(data);
+      expect(mockSupabaseAdmin.rpc).toHaveBeenCalledWith('obter_dashboard_agrupado', {
+        p_dias: 90, p_status: 'aguardando_pagamento', p_fornecedor: 5, p_granularidade: 'mensal',
+      });
+      expect(mockSupabaseAdmin.from).not.toHaveBeenCalled();
+    });
+    it.each(['days=12','days=abc','granularity=ano','status=invalido','fornecedor_id=abc'])('recusa filtros invalidos %s', async (query) => {
+      expect((await request(app).get(`/api/admin/analytics?${query}`)).status).toBe(400);
+      expect(mockSupabaseAdmin.rpc).not.toHaveBeenCalled();
+    });
+    it('aceita todo o periodo', async () => {
+      mockSupabaseAdmin.rpc.mockResolvedValue({ data: {}, error: null });
+      expect((await request(app).get('/api/admin/analytics?days=0')).status).toBe(200);
+      expect(mockSupabaseAdmin.rpc.mock.calls[0][1].p_dias).toBe(0);
+    });
+  });
+
   describe('GET /dashboard', () => {
     it('agrega as contagens e soma as avaliacoes dos dois tipos', async () => {
       mockSupabaseAdmin.__queueTable('users', { count: 120, error: null }, { count: 3, error: null });

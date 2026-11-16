@@ -1,3 +1,5 @@
+const { consultarRelatorio } = require('../../../services/reportQueries');
+
 function criarSupabaseAdminRepository({ supabase, tabelas }) {
   async function contar(table, configurar = (query) => query) {
     const query = configurar(supabase.from(table).select('*', { count: 'exact', head: true }));
@@ -49,16 +51,11 @@ function criarSupabaseAdminRepository({ supabase, tabelas }) {
     return query.order('created_at', { ascending: false }).range(from, to);
   }
 
-  async function obterDadosGerenciais() {
-    const [pedidos, pecas, usuarios] = await Promise.all([
-      supabase.from(tabelas.pedidos).select('id, status, total, itens, criado_em').order('criado_em', { ascending: false }),
-      supabase.from(tabelas.pecas).select('id, nome_peca, sku, estoque_atual, preco, fornecedor_id'),
-      supabase.from(tabelas.usuarios).select('id, email, full_name, nome_loja, is_admin, created_at').not('email', 'like', 'deleted+%@removed.bigpecas').order('created_at', { ascending: false }),
-    ]);
-    if (pedidos.error) throw pedidos.error;
-    if (pecas.error) throw pecas.error;
-    if (usuarios.error) throw usuarios.error;
-    return { pedidos: pedidos.data || [], pecas: pecas.data || [], usuarios: usuarios.data || [] };
+  async function obterDadosGerenciais({ dias, status, fornecedor, granularidade }) {
+    return consultarRelatorio(supabase, 'obter_dashboard_agrupado', {
+      p_dias: dias, p_status: status, p_fornecedor: fornecedor,
+      p_granularidade: granularidade,
+    });
   }
 
   async function buscarUsuarioPorEmail(email) {
