@@ -199,7 +199,11 @@ e condicional: execucoes posteriores nao substituem temporariamente uma aplicaca
 ja existente. Ela contorna a validacao antecipada do ACR pelo Container Apps.
 
 Na primeira execucao, registrar as URLs mostradas no job e adicionar no Supabase:
-Site URL do frontend e redirects `/login?emailConfirmado=1` e `/redefinir-senha`.
+Site URL do frontend e redirects `/email-confirmado` e `/redefinir-senha`.
+Sem isso o Supabase ignora o `emailRedirectTo` e manda o link de confirmacao para
+o Site URL padrao (`http://localhost:5173`). Para o e-mail nao cair no spam,
+configurar um SMTP proprio com SPF/DKIM em Authentication > SMTP Settings: o
+remetente padrao do Supabase e limitado e mal avaliado pelos provedores.
 Testar manualmente cadastro, confirmacao, login, recuperacao, catalogo e pedidos
 com dados ficticios em DEV/QAS. O smoke de `dev` comprova HTTPS, CORS e uma
 leitura real da configuracao de moedas no Supabase sem alterar dados. Ele nao

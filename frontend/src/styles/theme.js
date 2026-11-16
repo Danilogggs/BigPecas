@@ -1,6 +1,8 @@
 // ===== CORES =====
 export const COLORS = {
   BORDEAUX: 'var(--bp-green-800)',
+  // Texto/borda de destaque: verde no tema claro, dourado no escuro.
+  ACCENT_TEXT: 'var(--bp-action-text)',
   CREAM: 'var(--bp-cream)',
   DARK_TEXT: 'var(--bp-text)',
   MUTED_TEXT: 'var(--bp-text-muted)',
@@ -164,7 +166,7 @@ export const ALERT_ERROR_STYLE = {
 export const CARD_STYLE = {
   backgroundColor: 'var(--bp-surface)',
   borderRadius: BORDER_RADIUS.LG,
-  border: `2px solid ${COLORS.BORDEAUX}22`,
+  border: '2px solid var(--bp-border-light)',
   padding: SPACING.XL,
   boxShadow: SHADOWS.SM,
 };

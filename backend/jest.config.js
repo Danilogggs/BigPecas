@@ -12,13 +12,15 @@ module.exports = {
     '!src/server.js',
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text-summary', 'lcov'],
+  coverageReporters: ['text-summary', 'lcov', 'json-summary'],
+  // A cobertura precisa ficar acima de 75% em todas as metricas (inclusive
+  // branches); o build falha se qualquer uma cair para 75% ou menos.
   coverageThreshold: {
     global: {
-      statements: 75,
-      branches: 65,
+      statements: 76,
+      branches: 76,
       functions: 80,
-      lines: 75,
+      lines: 76,
     },
   },
 };

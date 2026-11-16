@@ -67,7 +67,7 @@ export default function ChatPage() {
         }
 
         .chat-title {
-          color: ${COLORS.BORDEAUX};
+          color: ${COLORS.ACCENT_TEXT};
           font-family: var(--font-serif);
           font-size: 1.7rem;
           line-height: 1.2;
@@ -79,7 +79,7 @@ export default function ChatPage() {
           flex: 1;
           overflow-y: auto;
           padding: ${SPACING.LG};
-          background-color: #FAF4E8;
+          background-color: var(--bp-surface-muted);
           display: flex;
           flex-direction: column;
           gap: ${SPACING.SM};
@@ -91,7 +91,7 @@ export default function ChatPage() {
 
         .chat-form {
           padding: ${SPACING.LG};
-          border-top: 1px solid #F0E1C8;
+          border-top: 1px solid var(--bp-border-light);
           display: flex;
           gap: ${SPACING.MD};
           align-items: flex-end;
@@ -204,7 +204,7 @@ export default function ChatPage() {
             className="chat-header"
             style={{
               padding: SPACING.LG,
-              borderBottom: '1px solid #F0E1C8',
+              borderBottom: '1px solid var(--bp-border-light)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -229,8 +229,8 @@ export default function ChatPage() {
           </div>
 
           {conversaComigoMesmo ? (
-            <div style={{ padding: SPACING.XL, color: COLORS.BORDEAUX, fontWeight: 800 }}>
-              {t('Voce nao pode abrir um chat com seu proprio usuario.')}
+            <div style={{ padding: SPACING.XL, color: COLORS.ACCENT_TEXT, fontWeight: 800 }}>
+              {t('Você não pode abrir um chat com seu próprio usuário.')}
             </div>
           ) : (
             <>
@@ -250,11 +250,11 @@ export default function ChatPage() {
               )}
 
               <div className="chat-messages">
-                {loading && <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>{t('Carregando mensagens...')}</div>}
+                {loading && <div style={{ color: COLORS.ACCENT_TEXT, fontWeight: 800 }}>{t('Carregando mensagens...')}</div>}
 
                 {!loading && mensagens.length === 0 && (
                   <div style={{ color: 'var(--bp-text-muted)', fontWeight: 700 }}>
-                    {t('Ainda nao ha mensagens. Envie a primeira pergunta sobre uma peca.')}
+                    {t('Ainda não há mensagens. Envie a primeira pergunta sobre uma peça.')}
                   </div>
                 )}
 
@@ -267,9 +267,9 @@ export default function ChatPage() {
                       className="chat-message-bubble"
                       style={{
                         alignSelf: enviadaPorMim ? 'flex-end' : 'flex-start',
-                        backgroundColor: enviadaPorMim ? COLORS.BORDEAUX : '#fff',
-                        color: enviadaPorMim ? '#fff' : COLORS.DARK_TEXT,
-                        border: enviadaPorMim ? 'none' : '1px solid #EAD8BE',
+                        backgroundColor: enviadaPorMim ? 'var(--bp-primary-action)' : 'var(--bp-surface)',
+                        color: enviadaPorMim ? 'var(--bp-on-primary)' : COLORS.DARK_TEXT,
+                        border: enviadaPorMim ? 'none' : '1px solid var(--bp-border-light)',
                         borderRadius: BORDER_RADIUS.MD,
                         padding: SPACING.MD,
                         boxShadow: '0 1px 5px rgba(0,0,0,0.06)',

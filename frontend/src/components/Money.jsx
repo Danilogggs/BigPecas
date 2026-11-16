@@ -1,6 +1,8 @@
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useMoney } from '../contexts/CurrencyContext';
+
+/** Valor monetario convertido para a moeda do usuario e formatado no locale ativo. */
 export default function Money({ value, currency = 'BRL' }) {
-  const context = useCurrency();
-  return <>{context ? context.format(value, currency) : new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(Number(value))}</>;
+  const formatMoney = useMoney();
+  return <>{formatMoney(value, currency || 'BRL')}</>;
 }
 

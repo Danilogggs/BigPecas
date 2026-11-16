@@ -240,6 +240,12 @@ const pageStyles = `
     box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
   }
 
+  .form-hint {
+    margin-top: 6px;
+    color: var(--bp-text-muted);
+    font-size: 0.82rem;
+  }
+
   .form-error {
     color: #B91C1C;
     font-size: 0.82rem;
@@ -280,7 +286,7 @@ const pageStyles = `
   .form-actions button[type="submit"] {
     border: none;
     background: var(--bp-gold);
-    color: var(--bp-green-900);
+    color: var(--bp-on-light);
   }
 
   .form-actions button:disabled {

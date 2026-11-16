@@ -10,6 +10,7 @@ const HomePage            = lazy(() => import('./pages/HomePage'));
 const LoginPage           = lazy(() => import('./pages/LoginPage'));
 const ForgotPasswordPage  = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage   = lazy(() => import('./pages/ResetPasswordPage'));
+const EmailConfirmadoPage = lazy(() => import('./pages/EmailConfirmadoPage'));
 const CadastroUsuario     = lazy(() => import('./pages/CadastroUsuario'));
 const CadastroPecas       = lazy(() => import('./pages/CadastroPecas'));
 const BuscaPecas          = lazy(() => import('./pages/BuscaPecas'));
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="/cadastro-usuario" element={<PublicRoute><CadastroUsuario /></PublicRoute>} />
         <Route path="/recuperar-senha" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
         <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
+        <Route path="/email-confirmado" element={<EmailConfirmadoPage />} />
 
         <Route path="/cadastroPecas" element={<PrivateRoute><CadastroPecas /></PrivateRoute>} />
         <Route path="/buscaPecas" element={<PrivateRoute><BuscaPecas /></PrivateRoute>} />

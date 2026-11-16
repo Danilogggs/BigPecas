@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useOrders } from '../contexts/OrderContext';
+import { useBrlMoney } from '../contexts/CurrencyContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   filtrarPedidosPorStatus,
@@ -16,7 +17,6 @@ import StatusBadge from '../features/pedidos/presentation/StatusBadge';
 import SalesReport from '../features/pedidos/presentation/SalesReport';
 import {
   formatarDataPedido,
-  formatarMoeda,
   obterMetaStatus,
 } from '../features/pedidos/presentation/pedidoPresentation';
 import './PedidosPage.css';
@@ -26,6 +26,7 @@ export default function PedidosPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   const {
     compras,
     vendas,
@@ -125,7 +126,7 @@ export default function PedidosPage() {
 
       <div className="history-summary">
         <SummaryCard label={visao === 'venda' ? t('completedSales') : t('completedPurchases')} value={resumo.quantidade} />
-        <SummaryCard label={visao === 'venda' ? t('soldValue') : t('purchasedValue')} value={formatarMoeda(resumo.valor)} />
+        <SummaryCard label={visao === 'venda' ? t('soldValue') : t('purchasedValue')} value={formatMoney(resumo.valor)} />
         <SummaryCard label={t('deliveredOrders')} value={resumo.concluidos} />
       </div>
 
@@ -241,6 +242,7 @@ function FilterButton({ label, count, active, onClick }) {
 
 function OrderCard({ order, view, onClick }) {
   const { t, formatDate } = useLanguage();
+  const formatMoney = useBrlMoney();
   const names = order.itens.map(obterNomeItem);
   const counterpart = view === 'venda'
     ? `${t('client')}: ${order.comprador?.nome || t('bigPecasCustomer')}`
@@ -253,7 +255,7 @@ function OrderCard({ order, view, onClick }) {
           <StatusBadge status={order.status} />
           <span>{view === 'venda' ? t('sale') : t('order')} #{order.id}</span>
         </div>
-        <h3>{names.slice(0, 2).join(', ')}{names.length > 2 ? ` e mais ${names.length - 2}` : ''}</h3>
+        <h3>{names.slice(0, 2).join(', ')}{names.length > 2 ? ` ${t('andMoreCount', { count: names.length - 2 })}` : ''}</h3>
         <div className="order-card-meta">
           <span>{order.itens.length} {order.itens.length === 1 ? t('product') : t('products')}</span>
           <span>{counterpart}</span>
@@ -262,7 +264,7 @@ function OrderCard({ order, view, onClick }) {
       </div>
       <div className="order-card-value">
         <span>{view === 'venda' ? t('saleValue') : t('orderValue')}</span>
-        <strong>{formatarMoeda(obterValorPedido(order))}</strong>
+        <strong>{formatMoney(obterValorPedido(order))}</strong>
         <small>{t('viewDetailsArrow')}</small>
       </div>
     </button>

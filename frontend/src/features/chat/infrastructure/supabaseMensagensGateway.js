@@ -18,7 +18,7 @@ export async function listarMensagensConversa(usuarioAtualId, outroUsuarioId) {
     return data || [];
   } catch (error) {
     console.error('Erro ao listar mensagens:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Nao foi possivel carregar as mensagens desta conversa.'));
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar as mensagens desta conversa.'));
   }
 }
 
@@ -32,7 +32,7 @@ export async function enviarMensagem({ idRemetente, idDestinatario, mensagem }) 
     return data;
   } catch (error) {
     console.error('Erro ao enviar mensagem:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Nao foi possivel enviar sua mensagem agora.'));
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível enviar sua mensagem agora.'));
   }
 }
 
@@ -46,7 +46,7 @@ export async function listarConversasAtivas(usuarioAtualId) {
     return agruparConversas(data || [], usuarioAtualId);
   } catch (error) {
     console.error('Erro ao listar conversas ativas:', error);
-    throw createFriendlyError(parseUnexpectedError(error, 'Nao foi possivel carregar seus chats agora.'));
+    throw createFriendlyError(parseUnexpectedError(error, 'Não foi possível carregar seus chats agora.'));
   }
 }
 

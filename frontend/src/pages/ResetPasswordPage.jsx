@@ -141,7 +141,7 @@ export default function ResetPasswordPage() {
   }
 
   const fieldErrorStyle = {
-    color: COLORS.BORDEAUX,
+    color: COLORS.ACCENT_TEXT,
     fontSize: '0.82rem',
     marginTop: '6px',
     fontWeight: 600,
@@ -163,7 +163,7 @@ export default function ResetPasswordPage() {
           maxWidth: '500px',
           backgroundColor: 'var(--bp-surface)',
           borderRadius: BORDER_RADIUS.LG,
-          border: `2px solid ${COLORS.BORDEAUX}22`,
+          border: '2px solid var(--bp-border-light)',
           padding: SPACING.XL,
           boxShadow: SHADOWS.SM,
         }}
@@ -236,13 +236,13 @@ export default function ResetPasswordPage() {
                 padding: '14px 18px',
                 border: 'none',
                 borderRadius: BORDER_RADIUS.MD,
-                backgroundColor: COLORS.BORDEAUX,
+                backgroundColor: 'var(--bp-primary-action)',
                 color: '#fff',
                 fontSize: '1rem',
                 fontWeight: 700,
                 cursor: loading || !hasRecoverySession ? 'not-allowed' : 'pointer',
                 opacity: loading || !hasRecoverySession ? 0.7 : 1,
-                boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
+                boxShadow: 'var(--shadow-md)',
               }}
             >
               {loading ? t('savingPassword') : t('saveNewPassword')}

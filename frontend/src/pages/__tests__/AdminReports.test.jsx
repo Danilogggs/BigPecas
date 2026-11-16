@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { renderPage } from '../../../jest/helpers/render';
 import AdminPage from '../AdminPage';
 import adminGateway from '../../features/admin/infrastructure/adminGateway';
 
@@ -12,7 +12,6 @@ const mockDashboard = {
 };
 jest.mock('../../components/Header', () => () => <header>BigPeças</header>);
 jest.mock('../../contexts/AuthContext', () => ({useAuth: () => ({getToken:mockToken})}));
-jest.mock('../../contexts/LanguageContext', () => ({useLanguage: () => ({t:(key)=>key,language:'PTBR'})}));
 jest.mock('../../features/admin/application/useAdminDashboard', () => () => mockDashboard);
 jest.mock('../../features/admin/infrastructure/adminGateway', () => ({carregarDadosGerenciais:jest.fn()}));
 
@@ -28,7 +27,7 @@ test('renderiza agregados SQL e envia periodo, status, fornecedor e granularidad
     ...dados, metricas:{...dados.metricas,faturamento:filtros.status === 'aguardando_pagamento' ? 0 : 200},
   }));
   const user = userEvent.setup();
-  render(<MemoryRouter><AdminPage /></MemoryRouter>);
+  renderPage(<AdminPage />);
   await screen.findByText('R$ 200,00', {normalizer: text => text.replace(/\s/g,' ')});
   await user.selectOptions(screen.getByRole('combobox',{name:'Período do dashboard'}),'90');
   await user.selectOptions(screen.getByRole('combobox',{name:'Status do dashboard'}),'aguardando_pagamento');
@@ -42,7 +41,7 @@ test('renderiza agregados SQL e envia periodo, status, fornecedor e granularidad
 
 test('falha na consulta nao e exibida como faturamento zero', async () => {
   adminGateway.carregarDadosGerenciais.mockRejectedValue(new Error('Relatórios em atualização.'));
-  render(<MemoryRouter><AdminPage /></MemoryRouter>);
+  renderPage(<AdminPage />);
   expect(await screen.findByRole('alert')).toHaveTextContent('Relatórios em atualização.');
   expect(screen.queryByText('R$ 0,00',{normalizer:text=>text.replace(/\s/g,' ')})).not.toBeInTheDocument();
 });

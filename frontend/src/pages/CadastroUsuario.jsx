@@ -181,10 +181,10 @@ export default function CadastroUsuario() {
         telefone: form.telefone.trim(),
       });
 
-      setMessage({ type: 'success', text: t('accountCreatedCheckEmail') });
+      setMessage({ type: 'success', text: 'accountCreatedCheckEmail' });
       setTimeout(() => navigate('/login'), 3500);
     } catch (error) {
-      setMessage({ type: 'error', text: t(mapSupabaseAuthError(error, 'register')) });
+      setMessage({ type: 'error', text: mapSupabaseAuthError(error, 'register') });
     } finally {
       setLoading(false);
     }
@@ -192,12 +192,12 @@ export default function CadastroUsuario() {
 
   const dividerStyle = {
     border: 'none',
-    borderTop: `1px solid ${COLORS.BORDEAUX}18`,
+    borderTop: '1px solid var(--bp-border-light)',
     margin: `${SPACING.XL} 0`,
   };
 
   const fieldErrorStyle = {
-    color: COLORS.BORDEAUX,
+    color: COLORS.ACCENT_TEXT,
     fontSize: '0.82rem',
     marginTop: '6px',
     fontWeight: 600,
@@ -240,13 +240,13 @@ export default function CadastroUsuario() {
         {message.text && (
           message.type === 'success' ? (
             <AlertSuccess>
-              <div>{message.text}</div>
+              <div>{t(message.text)}</div>
               <div style={{ fontSize: '0.85rem', marginTop: SPACING.SM, opacity: 0.8 }}>
                 {t('redirectingToLogin')}
               </div>
             </AlertSuccess>
           ) : (
-            <AlertError>{message.text}</AlertError>
+            <AlertError>{t(message.text)}</AlertError>
           )
         )}
 
@@ -270,7 +270,7 @@ export default function CadastroUsuario() {
                 maxLength={150}
                 required
               />
-              {errors.full_name && <div style={fieldErrorStyle}>{errors.full_name}</div>}
+              {errors.full_name && <div style={fieldErrorStyle}>{t(errors.full_name)}</div>}
             </Field>
           </div>
 
@@ -315,7 +315,7 @@ export default function CadastroUsuario() {
                 maxLength={15}
                 required
               />
-              {errors.telefone && <div style={fieldErrorStyle}>{errors.telefone}</div>}
+              {errors.telefone && <div style={fieldErrorStyle}>{t(errors.telefone)}</div>}
             </Field>
 
             <Field label={t('zipCode')} required>
@@ -328,7 +328,7 @@ export default function CadastroUsuario() {
                 maxLength={9}
                 required
               />
-              {errors.cep && <div style={fieldErrorStyle}>{errors.cep}</div>}
+              {errors.cep && <div style={fieldErrorStyle}>{t(errors.cep)}</div>}
             </Field>
           </div>
 
@@ -344,7 +344,7 @@ export default function CadastroUsuario() {
                 onChange={handleChange}
                 required
               />
-              {errors.email && <div style={fieldErrorStyle}>{errors.email}</div>}
+              {errors.email && <div style={fieldErrorStyle}>{t(errors.email)}</div>}
             </Field>
           </div>
 
@@ -358,7 +358,7 @@ export default function CadastroUsuario() {
                 onChange={handleChange}
                 required
               />
-              {errors.password && <div style={fieldErrorStyle}>{errors.password}</div>}
+              {errors.password && <div style={fieldErrorStyle}>{t(errors.password)}</div>}
             </Field>
 
             <Field label={t('confirmPassword')} required>
@@ -370,7 +370,7 @@ export default function CadastroUsuario() {
                 onChange={handleChange}
                 required
               />
-              {errors.confirmPassword && <div style={fieldErrorStyle}>{errors.confirmPassword}</div>}
+              {errors.confirmPassword && <div style={fieldErrorStyle}>{t(errors.confirmPassword)}</div>}
             </Field>
           </div>
 
@@ -392,7 +392,7 @@ export default function CadastroUsuario() {
           }}
         >
           {t('alreadyHaveAccount')}{' '}
-          <Link to="/login" style={{ color: COLORS.BORDEAUX, fontWeight: 700, textDecoration: 'none' }}>
+          <Link to="/login" style={{ color: COLORS.ACCENT_TEXT, fontWeight: 700, textDecoration: 'none' }}>
             {t('signIn')}
           </Link>
         </div>

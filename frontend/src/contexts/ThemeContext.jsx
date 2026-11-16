@@ -51,6 +51,39 @@ function isDark(hex) {
   return (r * 299 + g * 587 + b * 114) / 1000 < 128;
 }
 
+// Contraste WCAG 2.x entre duas cores hexadecimais (1 a 21).
+function luminancia(hex) {
+  const [r, g, b] = [1, 3, 5].map((index) => {
+    const canal = parseInt(hex.slice(index, index + 2), 16) / 255;
+    return canal <= 0.03928 ? canal / 12.92 : ((canal + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contraste(hexA, hexB) {
+  const [clara, escura] = [luminancia(hexA), luminancia(hexB)].sort((a, b) => b - a);
+  return (clara + 0.05) / (escura + 0.05);
+}
+
+const CONTRASTE_MINIMO_TEXTO = 4.5;
+
+// Cor legivel sobre o fundo e as superficies ao mesmo tempo: a escolhida, se
+// ja tiver contraste suficiente, ou preto/branco, o que funcionar melhor.
+function corLegivel(cor, fundos) {
+  const pior = (candidata) => Math.min(...fundos.map((fundo) => contraste(candidata, fundo)));
+  if (pior(cor) >= CONTRASTE_MINIMO_TEXTO) return cor;
+  return pior('#111111') >= pior('#FFFFFF') ? '#111111' : '#FFFFFF';
+}
+
+// Paleta personalizada pode tornar o texto invisivel (ex.: texto igual ao
+// fundo). Em vez de bloquear a escolha, as cores de leitura sao ajustadas.
+export function ajustarContrasteTema(palette) {
+  const fundos = [palette.background, palette.surface];
+  const texto = corLegivel(palette.text, fundos);
+  const destaque = corLegivel(palette.primary, fundos);
+  return { texto, destaque, textoAjustado: texto !== palette.text };
+}
+
 const CUSTOM_PROPERTIES = [
   '--bp-green-900', '--bp-green-800', '--bp-green-700', '--bp-green-600',
   '--bp-gold', '--bp-gold-light', '--bp-gold-pale', '--bp-cream', '--bp-cream-dark',
@@ -62,6 +95,7 @@ const CUSTOM_PROPERTIES = [
 function applyCustomTheme(root, palette) {
   const onPrimary = isDark(palette.primary) ? '#FFFFFF' : '#111111';
   const onAccent = isDark(palette.accent) ? '#FFFFFF' : '#111111';
+  const { texto, destaque } = ajustarContrasteTema(palette);
   const values = {
     '--bp-green-900': mix(palette.primary, '#000000', .28),
     '--bp-green-800': palette.primary,
@@ -78,14 +112,14 @@ function applyCustomTheme(root, palette) {
     '--bp-primary-action': palette.primary,
     '--bp-primary-action-hover': mix(palette.primary, '#000000', .15),
     '--bp-on-primary': onPrimary,
-    '--bp-action-text': palette.primary,
-    '--bp-action-border': palette.primary,
+    '--bp-action-text': destaque,
+    '--bp-action-border': destaque,
     '--bp-on-light': onAccent,
-    '--bp-text': palette.text,
-    '--bp-text-sub': mix(palette.text, palette.background, .24),
-    '--bp-text-muted': mix(palette.text, palette.background, .38),
-    '--bp-border': mix(palette.text, palette.background, .58),
-    '--bp-border-light': mix(palette.text, palette.surface, .84),
+    '--bp-text': texto,
+    '--bp-text-sub': mix(texto, palette.background, .18),
+    '--bp-text-muted': mix(texto, palette.background, .3),
+    '--bp-border': mix(texto, palette.background, .58),
+    '--bp-border-light': mix(texto, palette.surface, .84),
   };
   Object.entries(values).forEach(([property, value]) => root.style.setProperty(property, value));
 }

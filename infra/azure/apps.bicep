@@ -68,7 +68,7 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
           { name: 'SUPABASE_URL', value: supabaseUrl }
           { name: 'SUPABASE_ANON_KEY', secretRef: 'supabase-anon' }
           { name: 'SUPABASE_SERVICE_ROLE_KEY', secretRef: 'supabase-service-role' }
-          { name: 'SUPABASE_EMAIL_CONFIRM_REDIRECT_TO', value: '${webUrl}/login?emailConfirmado=1' }
+          { name: 'SUPABASE_EMAIL_CONFIRM_REDIRECT_TO', value: '${webUrl}/email-confirmado' }
           { name: 'EMAIL_NOTIFICACAO_VENDA_ENABLED', value: 'false' }
           { name: 'MELHOR_ENVIO_URL', value: shippingUrl }
           { name: 'AUTOPARTS_API_URL', value: autoPartsApiUrl }

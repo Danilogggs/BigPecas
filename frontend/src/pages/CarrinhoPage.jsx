@@ -15,9 +15,11 @@ import {
   calcularTotaisCompra,
   contarItensCarrinho,
 } from '../features/carrinho/domain/carrinho';
-import { formatarMoedaCarrinho as formatBRL } from '../features/carrinho/presentation/carrinhoPresentation';
+import { useBrlMoney } from '../contexts/CurrencyContext';
+import { textoPrazoFrete } from '../features/carrinho/presentation/carrinhoPresentation';
 
-const BORDEAUX = 'var(--bp-green-800)';
+const BORDEAUX = 'var(--bp-primary-action)';
+const ACCENT = 'var(--bp-action-text)';
 const CREAM = 'var(--bp-cream)';
 const HIGHLIGHT = 'var(--bp-gold)';
 const DARK = 'var(--bp-text)';
@@ -32,6 +34,7 @@ export default function CarrinhoPage() {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getTotal } = useCart();
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
 
   const [cep, setCep] = useState('');
   const [cepError, setCepError] = useState('');
@@ -102,7 +105,9 @@ export default function CarrinhoPage() {
       setCupomError('');
     } catch (error) {
       setCupomAtivo(null);
-      setCupomError(error?.message || t('invalidCoupon'));
+      setCupomError(error?.codigo === 'minimumSubtotalForCoupon'
+        ? t('minimumSubtotalForCoupon', { value: formatMoney(error.minimo) })
+        : t(error?.message || 'invalidCoupon'));
     } finally {
       setAplicandoCupom(false);
     }
@@ -144,13 +149,15 @@ export default function CarrinhoPage() {
     <div style={{ minHeight: '100vh', backgroundColor: CREAM }}>
       <style>{`
         @media (max-width: 980px) {
-          .carrinho-grid { grid-template-columns: 1fr !important; }
-          .carrinho-item { grid-template-columns: 96px 1fr !important; }
+          .carrinho-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .carrinho-item { grid-template-columns: 96px minmax(0, 1fr) !important; }
           .carrinho-item-controls { grid-column: 1 / -1 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; padding-top: 12px !important; border-top: 1px dashed ${BORDER} !important; }
         }
         @media (max-width: 600px) {
           .frete-opcoes { grid-template-columns: 1fr !important; }
           .pagina-titulo { font-size: 1.5rem !important; }
+          .carrinho-item { grid-template-columns: 72px minmax(0, 1fr) !important; gap: 0.75rem !important; }
+          .carrinho-item-imagem { width: 72px !important; height: 72px !important; }
         }
         .qty-btn {
           width: 32px; height: 32px;
@@ -186,11 +193,11 @@ export default function CarrinhoPage() {
           transition: border-color 0.18s;
           box-sizing: border-box;
         }
-        .input-clean:focus { border-color: ${BORDEAUX}; }
+        .input-clean:focus { border-color: var(--bp-action-border); }
         .spinner {
           width: 16px; height: 16px;
           border: 2px solid ${CREAM};
-          border-top-color: ${BORDEAUX};
+          border-top-color: var(--bp-action-border);
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           display: inline-block;
@@ -259,7 +266,7 @@ export default function CarrinhoPage() {
             className="carrinho-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 400px',
+              gridTemplateColumns: 'minmax(0, 1fr) 400px',
               gap: '1.5rem',
               alignItems: 'start',
             }}
@@ -297,7 +304,7 @@ export default function CarrinhoPage() {
                     transition: 'all 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = `${BORDEAUX}0d`;
+                    e.currentTarget.style.backgroundColor = 'var(--bp-surface-muted)';
                     e.currentTarget.style.borderStyle = 'solid';
                   }}
                   onMouseLeave={(e) => {
@@ -471,7 +478,7 @@ export default function CarrinhoPage() {
                                   fontSize: '0.92rem',
                                 }}
                               >
-                                {opcao.transportadora} — {opcao.tipo}
+                                {t(opcao.transportadora)} — {opcao.tipo}
                               </div>
                               <div
                                 style={{
@@ -480,7 +487,7 @@ export default function CarrinhoPage() {
                                   marginTop: 2,
                                 }}
                               >
-                                {opcao.prazo_texto}
+                                {textoPrazoFrete(opcao, t)}
                               </div>
                               <div
                                 style={{
@@ -490,7 +497,7 @@ export default function CarrinhoPage() {
                                   fontSize: '0.95rem',
                                 }}
                               >
-                                {formatBRL(opcao.valor)}
+                                {formatMoney(opcao.valor)}
                               </div>
                             </div>
                             <div
@@ -637,17 +644,15 @@ export default function CarrinhoPage() {
               <Card title={t('financialSummary')}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <Linha
-                    label={`Subtotal (${totalItens} ${
-                      totalItens === 1 ? 'item' : 'itens'
-                    })`}
-                    valor={formatBRL(subtotal)}
+                    label={t('subtotalWithItems', { count: totalItens, items: t(totalItens === 1 ? 'item' : 'items') })}
+                    valor={formatMoney(subtotal)}
                   />
                   <Linha
                     label={t('discount')}
                     valor={
                       totais.desconto > 0
-                        ? `- ${formatBRL(totais.desconto)}`
-                        : formatBRL(0)
+                        ? `- ${formatMoney(totais.desconto)}`
+                        : formatMoney(0)
                     }
                     cor={totais.desconto > 0 ? SUCCESS : MUTED}
                   />
@@ -657,7 +662,7 @@ export default function CarrinhoPage() {
                       opcaoSelecionada
                         ? totais.valorFrete === 0 && cupomAtivo?.tipo === 'frete_gratis'
                           ? t('free')
-                              : formatBRL(totais.valorFrete)
+                              : formatMoney(totais.valorFrete)
                             : t('toCalculate')
                     }
                     cor={
@@ -672,7 +677,7 @@ export default function CarrinhoPage() {
                       style={{
                         marginTop: 4,
                         padding: '8px 10px',
-                        backgroundColor: `${HIGHLIGHT}22`,
+                        backgroundColor: 'var(--bp-gold-pale)',
                         borderRadius: 8,
                         fontSize: '0.78rem',
                         color: DARK,
@@ -681,7 +686,7 @@ export default function CarrinhoPage() {
                       <strong>{opcaoSelecionada.transportadora}</strong> —{' '}
                       {opcaoSelecionada.tipo}
                       <br />
-                      {opcaoSelecionada.prazo_texto}
+                      {textoPrazoFrete(opcaoSelecionada, t)}
                     </div>
                   )}
 
@@ -691,6 +696,8 @@ export default function CarrinhoPage() {
                       paddingTop: 14,
                       borderTop: `1.5px dashed ${BORDER}`,
                       display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 8,
                       justifyContent: 'space-between',
                       alignItems: 'flex-end',
                     }}
@@ -714,7 +721,7 @@ export default function CarrinhoPage() {
                           lineHeight: 1,
                         }}
                       >
-                        {formatBRL(totais.total)}
+                        {formatMoney(totais.total)}
                       </div>
                     </div>
                     <div
@@ -724,9 +731,9 @@ export default function CarrinhoPage() {
                         textAlign: 'right',
                       }}
                     >
-                      ou 12x de{' '}
+                      {t('orInstallmentsOf')}{' '}
                       <strong style={{ color: DARK }}>
-                        {formatBRL(totais.total / 12)}
+                        {formatMoney(totais.total / 12)}
                       </strong>
                     </div>
                   </div>
@@ -833,6 +840,7 @@ function Linha({ label, valor, cor = DARK }) {
 
 function CartItem({ item, isLast, onRemove, onChange, onClick }) {
   const { t } = useLanguage();
+  const formatMoney = useBrlMoney();
   const subtotal = Number(item.preco) * item.quantidade;
 
   return (
@@ -840,7 +848,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
       className="carrinho-item"
       style={{
         display: 'grid',
-        gridTemplateColumns: '96px 1fr auto auto',
+        gridTemplateColumns: '96px minmax(0, 1fr) auto auto',
         gap: '1rem',
         alignItems: 'center',
         padding: '14px 0',
@@ -849,6 +857,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
     >
       {/* Imagem */}
       <div
+        className="carrinho-item-imagem"
         onClick={onClick}
         style={{
           width: 96,
@@ -897,7 +906,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
             ? String(item.descricao).slice(0, 80)
             : item.sku
             ? `SKU: ${item.sku}`
-            : 'Peça automotiva'}
+            : t('Peça automotiva')}
         </p>
         <div
           style={{
@@ -914,8 +923,8 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
           }}
         >
           {Number(item.estoque) > 0
-            ? `${item.estoque} em estoque`
-            : 'Sem estoque'}
+            ? t('inStockCount', { count: item.estoque })
+            : t('outOfStock')}
         </div>
       </div>
 
@@ -976,7 +985,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
 
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.72rem', color: MUTED }}>
-            {formatBRL(item.preco)} × {item.quantidade}
+            {formatMoney(item.preco)} × {item.quantidade}
           </div>
           <div
             style={{
@@ -985,7 +994,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
               color: DARK,
             }}
           >
-            {formatBRL(subtotal)}
+            {formatMoney(subtotal)}
           </div>
         </div>
       </div>
@@ -1023,6 +1032,7 @@ function CartItem({ item, isLast, onRemove, onChange, onClick }) {
 }
 
 function EmptyCart({ navigate }) {
+  const { t } = useLanguage();
   return (
     <div
       style={{
@@ -1057,10 +1067,10 @@ function EmptyCart({ navigate }) {
           fontFamily: 'var(--font-serif)',
         }}
       >
-        Seu carrinho está vazio
+        {t('Seu carrinho está vazio')}
       </h2>
       <p style={{ color: MUTED, marginBottom: '1.5rem' }}>
-        Explore nosso catálogo e adicione peças automotivas ao carrinho.
+        {t('Explore nosso catálogo e adicione peças automotivas ao carrinho.')}
       </p>
       <button
         onClick={() => navigate('/buscaPecas')}
@@ -1075,7 +1085,7 @@ function EmptyCart({ navigate }) {
           cursor: 'pointer',
         }}
       >
-        Explorar Peças
+        {t('Explorar Peças')}
       </button>
     </div>
   );

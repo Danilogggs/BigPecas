@@ -15,19 +15,6 @@ import {
 import { parseUnexpectedError } from '../utils/friendlyErrors';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function formatarPreco(valor) {
-  const numero = Number(valor);
-
-  if (Number.isNaN(numero)) {
-    return valor ? `R$ ${valor}` : 'Preço não informado';
-  }
-
-  return numero.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-}
-
 function InfoCard({ label, value }) {
   return (
     <div
@@ -78,7 +65,8 @@ function PecaCard({ peca, onClick }) {
           style={{
             width: '100%',
             height: 140,
-            objectFit: 'cover',
+            objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
             borderRadius: BORDER_RADIUS.MD,
             marginBottom: SPACING.SM,
           }}
@@ -91,7 +79,7 @@ function PecaCard({ peca, onClick }) {
             borderRadius: BORDER_RADIUS.MD,
             marginBottom: SPACING.SM,
             backgroundColor: '#EFE2C6',
-            color: COLORS.BORDEAUX,
+            color: COLORS.ACCENT_TEXT,
             fontWeight: 800,
             display: 'flex',
             alignItems: 'center',
@@ -107,7 +95,7 @@ function PecaCard({ peca, onClick }) {
         {peca.nome_peca || t('Peça sem nome')}
       </strong>
 
-      <span style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
+      <span style={{ color: COLORS.ACCENT_TEXT, fontWeight: 800 }}>
         <Money value={peca.preco_base ?? peca.preco} currency={peca.moeda_base || "BRL"} />
       </span>
 
@@ -121,7 +109,7 @@ function PecaCard({ peca, onClick }) {
 export default function FornecedorPerfil() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
 
   const [fornecedor, setFornecedor] = useState(null);
   const [pecas, setPecas] = useState([]);
@@ -201,7 +189,7 @@ export default function FornecedorPerfil() {
           </div>
 
           {loading && (
-            <div style={{ color: COLORS.BORDEAUX, fontWeight: 800 }}>
+            <div style={{ color: COLORS.ACCENT_TEXT, fontWeight: 800 }}>
               {t('Carregando perfil do vendedor...')}
             </div>
           )}
@@ -243,7 +231,7 @@ export default function FornecedorPerfil() {
                     style={{
                       display: 'inline-flex',
                       backgroundColor: '#F8E9C5',
-                      color: COLORS.BORDEAUX,
+                      color: COLORS.ACCENT_TEXT,
                       borderRadius: BORDER_RADIUS.FULL,
                       padding: '0.35rem 0.8rem',
                       fontSize: '0.8rem',
@@ -256,7 +244,7 @@ export default function FornecedorPerfil() {
 
                   <h1
                     style={{
-                      color: COLORS.BORDEAUX,
+                      color: COLORS.ACCENT_TEXT,
                       fontFamily: 'var(--font-serif)',
                       fontSize: '2.2rem',
                       lineHeight: 1.15,
@@ -310,7 +298,7 @@ export default function FornecedorPerfil() {
               >
                 <h2
                   style={{
-                    color: COLORS.BORDEAUX,
+                    color: COLORS.ACCENT_TEXT,
                     fontSize: '1.2rem',
                     margin: `0 0 ${SPACING.SM}`,
                   }}
@@ -354,17 +342,17 @@ export default function FornecedorPerfil() {
                   padding: SPACING.XL,
                 }}
               >
-                <h2 style={{ color: COLORS.BORDEAUX, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
+                <h2 style={{ color: COLORS.ACCENT_TEXT, fontSize: '1.1rem', margin: `0 0 ${SPACING.SM}` }}>
                   {t('Avaliações do vendedor')}
                 </h2>
                 {resumoAvaliacoes.total > 0 ? (
                   <>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: SPACING.LG }}>
                       <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
-                        ★ {Number(resumoAvaliacoes.media).toFixed(1)}
+                        ★ {formatNumber(resumoAvaliacoes.media, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                       </strong>
                       <span style={{ color: 'var(--bp-text-muted)' }}>
-                        {resumoAvaliacoes.total} {resumoAvaliacoes.total === 1 ? 'avaliação verificada' : 'avaliações verificadas'}
+                        {formatNumber(resumoAvaliacoes.total)} {t(resumoAvaliacoes.total === 1 ? 'verifiedReviews' : 'verifiedReviewsPlural')}
                       </span>
                     </div>
                     <div style={{ display: 'grid', gap: SPACING.SM }}>

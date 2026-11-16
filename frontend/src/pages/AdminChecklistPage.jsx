@@ -61,13 +61,13 @@ export default function AdminChecklistPage() {
 
   return <><Header /><main className="review-page checklist-admin-page">
     <Link to="/admin">← {t('administration')}</Link>
-    <div className="checklist-admin-heading"><div><h1>{t('evaluationChecklist')}</h1><p>{t('checklistAdminDescription')}</p></div><span>{rows.length} critérios</span></div>
-    {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
+    <div className="checklist-admin-heading"><div><h1>{t('evaluationChecklist')}</h1><p>{t('checklistAdminDescription')}</p></div><span>{t('criteriaCount', { count: rows.length })}</span></div>
+    {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{notice}</p>}
     <div className="checklist-admin-layout">
-      <section className="checklist-admin-list" aria-label="Critérios cadastrados">
+      <section className="checklist-admin-list" aria-label={t('Critérios cadastrados')}>
         {rows.map((criterion, index) => <article className={`checklist-admin-item ${form.id === criterion.id ? 'is-editing' : ''}`} key={criterion.id}>
           <span className="checklist-admin-item__position">{index + 1}</span>
-          <div><h2>{criterion.nome_criterio}</h2><p>{criterion.descricao || 'Sem descrição'}</p><small>{t(criterion.ativo ? 'active' : 'inactive')} · {t(criterion.obrigatorio ? 'obrigatorio' : 'opcional')}</small></div>
+          <div><h2>{criterion.nome_criterio}</h2><p>{criterion.descricao || t('Sem descrição')}</p><small>{t(criterion.ativo ? 'active' : 'inactive')} · {t(criterion.obrigatorio ? 'obrigatorio' : 'opcional')}</small></div>
           <button type="button" disabled={busy} onClick={() => edit(criterion, index)}>{t('editCriterion')}</button>
         </article>)}
       </section>
@@ -76,8 +76,8 @@ export default function AdminChecklistPage() {
         <h2>{t(form.id ? 'editCriterion' : 'newCriterion')}</h2>
         <label>{t('text')}<input required maxLength={300} value={form.nome_criterio} onChange={(e) => setForm({ ...form, nome_criterio: e.target.value })} /></label>
         <label>{t('description')}<textarea maxLength={2000} value={form.descricao || ''} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></label>
-        <label>Posição no checklist<select value={Math.min(form.ordem || 1, maxPosition)} onChange={(e) => setForm({ ...form, ordem: Number(e.target.value) })}>
-          {Array.from({ length: maxPosition }, (_, index) => <option value={index + 1} key={index + 1}>{index + 1}ª posição</option>)}
+        <label>{t('Posição no checklist')}<select value={Math.min(form.ordem || 1, maxPosition)} onChange={(e) => setForm({ ...form, ordem: Number(e.target.value) })}>
+          {Array.from({ length: maxPosition }, (_, index) => <option value={index + 1} key={index + 1}>{t('positionOrdinal', { position: index + 1 })}</option>)}
         </select></label>
         <div className="checklist-admin-toggles">
           <label><input type="checkbox" checked={form.ativo} onChange={(e) => setForm({ ...form, ativo: e.target.checked })} /> {t('active')}</label>

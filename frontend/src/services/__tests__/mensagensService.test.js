@@ -90,7 +90,7 @@ describe('listarMensagensConversa', () => {
     mockarSupabase({ data: null, error: { message: 'PGRST301: JWT expired' } });
 
     await expect(listarMensagensConversa(MARIA, ZE)).rejects.toThrow(
-      'Nao foi possivel carregar as mensagens desta conversa.',
+      'Não foi possível carregar as mensagens desta conversa.',
     );
   });
 
@@ -141,7 +141,7 @@ describe('enviarMensagem', () => {
 
     await expect(
       enviarMensagem({ idRemetente: MARIA, idDestinatario: ZE, mensagem: 'Olá' }),
-    ).rejects.toThrow('Nao foi possivel enviar sua mensagem agora.');
+    ).rejects.toThrow('Não foi possível enviar sua mensagem agora.');
   });
 
   it('avisa sobre falha de conexao ao enviar', async () => {
@@ -215,7 +215,7 @@ describe('listarConversasAtivas', () => {
     mockarSupabase({ data: null, error: { message: 'timeout ao consultar o supabase' } });
 
     await expect(listarConversasAtivas(MARIA)).rejects.toThrow(
-      'Nao foi possivel carregar seus chats agora.',
+      'Não foi possível carregar seus chats agora.',
     );
   });
 });

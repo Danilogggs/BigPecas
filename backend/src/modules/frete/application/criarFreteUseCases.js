@@ -1,12 +1,29 @@
 const AppError = require('../../../utils/AppError');
-const { criarPayloadCalculo, normalizarOpcoesFrete } = require('../domain/frete');
+const { criarPayloadCalculo, estimarOpcoesFrete, normalizarOpcoesFrete } = require('../domain/frete');
 
-function criarFreteUseCases({ gateway }) {
+// Falhas de credencial ou do proprio Melhor Envio nao sao culpa do comprador:
+// nesses casos a cotacao e estimada. Erros de validacao (4xx) continuam
+// chegando ao usuario, pois indicam CEP ou medidas invalidas.
+const falhaDoProvedor = (status) => status === 401 || status === 403 || status >= 500;
+
+function criarFreteUseCases({ gateway, logger }) {
+  function estimar(payload, destino, motivo) {
+    logger.warn('Melhor Envio indisponivel; usando frete estimado', { motivo });
+    return { opcoes: estimarOpcoesFrete(payload), cep_destino: destino, estimado: true };
+  }
+
   async function calcular(dados) {
     const { destino, payload } = criarPayloadCalculo(dados);
-    const response = await gateway.calcular(payload);
-    const data = await response.json();
+    let response;
+    let data;
+    try {
+      response = await gateway.calcular(payload);
+      data = await response.json();
+    } catch (error) {
+      return estimar(payload, destino, error.message);
+    }
     if (!response.ok) {
+      if (falhaDoProvedor(response.status)) return estimar(payload, destino, `HTTP ${response.status}`);
       throw new AppError(response.status, data?.message || data?.error || 'Erro ao calcular frete no Melhor Envio.');
     }
     return { opcoes: normalizarOpcoesFrete(data), cep_destino: destino };

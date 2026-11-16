@@ -29,10 +29,10 @@ import {
 } from '../styles/theme';
 import { parseUnexpectedError } from '../utils/friendlyErrors';
 import { useLanguage } from '../contexts/LanguageContext';
+import CondicaoPeca from '../components/CondicaoPeca';
 import { buscarNomeOpcao as buscarNome } from '../features/pecas/domain/peca';
 import {
   formatarDataPeca as formatarData,
-  formatarPrecoPeca as formatarPreco,
 } from '../features/pecas/presentation/pecaPresentation';
 
 function InfoItem({ label, value }) {
@@ -93,7 +93,7 @@ function TextSection({ title, children }) {
 }
 
 function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatClick, notice, resumoAvaliacoes }) {
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
   const textoNome = loading ? t('loading') : error || nome || t('seller');
 
   return (
@@ -176,7 +176,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
         <span>{t('sellerRating')}</span>
         <span>
           {resumoAvaliacoes?.total > 0
-            ? `★ ${Number(resumoAvaliacoes.media).toFixed(1)} (${resumoAvaliacoes.total})`
+            ? `★ ${formatNumber(resumoAvaliacoes.media, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} (${formatNumber(resumoAvaliacoes.total)})`
             : t('noReviews')}
         </span>
       </div>
@@ -198,7 +198,7 @@ function VendedorSection({ nome, fornecedorId, loading, error, onClick, onChatCl
 }
 
 function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
-  const { t } = useLanguage();
+  const { t, formatNumber } = useLanguage();
   return (
     <section
       style={{
@@ -217,7 +217,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
         <>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: SPACING.LG }}>
             <strong style={{ color: '#C69216', fontSize: '1.35rem' }}>
-              ★ {Number(resumo.media).toFixed(1)}
+              ★ {formatNumber(resumo.media, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
             </strong>
             <span style={{ color: 'var(--bp-text-muted)' }}>
               {resumo.total} {resumo.total === 1 ? t('verifiedReviews') : t('verifiedReviewsPlural')}
@@ -256,7 +256,7 @@ function AvaliacoesProdutoSection({ resumo, avaliacoes }) {
 }
 
 export default function DetalhePeca() {
-  const { formatDate, t } = useLanguage();
+  const { formatDate, formatNumber, t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, removeFromCart, cartItems } = useCart();
@@ -600,7 +600,8 @@ export default function DetalhePeca() {
                   style={{
                     width: '100%',
                     height: 120,
-                    objectFit: 'cover',
+                    objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
                     borderRadius: BORDER_RADIUS.MD,
                     marginBottom: SPACING.SM,
                   }}
@@ -751,7 +752,7 @@ export default function DetalhePeca() {
                     fontWeight: 800,
                   }}
                 >
-                  ★ {Number(fornecedorItem.media_avaliacoes || 0).toFixed(1)} • {fornecedorItem.total_avaliacoes || 0} {t((fornecedorItem.total_avaliacoes || 0) === 1 ? 'verifiedReviews' : 'verifiedReviewsPlural')}
+                  ★ {formatNumber(fornecedorItem.media_avaliacoes || 0, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} • {fornecedorItem.total_avaliacoes || 0} {t((fornecedorItem.total_avaliacoes || 0) === 1 ? 'verifiedReviews' : 'verifiedReviewsPlural')}
                 </div>
 
                 <div
@@ -860,7 +861,8 @@ export default function DetalhePeca() {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
                         display: 'block',
                       }}
                     />
@@ -923,7 +925,7 @@ export default function DetalhePeca() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {peca.condicao || 'N/I'}
+                        {peca.condicao ? <CondicaoPeca condicao={peca.condicao} alinharFim /> : t('noInfo')}
                       </span>
                     </div>
 
@@ -958,7 +960,7 @@ export default function DetalhePeca() {
                         fontWeight: 800,
                       }}
                     >
-                      {t('stockLabel')}: {peca.estoque_atual ?? 0}
+                      {t('stockLabel')}: {formatNumber(peca.estoque_atual ?? 0)}
                     </span>
                   </div>
 
@@ -1067,10 +1069,10 @@ export default function DetalhePeca() {
                   gap: SPACING.MD,
                 }}
               >
-                <InfoItem label={t('weight')} value={peca.peso_gramas ? `${peca.peso_gramas} g` : ''} />
-                <InfoItem label={t('length')} value={peca.comprimento_mm ? `${peca.comprimento_mm} mm` : ''} />
-                <InfoItem label={t('width')} value={peca.largura_mm ? `${peca.largura_mm} mm` : ''} />
-                <InfoItem label={t('height')} value={peca.altura_mm ? `${peca.altura_mm} mm` : ''} />
+                <InfoItem label={t('weight')} value={peca.peso_gramas ? `${formatNumber(peca.peso_gramas)} g` : ''} />
+                <InfoItem label={t('length')} value={peca.comprimento_mm ? `${formatNumber(peca.comprimento_mm)} mm` : ''} />
+                <InfoItem label={t('width')} value={peca.largura_mm ? `${formatNumber(peca.largura_mm)} mm` : ''} />
+                <InfoItem label={t('height')} value={peca.altura_mm ? `${formatNumber(peca.altura_mm)} mm` : ''} />
               </section>
 
               <TextSection title={t('detailsOfEngraving')}>

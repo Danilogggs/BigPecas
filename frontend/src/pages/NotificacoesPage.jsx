@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { useLanguage } from '../contexts/LanguageContext';
 import useNotificacoes from '../features/notificacoes/application/useNotificacoes';
-import { formatarDataNotificacao as formatDate } from '../features/notificacoes/presentation/notificacaoPresentation';
+import { formatarDataNotificacao } from '../features/notificacoes/presentation/notificacaoPresentation';
 
 const CREAM = 'var(--bp-cream)';
 const BORDER = 'var(--bp-border)';
@@ -12,7 +12,8 @@ const WHITE = 'var(--bp-surface)';
 
 export default function NotificacoesPage() {
   const { error, loading, marcarComoLida, notificacoes } = useNotificacoes();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const formatDate = (value) => formatarDataNotificacao(value, locale);
 
   return (
     <div style={{ minHeight: '100vh', background: CREAM }}>

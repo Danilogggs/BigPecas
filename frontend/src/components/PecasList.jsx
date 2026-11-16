@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useMoney } from '../contexts/CurrencyContext';
 
 const PecasList = memo(function PecasList({
   pecas,
@@ -10,6 +11,7 @@ const PecasList = memo(function PecasList({
   onSelectPeca,
 }) {
   const { t } = useLanguage();
+  const formatMoney = useMoney();
   return (
     <div className="pecas-list-container">
       <div className="pecas-list-header">
@@ -40,7 +42,7 @@ const PecasList = memo(function PecasList({
               <div className="peca-item-nome">{peca.nome_peca}</div>
               <div className="peca-item-sku">{t('sku', { value: peca.sku })}</div>
               <div className="peca-item-preco">
-                R$ {typeof peca.preco === 'number' ? peca.preco.toFixed(2) : peca.preco}
+                {formatMoney(peca.preco_base ?? peca.preco, peca.moeda_base || 'BRL')}
               </div>
             </div>
           ))

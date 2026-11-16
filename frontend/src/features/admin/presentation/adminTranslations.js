@@ -72,6 +72,8 @@ const REPORT_COPY = {
   },
 };
 
-export function createAdminTranslator(language) {
-  return (text) => REPORT_COPY[language]?.[text] || EXTRA[language]?.[text] || COPY[language]?.[text] || text;
+// Traducoes especificas do painel; textos fora delas caem no dicionario global
+// (quando um tradutor de fallback e informado) e, por ultimo, no proprio texto.
+export function createAdminTranslator(language, fallback = (text) => text) {
+  return (text) => REPORT_COPY[language]?.[text] || EXTRA[language]?.[text] || COPY[language]?.[text] || fallback(text);
 }

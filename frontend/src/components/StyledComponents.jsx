@@ -39,7 +39,7 @@ export function ButtonSecondary({ children, onClick, ...props }) {
       type="button"
       onClick={onClick}
       style={BUTTON_SECONDARY_STYLE}
-      onMouseEnter={(e) => (e.target.style.backgroundColor = `${COLORS.BORDEAUX}22`)}
+      onMouseEnter={(e) => (e.target.style.backgroundColor = 'var(--bp-surface-muted)')}
       onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
       {...props}
     >
@@ -118,7 +118,7 @@ export function Label({ children, required = false }) {
   return (
     <label style={LABEL_STYLE}>
       {typeof children === 'string' ? t(children) : children}
-      {required && <span style={{ color: COLORS.BORDEAUX, marginLeft: '0.2rem' }}>*</span>}
+      {required && <span style={{ color: COLORS.ACCENT_TEXT, marginLeft: '0.2rem' }}>*</span>}
     </label>
   );
 }

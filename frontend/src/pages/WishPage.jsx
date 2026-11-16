@@ -13,19 +13,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import useListaFavoritos from '../features/favoritos/application/useListaFavoritos';
 import { AppIcon } from '../components/Icons';
 
-function formatarPreco(valor) {
-  const numero = Number(valor);
-
-  if (Number.isNaN(numero)) {
-    return valor ? `R$ ${valor}` : 'Preço não informado';
-  }
-
-  return numero.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-}
-
 export default function WishPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -223,7 +210,7 @@ export default function WishPage() {
                       <img
                         src={peca.imagem}
                         alt={peca.nome_peca || t('partImage')}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'var(--bp-surface-muted)', display: 'block' }}
                       />
                     ) : (
                       <span style={{ color: 'var(--bp-on-light)', fontWeight: 800 }}>{t('noImage')}</span>

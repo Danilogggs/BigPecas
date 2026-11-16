@@ -4,6 +4,7 @@ import { AppIcon } from '../components/Icons';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import useCatalogoPecas from '../features/pecas/application/useCatalogoPecas';
+import CondicaoPeca from '../components/CondicaoPeca';
 import {
   PRECO_MAXIMO_FILTRO,
   SLIDER_MAXIMO_PRECO,
@@ -56,16 +57,101 @@ export default function BuscaPecas() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: COLORS.CREAM }}>
       <style>{`
+        /* No celular o <main> ja tem margem lateral; sem isso os cards ficam estreitos. */
+        @media (max-width: 620px) {
+          .catalog-grid { padding: ${SPACING.LG} 0 !important; }
+          .catalog-filters { margin: 0 !important; padding: ${SPACING.LG} !important; }
+        }
+
+        .price-filter {
+          grid-column: 1 / -1;
+          min-width: 0;
+        }
+
+        .price-filter__values {
+          display: flex;
+          flex-wrap: wrap;
+          gap: ${SPACING.MD};
+        }
+
+        .price-filter__value {
+          flex: 1 1 140px;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          color: var(--bp-text-muted);
+          font-size: 0.8rem;
+          font-weight: 700;
+        }
+
+        .price-filter__slider {
+          position: relative;
+          height: 36px;
+          margin: ${SPACING.SM} 11px 0;
+        }
+
+        .price-filter__track,
+        .price-filter__range {
+          position: absolute;
+          top: 50%;
+          height: 6px;
+          margin-top: -3px;
+          border-radius: 999px;
+        }
+
+        .price-filter__track {
+          left: 0;
+          right: 0;
+          background: var(--bp-border-light);
+          box-shadow: inset 0 0 0 1px var(--bp-border);
+        }
+
+        .price-filter__range {
+          background: var(--bp-gold);
+        }
+
         .dual-range {
+          position: absolute;
+          inset: 0 -11px;
+          width: calc(100% + 22px);
+          height: 100%;
+          margin: 0;
+          appearance: none;
+          -webkit-appearance: none;
+          background: none;
           pointer-events: none;
         }
 
+        .dual-range::-webkit-slider-runnable-track {
+          background: none;
+        }
+
+        .dual-range::-moz-range-track {
+          background: none;
+        }
+
         .dual-range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          box-sizing: border-box;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: var(--bp-surface);
+          border: 3px solid var(--bp-gold);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
           pointer-events: auto;
           cursor: pointer;
         }
 
         .dual-range::-moz-range-thumb {
+          box-sizing: border-box;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: var(--bp-surface);
+          border: 3px solid var(--bp-gold);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
           pointer-events: auto;
           cursor: pointer;
         }
@@ -146,7 +232,7 @@ export default function BuscaPecas() {
         </div>
 
         {showFilters && (
-          <div style={{
+          <div className="catalog-filters" style={{
             margin: `0 ${SPACING.XL}`,
             backgroundColor: 'var(--bp-surface)',
             padding: SPACING.XL,
@@ -203,204 +289,75 @@ export default function BuscaPecas() {
               </div>
 
 
-              <div style={{ gridColumn: 'span 2', marginTop: SPACING.SM }}>
-  <label style={LABEL_STYLE}>{t('priceRange')} ({money?.currency || 'BRL'})</label>
+              <div className="price-filter">
+                <span style={LABEL_STYLE}>{t('priceRange')} ({money?.currency || 'BRL'})</span>
 
-  <div
-    style={{
-      position: 'relative',
-      height: '70px',
-      marginTop: '25px',
-    }}
-  >
-    {/* input mínimo */}
-    <div
-      style={{
-        position: 'absolute',
-        top: '-8px',
-        left: `${
-          (precoParaSlider(filters.min_preco) /
-            SLIDER_MAXIMO_PRECO) *
-          100
-        }%`,
-        transform: 'translateX(-50%)',
-        zIndex: 10,
-      }}
-    >
-      <input
-        type="number"
-        min="0"
-        max={filters.max_preco}
-        value={filters.min_preco}
-        onChange={(e) => {
-          const value = Number(e.target.value);
+                <div className="price-filter__values">
+                  <label className="price-filter__value">
+                    <span>{t('priceMin')}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max={filters.max_preco}
+                      value={filters.min_preco}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setFilters((prev) => ({ ...prev, min_preco: Math.min(value, prev.max_preco) }));
+                      }}
+                      style={INPUT_STYLE}
+                    />
+                  </label>
+                  <label className="price-filter__value">
+                    <span>{t('priceMax')}</span>
+                    <input
+                      type="number"
+                      min={filters.min_preco}
+                      max={PRECO_MAXIMO_FILTRO}
+                      value={filters.max_preco}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setFilters((prev) => ({ ...prev, max_preco: Math.max(value, prev.min_preco) }));
+                      }}
+                      style={INPUT_STYLE}
+                    />
+                  </label>
+                </div>
 
-          setFilters((prev) => ({
-            ...prev,
-            min_preco: Math.min(
-              value,
-              prev.max_preco
-            ),
-          }));
-        }}
-        style={{
-          width: '90px',
-          backgroundColor: 'var(--bp-primary-action)',
-          color: 'var(--bp-on-primary)',
-          border: 'none',
-          borderRadius: '4px',
-          padding: '4px 8px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          outline: 'none',
-        }}
-      />
-    </div>
-
-    {/* input máximo */}
-    <div
-      style={{
-        position: 'absolute',
-        top: '-8px',
-        left: `${
-          (precoParaSlider(filters.max_preco) /
-            SLIDER_MAXIMO_PRECO) *
-          100
-        }%`,
-        transform: 'translateX(-50%)',
-        zIndex: 10,
-      }}
-    >
-      <input
-        type="number"
-        min={filters.min_preco}
-        max={PRECO_MAXIMO_FILTRO}
-        value={filters.max_preco}
-        onChange={(e) => {
-          const value = Number(e.target.value);
-
-          setFilters((prev) => ({
-            ...prev,
-            max_preco: Math.max(
-              value,
-              prev.min_preco
-            ),
-          }));
-        }}
-        style={{
-          width: '90px',
-          backgroundColor: 'var(--bp-primary-action)',
-          color: 'var(--bp-on-primary)',
-          border: 'none',
-          borderRadius: '4px',
-          padding: '4px 8px',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          outline: 'none',
-        }}
-      />
-    </div>
-
-    {/* trilha */}
-    <div
-      style={{
-        position: 'absolute',
-        top: '38px',
-        left: 0,
-        right: 0,
-        height: '4px',
-        background: '#ddd',
-        borderRadius: '4px',
-      }}
-    />
-
-    {/* faixa ativa */}
-    <div
-      style={{
-        position: 'absolute',
-        top: '38px',
-        left: `${
-          (precoParaSlider(filters.min_preco) /
-            SLIDER_MAXIMO_PRECO) *
-          100
-        }%`,
-        right: `${
-          100 -
-          (precoParaSlider(filters.max_preco) /
-            SLIDER_MAXIMO_PRECO) *
-            100
-        }%`,
-        height: '4px',
-        background: 'var(--bp-primary-action)',
-        borderRadius: '4px',
-      }}
-    />
-
-    {/* slider mínimo */}
-    <input
-      type="range"
-      className="dual-range"
-      min="0"
-      max={SLIDER_MAXIMO_PRECO}
-      value={precoParaSlider(filters.min_preco)}
-      onChange={(e) => {
-        const value = sliderParaPreco(
-          Number(e.target.value)
-        );
-
-        setFilters((prev) => ({
-          ...prev,
-          min_preco: Math.min(
-            value,
-            prev.max_preco
-          ),
-        }));
-      }}
-      style={{
-        position: 'absolute',
-        top: '20px',
-        width: '100%',
-        height: '40px',
-        appearance: 'none',
-        background: 'none',
-        zIndex: 3,
-      }}
-    />
-
-    {/* slider máximo */}
-    <input
-      type="range"
-      className="dual-range"
-      min="0"
-      max={SLIDER_MAXIMO_PRECO}
-      value={precoParaSlider(filters.max_preco)}
-      onChange={(e) => {
-        const value = sliderParaPreco(
-          Number(e.target.value)
-        );
-
-        setFilters((prev) => ({
-          ...prev,
-          max_preco: Math.max(
-            value,
-            prev.min_preco
-          ),
-        }));
-      }}
-      style={{
-        position: 'absolute',
-        top: '20px',
-        width: '100%',
-        height: '40px',
-        appearance: 'none',
-        background: 'none',
-        zIndex: 4,
-      }}
-    />
-  </div>
-</div>
+                <div className="price-filter__slider">
+                  <div className="price-filter__track" />
+                  <div
+                    className="price-filter__range"
+                    style={{
+                      left: `${(precoParaSlider(filters.min_preco) / SLIDER_MAXIMO_PRECO) * 100}%`,
+                      right: `${100 - (precoParaSlider(filters.max_preco) / SLIDER_MAXIMO_PRECO) * 100}%`,
+                    }}
+                  />
+                  <input
+                    type="range"
+                    className="dual-range"
+                    aria-label={t('priceMin')}
+                    min="0"
+                    max={SLIDER_MAXIMO_PRECO}
+                    value={precoParaSlider(filters.min_preco)}
+                    onChange={(e) => {
+                      const value = sliderParaPreco(Number(e.target.value));
+                      setFilters((prev) => ({ ...prev, min_preco: Math.min(value, prev.max_preco) }));
+                    }}
+                  />
+                  <input
+                    type="range"
+                    className="dual-range"
+                    aria-label={t('priceMax')}
+                    min="0"
+                    max={SLIDER_MAXIMO_PRECO}
+                    value={precoParaSlider(filters.max_preco)}
+                    onChange={(e) => {
+                      const value = sliderParaPreco(Number(e.target.value));
+                      setFilters((prev) => ({ ...prev, max_preco: Math.max(value, prev.min_preco) }));
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -448,7 +405,7 @@ export default function BuscaPecas() {
           </div>
         )}
 
-        <div style={{
+        <div className="catalog-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: SPACING.LG,
@@ -520,7 +477,8 @@ export default function BuscaPecas() {
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover',
+                      objectFit: 'contain',
+                    backgroundColor: 'var(--bp-surface-muted)',
                       display: 'block',
                     }}
                   />
@@ -546,13 +504,16 @@ export default function BuscaPecas() {
               </div>
 
               <div style={{ padding: SPACING.LG, display: 'flex', flexDirection: 'column', gap: SPACING.SM }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: SPACING.MD }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: SPACING.SM }}>
                   <h2
                     style={{
+                      flex: '1 1 10rem',
+                      minWidth: 0,
                       margin: 0,
                       color: COLORS.DARK_TEXT,
                       fontSize: '1.15rem',
                       lineHeight: 1.3,
+                      overflowWrap: 'anywhere',
                     }}
                   >
                     {item.nome_peca || t('partWithoutName')}
@@ -570,7 +531,7 @@ export default function BuscaPecas() {
                       height: 'fit-content',
                     }}
                   >
-                    {item.condicao || 'N/I'}
+                    {item.condicao ? <CondicaoPeca condicao={item.condicao} alinharFim /> : t('noInfo')}
                   </span>
                 </div>
 
@@ -614,9 +575,10 @@ export default function BuscaPecas() {
                     paddingTop: SPACING.SM,
                     borderTop: '1px solid var(--bp-border-light)',
                     display: 'flex',
+                    flexWrap: 'wrap',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    gap: SPACING.MD,
+                    gap: SPACING.SM,
                   }}
                 >
                   <strong

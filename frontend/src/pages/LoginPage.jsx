@@ -94,6 +94,10 @@ export default function LoginPage() {
           <p className="auth-form-tag">{t('accountAccess')}</p>
           <h2 className="auth-form-title">{t('enterAccount')}</h2>
 
+          {new URLSearchParams(location.search).has('emailConfirmado') && (
+            <div className="alert alert-success" style={{ marginBottom: '1rem' }}>{t('emailConfirmedLogin')}</div>
+          )}
+
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group" style={{ marginBottom: '1.1rem' }}>
               <label className="label" htmlFor="email">{t('email')}</label>

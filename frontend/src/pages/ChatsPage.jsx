@@ -28,7 +28,7 @@ export default function ChatsPage() {
   const { user, loading: loadingAuth } = useAuth();
   const { formatDate: formatLocalizedDate, t } = useLanguage();
 
-  const { conversas, conversasVazias, errorMessage, loading } = useConversasAtivas({
+  const { conversas, conversasVazias, errorMessage, loading, perfilAtual } = useConversasAtivas({
     user, loadingAuth, t,
   });
 
@@ -100,7 +100,7 @@ export default function ChatsPage() {
             </div>
 
             <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_SECONDARY_STYLE}>
-              {t('Ver pecas')}
+              {t('Ver peças')}
             </button>
           </section>
 
@@ -136,13 +136,13 @@ export default function ChatsPage() {
               }}
             >
               <strong style={{ color: COLORS.DARK_TEXT, fontSize: '1.1rem' }}>
-                {t('Voce ainda nao tem chats ativos.')}
+                {t('Você ainda não tem chats ativos.')}
               </strong>
               <p style={{ color: 'var(--bp-text-muted)', lineHeight: 1.6, margin: `${SPACING.SM} 0 ${SPACING.LG}` }}>
-                {t('Abra uma peca ou o perfil de um vendedor para iniciar uma conversa.')}
+                {t('Abra uma peça ou o perfil de um vendedor para iniciar uma conversa.')}
               </p>
               <button type="button" onClick={() => navigate('/buscaPecas')} style={BUTTON_PRIMARY_STYLE}>
-                {t('Procurar pecas')}
+                {t('Procurar peças')}
               </button>
             </section>
           )}
@@ -157,7 +157,7 @@ export default function ChatsPage() {
             >
               {conversas.map((conversa) => {
                 const enviadaPorMim =
-                  String(conversa.ultimaMensagem.id_remetente) === String(usuarioAtualIdMensagens);
+                  String(conversa.ultimaMensagem.id_remetente) === String(perfilAtual?.id);
                 const nome = nomeParticipante(conversa.usuario);
                 const preview = conversa.ultimaMensagem.mensagem || '';
 
@@ -222,7 +222,7 @@ export default function ChatsPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {enviadaPorMim ? t('Voce: ') : ''}
+                        {enviadaPorMim ? t('Você: ') : ''}
                         {preview}
                       </div>
                     </button>

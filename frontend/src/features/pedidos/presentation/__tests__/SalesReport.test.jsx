@@ -1,5 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderPage } from '../../../../../jest/helpers/render';
 import SalesReport from '../SalesReport';
 import { obterRelatorioVendas } from '../../../../services/pedidosService';
 
@@ -19,7 +20,7 @@ beforeEach(() => { jest.clearAllMocks(); });
 test('exibe resumo global do banco e muda de pagina sem recalcular pelos itens visiveis', async () => {
   obterRelatorioVendas.mockImplementation((_days, page) => Promise.resolve(report(page)));
   const user = userEvent.setup();
-  render(<SalesReport />);
+  renderPage(<SalesReport />);
   await screen.findByText('pedido-1', { exact: false });
   expect(screen.getByText('51', { exact: true })).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Próxima' }));
@@ -32,7 +33,7 @@ test('exibe resumo global do banco e muda de pagina sem recalcular pelos itens v
 
 test('mostra falha em vez de apresentar ausencia de vendas como resultado da consulta', async () => {
   obterRelatorioVendas.mockRejectedValue(new Error('Relatórios em atualização.'));
-  render(<SalesReport />);
+  renderPage(<SalesReport />);
   expect(await screen.findByRole('alert')).toHaveTextContent('Relatórios em atualização.');
   expect(screen.queryByText('Nenhuma venda paga neste período.')).not.toBeInTheDocument();
 });

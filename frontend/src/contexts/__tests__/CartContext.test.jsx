@@ -1,5 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { CartProvider, useCart } from '../CartContext';
+import { AuthProvider } from '../AuthContext';
 
 const FRISO = { id: 10, nome: 'Friso Opala', preco: 350, estoque: 3 };
 const RODA = { id: 11, nome: 'Roda Weber', preco: 900, estoque: 2 };
@@ -177,6 +178,95 @@ describe('CartContext', () => {
       expect(() => renderHook(() => useCart())).toThrow(
         'useCart must be used within a CartProvider',
       );
+    });
+  });
+
+  describe('sincronizacao com a conta', () => {
+    const USUARIO = { id: 'uuid-1', email: 'cliente@bigpecas.com' };
+
+    function criarAuthGateway(usuarioInicial = USUARIO) {
+      let notificar;
+      return {
+        estaConfigurado: () => true,
+        obterSessao: jest.fn().mockResolvedValue(usuarioInicial ? { user: usuarioInicial } : null),
+        observarSessao: jest.fn((callback) => { notificar = callback; return jest.fn(); }),
+        emitir: (sessao) => notificar(sessao),
+      };
+    }
+
+    function criarRemoto(carregado = { itens: [], atualizado_em: null }) {
+      return {
+        carregar: jest.fn().mockResolvedValue(carregado),
+        salvar: jest.fn().mockResolvedValue({}),
+      };
+    }
+
+    function montarComConta({ authGateway = criarAuthGateway(), remoto = criarRemoto() } = {}) {
+      const wrapper = ({ children }) => (
+        <AuthProvider authGateway={authGateway}>
+          <CartProvider remoteCartRepository={remoto}>{children}</CartProvider>
+        </AuthProvider>
+      );
+      return { ...renderHook(() => useCart(), { wrapper }), remoto, authGateway };
+    }
+
+    afterEach(() => { jest.useRealTimers(); });
+
+    it('substitui o carrinho local pelo salvo na conta', async () => {
+      localStorage.setItem('cartItems', JSON.stringify([{ ...FRISO, quantidade: 1 }]));
+      const { result, remoto } = montarComConta({
+        remoto: criarRemoto({ itens: [{ ...RODA, quantidade: 2 }], atualizado_em: '2026-10-26' }),
+      });
+
+      await waitFor(() => expect(result.current.cartItems).toEqual([{ ...RODA, quantidade: 2 }]));
+      expect(remoto.carregar).toHaveBeenCalledTimes(1);
+    });
+
+    it('mantem e envia o carrinho local quando a conta ainda nao tem carrinho salvo', async () => {
+      localStorage.setItem('cartItems', JSON.stringify([{ ...FRISO, quantidade: 1 }]));
+      const { result, remoto } = montarComConta();
+
+      await waitFor(() => expect(remoto.salvar).toHaveBeenCalledWith([{ ...FRISO, quantidade: 1 }]));
+      expect(result.current.cartItems).toEqual([{ ...FRISO, quantidade: 1 }]);
+    });
+
+    it('envia as alteracoes para a conta depois de sincronizar', async () => {
+      const { result, remoto } = montarComConta();
+      await waitFor(() => expect(remoto.salvar).toHaveBeenCalledWith([]));
+
+      act(() => { result.current.addToCart(RODA); });
+
+      await waitFor(() => expect(remoto.salvar).toHaveBeenLastCalledWith([{ ...RODA, quantidade: 1 }]));
+    });
+
+    it('nao envia nada quando o carregamento remoto falha, mas libera o salvamento depois', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      const remoto = criarRemoto();
+      remoto.carregar.mockRejectedValue(new Error('offline'));
+      remoto.salvar.mockRejectedValue(new Error('offline'));
+      const { result } = montarComConta({ remoto });
+
+      await waitFor(() => expect(remoto.salvar).toHaveBeenCalled());
+      expect(result.current.cartItems).toEqual([]);
+      await waitFor(() => expect(console.error).toHaveBeenCalledWith('Erro ao salvar carrinho:', expect.any(Error)));
+    });
+
+    it('limpa o carrinho deste navegador ao sair da conta', async () => {
+      const { result, remoto, authGateway } = montarComConta();
+      await waitFor(() => expect(remoto.salvar).toHaveBeenCalled());
+      act(() => { result.current.addToCart(FRISO); });
+
+      act(() => { authGateway.emitir(null); });
+
+      await waitFor(() => expect(result.current.cartItems).toEqual([]));
+      expect(carrinhoSalvo()).toEqual([]);
+    });
+
+    it('nao consulta a conta sem usuario autenticado', async () => {
+      const { remoto, authGateway } = montarComConta({ authGateway: criarAuthGateway(null) });
+
+      await waitFor(() => expect(authGateway.obterSessao).toHaveBeenCalled());
+      expect(remoto.carregar).not.toHaveBeenCalled();
     });
   });
 });

@@ -12,7 +12,7 @@ const repository = criarSupabaseUsuariosRepository({
 const useCases = criarUsuariosUseCases({
   repository,
   emailConfirmRedirectTo: process.env.SUPABASE_EMAIL_CONFIRM_REDIRECT_TO
-    || `${frontendUrl}/login?emailConfirmado=1`,
+    || `${frontendUrl}/email-confirmado`,
 });
 
 module.exports = criarUsuariosController(useCases);

@@ -40,13 +40,16 @@ function criarMelhorEnvioGateway({ config, envPath, logger }) {
     return data;
   }
 
+  const podeRenovar = () => Boolean(config.clientId && config.clientSecret && tokens.refresh_token);
+
   async function calcular(payload) {
+    if (!tokens.access_token) throw new AppError(503, 'Token do Melhor Envio não configurado.');
     const executar = () => fetch(`${config.baseUrl}/api/v2/me/shipment/calculate`, {
       method: 'POST', headers: headers(), body: JSON.stringify(payload),
     });
     let response = await executar();
-    if (response.status === 401) {
-      console.log('🔄 Token expirado. Renovando...');
+    if (response.status === 401 && podeRenovar()) {
+      logger.info('Token do Melhor Envio expirado. Renovando...');
       await renovarToken();
       response = await executar();
     }

@@ -35,6 +35,10 @@ function criarPayloadCalculo({ cep_origem, cep_destino, produtos }) {
   };
 }
 
+function textoPrazo(min, max) {
+  return min === 1 ? 'Entrega em 1 dia útil' : `Entrega em até ${max} dias úteis`;
+}
+
 function normalizarOpcoesFrete(data) {
   if (!Array.isArray(data)) return [];
   return data.filter((opcao) => opcao.price && !opcao.error).map((opcao) => ({
@@ -46,11 +50,41 @@ function normalizarOpcoesFrete(data) {
     prazo_min: opcao.custom_delivery_range?.min ?? opcao.delivery_range?.min ?? opcao.delivery_time,
     prazo_max: opcao.custom_delivery_range?.max ?? opcao.delivery_range?.max ?? opcao.delivery_time,
     prazo_dias: opcao.custom_delivery_time || opcao.delivery_time,
-    prazo_texto: (opcao.custom_delivery_range?.min ?? opcao.delivery_time) === 1
-      ? 'Entrega em 1 dia útil'
-      : `Entrega em até ${opcao.custom_delivery_range?.max ?? opcao.delivery_time} dias úteis`,
+    prazo_texto: textoPrazo(
+      opcao.custom_delivery_range?.min ?? opcao.delivery_time,
+      opcao.custom_delivery_range?.max ?? opcao.delivery_time,
+    ),
     desconto: Number(opcao.discount || 0),
   })).sort((a, b) => a.valor - b.valor);
 }
 
-module.exports = { criarPayloadCalculo, normalizarOpcoesFrete };
+// Cotacao aproximada usada quando o Melhor Envio esta indisponivel (token
+// invalido, fora do ar), para que o checkout nao fique bloqueado. A distancia
+// e estimada pela diferenca entre as regioes postais (primeiro digito do CEP).
+function estimarOpcoesFrete(payload) {
+  const pesoKg = payload.products.reduce((total, produto) => total + produto.weight * produto.quantity, 0);
+  const distancia = Math.abs(Number(payload.from.postal_code[0]) - Number(payload.to.postal_code[0]));
+  const arredondar = (valor) => Math.round(valor * 100) / 100;
+  const pac = arredondar(18 + 6 * pesoKg + 3 * distancia);
+  const opcoes = [
+    { id: 'estimativa-pac', tipo: 'PAC', valor: pac, prazo_min: 4 + distancia, prazo_max: 6 + distancia },
+    {
+      id: 'estimativa-sedex',
+      tipo: 'SEDEX',
+      valor: arredondar(pac * 1.7),
+      prazo_min: 1 + Math.ceil(distancia / 2),
+      prazo_max: 2 + Math.ceil(distancia / 2),
+    },
+  ];
+  return opcoes.map((opcao) => ({
+    ...opcao,
+    transportadora: 'Correios (estimativa)',
+    logo: null,
+    prazo_dias: opcao.prazo_max,
+    prazo_texto: textoPrazo(opcao.prazo_min, opcao.prazo_max),
+    desconto: 0,
+    estimado: true,
+  }));
+}
+
+module.exports = { criarPayloadCalculo, estimarOpcoesFrete, normalizarOpcoesFrete };

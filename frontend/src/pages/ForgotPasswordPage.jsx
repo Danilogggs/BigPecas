@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
 
     try {
       await resetPassword(email.trim().toLowerCase());
-      setSuccess('Enviamos um link de recuperação para o seu email.');
+      setSuccess('forgotPasswordNeutral');
     } catch (err) {
       setError(t(mapSupabaseAuthError(err, 'resetPassword')));
     } finally {
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
   }
 
   const fieldErrorStyle = {
-    color: COLORS.BORDEAUX,
+    color: COLORS.ACCENT_TEXT,
     fontSize: '0.82rem',
     marginTop: '6px',
     fontWeight: 600,
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
           maxWidth: '500px',
           backgroundColor: 'var(--bp-surface)',
           borderRadius: BORDER_RADIUS.LG,
-          border: `2px solid ${COLORS.BORDEAUX}22`,
+          border: '2px solid var(--bp-border-light)',
           padding: SPACING.XL,
           boxShadow: SHADOWS.SM,
         }}
@@ -126,12 +126,12 @@ export default function ForgotPasswordPage() {
                 onChange={handleChange}
                 required
               />
-              {errors.email && <div style={fieldErrorStyle}>{errors.email}</div>}
+              {errors.email && <div style={fieldErrorStyle}>{t(errors.email)}</div>}
             </Field>
           </div>
 
           {error && <AlertError>{error}</AlertError>}
-          {success && <AlertSuccess>{success}</AlertSuccess>}
+          {success && <AlertSuccess>{t(success)}</AlertSuccess>}
 
           <ButtonPrimary
             type="submit"
@@ -142,13 +142,13 @@ export default function ForgotPasswordPage() {
               padding: '14px 18px',
               border: 'none',
               borderRadius: BORDER_RADIUS.MD,
-              backgroundColor: COLORS.BORDEAUX,
+              backgroundColor: 'var(--bp-primary-action)',
               color: '#fff',
               fontSize: '1rem',
               fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.7 : 1,
-              boxShadow: `0 4px 12px ${COLORS.BORDEAUX}22`,
+              boxShadow: 'var(--shadow-md)',
             }}
           >
             {loading ? t('Enviando...') : t('Enviar email')}
